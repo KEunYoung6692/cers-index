@@ -102,7 +102,6 @@ Table "report_framework" {
 Table "emission" {
   "emission_id" SERIAL [pk, increment]
   "sub_company_id" INTEGER
-  "report_id" INTEGER
   "emission_year" INTEGER [not null]
   "scope" VARCHAR(10) [not null] // 'S1','S2','S1S2','S3','TOTAL'
   "emissions_value" NUMERIC(20,3)
@@ -110,6 +109,7 @@ Table "emission" {
   "data_level" INTEGER [not null, default: 2] // 1 verified, 2 self, 3 proxy
   "evidence_page" INTEGER
   "evidence_note" VARCHAR(255)
+  "s3_category" VARCHAR
   "notes" VARCHAR
 
   "reg_date" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]

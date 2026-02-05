@@ -2,7 +2,7 @@ import "server-only";
 
 import { Pool } from "pg";
 import type { DashboardData } from "@/lib/data/dashboard";
-import type { EvidenceItem, ScoreRun } from "@/data/mockData";
+import type { EvidenceItem, ScoreRun, EmissionData } from "@/data/mockData";
 
 let pool: Pool | null = null;
 
@@ -157,8 +157,9 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
            WHERE scope IN ('S1', 'S2', 'S1S2', 'TOTAL')`
         : `SELECT sc.company_id AS company_id, e.emission_year, e.scope, e.emissions_value, e.data_level, e.evidence_page, e.evidence_note
            FROM emission e
-           LEFT JOIN sub_company sc ON sc.sub_company_id = e.sub_company_id
-           WHERE e.scope IN ('S1', 'S2', 'S1S2', 'TOTAL')`,
+           JOIN sub_company sc ON sc.sub_company_id = e.sub_company_id
+           WHERE sc.is_self IS TRUE
+             AND e.scope IN ('S1', 'S2', 'S1S2', 'TOTAL')`,
     ),
     pool.query(
       hasDenomCompany
@@ -237,48 +238,37 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
   }
 
   const reports: DashboardData["reports"] = {};
-  const reportByCompany = new Map<string, { year: number; reportId: number }>();
 
   for (const row of reportsRes.rows) {
     const companyId = String(row.company_id);
     const reportYear = row.report_year as number;
-    const current = reportByCompany.get(companyId);
-    if (!current || reportYear > current.year) {
-      reportByCompany.set(companyId, { year: reportYear, reportId: row.report_id as number });
-    }
-  }
-
-  for (const row of reportsRes.rows) {
-    const companyId = String(row.company_id);
-    const reportYear = row.report_year as number;
-    const selected = reportByCompany.get(companyId);
-    if (!selected || selected.reportId !== row.report_id) continue;
-
     const frameworks = frameworksByReportId.get(row.report_id as number) ?? [];
     const publicationDate = row.report_date
       ? new Date(row.report_date as string).toISOString().slice(0, 10)
       : null;
 
-    reports[companyId] = {
+    if (!reports[companyId]) {
+      reports[companyId] = [];
+    }
+
+    reports[companyId].push({
       reportYear,
       publicationDate: publicationDate ?? "",
       assuranceOrg: (row.assurance_org as string) ?? null,
       frameworks,
-    };
+    });
+  }
+
+  for (const companyId of Object.keys(reports)) {
+    reports[companyId].sort((a, b) => b.reportYear - a.reportYear);
   }
 
   const emissionsData: DashboardData["emissionsData"] = {};
   const emissionEvidence: Record<string, EvidenceItem[]> = {};
-
-  const emissionFlags = new Map<string, { hasS1: boolean; hasS2: boolean }>();
-
-  const getEmissionFlags = (companyId: string, year: number) => {
-    const key = `${companyId}:${year}`;
-    if (!emissionFlags.has(key)) {
-      emissionFlags.set(key, { hasS1: false, hasS2: false });
-    }
-    return emissionFlags.get(key)!;
-  };
+  const emissionAggregates = new Map<
+    string,
+    { companyId: string; year: number; s1: number; s2: number; s1s2: number; total: number }
+  >();
 
   for (const row of emissionsRes.rows) {
     if (row.company_id === null || row.company_id === undefined) {
@@ -288,39 +278,16 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
     const year = row.emission_year as number;
     const scope = row.scope as string;
     const value = toNumber(row.emissions_value);
+    const key = `${companyId}:${year}`;
+    if (!emissionAggregates.has(key)) {
+      emissionAggregates.set(key, { companyId, year, s1: 0, s2: 0, s1s2: 0, total: 0 });
+    }
+    const aggregate = emissionAggregates.get(key)!;
 
-    if (!emissionsData[companyId]) emissionsData[companyId] = [];
-    let entry = emissionsData[companyId].find((item) => item.year === year);
-    if (!entry) {
-      entry = {
-        year,
-        s1Emissions: 0,
-        s2Emissions: 0,
-        denomValue: 0,
-        denomType: "revenue",
-      };
-      emissionsData[companyId].push(entry);
-    }
-
-    const flags = getEmissionFlags(companyId, year);
-
-    if (scope === "S1") {
-      entry.s1Emissions = value;
-      flags.hasS1 = true;
-    }
-    if (scope === "S2") {
-      entry.s2Emissions = value;
-      flags.hasS2 = true;
-    }
-    if (scope === "S1S2") {
-      if (!flags.hasS1 && !flags.hasS2) {
-        entry.s1Emissions = value;
-        entry.s2Emissions = 0;
-      }
-    }
-    if (scope === "TOTAL") {
-      entry.totalEmissions = value;
-    }
+    if (scope === "S1") aggregate.s1 += value;
+    if (scope === "S2") aggregate.s2 += value;
+    if (scope === "S1S2") aggregate.s1s2 += value;
+    if (scope === "TOTAL") aggregate.total += value;
 
     const status = mapDataLevelStatus(row.data_level as number | null);
     if (row.evidence_page || row.evidence_note) {
@@ -334,6 +301,38 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
         status,
       });
     }
+  }
+
+  for (const aggregate of emissionAggregates.values()) {
+    const { companyId, year } = aggregate;
+    let s1Emissions = aggregate.s1;
+    let s2Emissions = aggregate.s2;
+    let totalEmissions = aggregate.total > 0 ? aggregate.total : undefined;
+
+    if (aggregate.s1s2 > 0) {
+      if (s1Emissions === 0 && s2Emissions === 0) {
+        s1Emissions = aggregate.s1s2;
+        s2Emissions = 0;
+      } else if (s1Emissions > 0 && s2Emissions === 0) {
+        s2Emissions = Math.max(0, aggregate.s1s2 - s1Emissions);
+      } else if (s2Emissions > 0 && s1Emissions === 0) {
+        s1Emissions = Math.max(0, aggregate.s1s2 - s2Emissions);
+      }
+      if (totalEmissions === undefined) totalEmissions = aggregate.s1s2;
+    }
+
+    if (!emissionsData[companyId]) emissionsData[companyId] = [];
+    const entry = {
+      year,
+      s1Emissions,
+      s2Emissions,
+      denomValue: 0,
+      denomType: "revenue",
+    } as EmissionData;
+    if (totalEmissions !== undefined) {
+      entry.totalEmissions = totalEmissions;
+    }
+    emissionsData[companyId].push(entry);
   }
 
   const denominatorEvidence: Record<string, EvidenceItem[]> = {};

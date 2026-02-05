@@ -88,11 +88,17 @@ export interface EmissionData {
     ],
   };
   
-  // Mock reports
-  export const reports: Record<string, Report> = {
-    '1': { reportYear: 2023, publicationDate: '2024-06-15', assuranceOrg: 'KPMG', frameworks: ['GRI', 'TCFD', 'SASB', 'CDP'] },
-    '2': { reportYear: 2023, publicationDate: '2024-05-28', assuranceOrg: 'Deloitte', frameworks: ['GRI', 'TCFD'] },
-    '3': { reportYear: 2023, publicationDate: '2024-07-10', assuranceOrg: null, frameworks: ['GRI', 'ISSB'] },
+  // Mock reports (report_year is eval_year + 1)
+  export const reports: Record<string, Report[]> = {
+    '1': [
+      { reportYear: 2025, publicationDate: '2025-06-15', assuranceOrg: 'KPMG', frameworks: ['GRI', 'TCFD', 'SASB', 'CDP'] },
+    ],
+    '2': [
+      { reportYear: 2025, publicationDate: '2025-05-28', assuranceOrg: 'Deloitte', frameworks: ['GRI', 'TCFD'] },
+    ],
+    '3': [
+      { reportYear: 2025, publicationDate: '2025-07-10', assuranceOrg: null, frameworks: ['GRI', 'ISSB'] },
+    ],
   };
   
   // Mock emissions data

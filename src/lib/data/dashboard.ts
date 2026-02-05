@@ -20,7 +20,7 @@ import {
 export type DashboardData = {
   companies: Company[];
   scoreRuns: Record<string, ScoreRun[]>;
-  reports: Record<string, Report>;
+  reports: Record<string, Report[]>;
   emissionsData: Record<string, EmissionData[]>;
   targets: Record<string, Target>;
   industryData: Record<string, IndustryData>;

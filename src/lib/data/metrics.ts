@@ -16,7 +16,8 @@ export function getLatestScoreRun(data: DashboardData, companyId: string): Score
 
 export function getDefaultYear(data: DashboardData, companyId: string) {
   const runs = getScoreRunsForCompany(data, companyId);
-  return runs[0]?.evalYear ?? new Date().getFullYear();
+  if (runs.length === 0) return new Date().getFullYear();
+  return Math.max(...runs.map((run) => run.evalYear));
 }
 
 export function calculateYoYChange(data: DashboardData, companyId: string): number | null {

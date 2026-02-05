@@ -34,6 +34,7 @@ interface DashboardHeaderProps {
   selectedCountry: string;
   selectedLanguage: Language;
   strings: I18nStrings;
+  availableYears: number[];
   onCompanyChange: (companyId: string) => void;
   onYearChange: (year: number) => void;
   onCountryChange: (country: string) => void;
@@ -41,7 +42,6 @@ interface DashboardHeaderProps {
   onLanguageChange: (language: Language) => void;
 }
 
-const availableYears = [2024, 2023, 2022, 2021];
 const availableCountries = ["KR", "JP"];
 
 export function DashboardHeader({
@@ -52,6 +52,7 @@ export function DashboardHeader({
   selectedCountry,
   selectedLanguage,
   strings,
+  availableYears,
   onCompanyChange,
   onYearChange,
   onCountryChange,

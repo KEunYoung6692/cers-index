@@ -80,9 +80,28 @@ function PageContent() {
     setSelectedYear((current) => {
       const runs = getScoreRunsForCompany(data, companyId);
       const hasCurrentYear = runs.some((run) => run.evalYear === current);
-      return hasCurrentYear ? current : runs[0]?.evalYear ?? current;
+      return hasCurrentYear ? current : getDefaultYear(data, companyId);
     });
   };
+
+  const scoreRuns = getScoreRunsForCompany(data, selectedCompanyId);
+  const availableYears = useMemo(() => {
+    const companyScoreYears = scoreRuns.map((run) => run.evalYear);
+    const companyEmissionYears = (data.emissionsData[selectedCompanyId] ?? []).map((entry) => entry.year);
+    const companyYears = Array.from(new Set([...companyScoreYears, ...companyEmissionYears])).sort((a, b) => b - a);
+    if (companyYears.length > 0) return companyYears;
+
+    const allScoreYears = Object.values(data.scoreRuns).flat().map((run) => run.evalYear);
+    const allEmissionYears = Object.values(data.emissionsData).flat().map((entry) => entry.year);
+    return Array.from(new Set([...allScoreYears, ...allEmissionYears])).sort((a, b) => b - a);
+  }, [scoreRuns, data.scoreRuns, data.emissionsData, selectedCompanyId]);
+
+  useEffect(() => {
+    if (availableYears.length === 0) return;
+    if (!availableYears.includes(selectedYear)) {
+      setSelectedYear(availableYears[0]);
+    }
+  }, [availableYears, selectedYear]);
 
   if (source === "db" && loading) {
     return (
@@ -101,15 +120,15 @@ function PageContent() {
       </main>
     );
   }
-
-  const scoreRuns = getScoreRunsForCompany(data, selectedCompanyId);
   const scoreRun = scoreRuns.find((run) => run.evalYear === selectedYear) ?? scoreRuns[0];
   const yoyChange = calculateYoYChange(data, selectedCompanyId);
   const industryPercentile = calculateIndustryPercentile(data, selectedCompanyId);
   const company = getCompanyById(data, selectedCompanyId);
   const industry = company ? data.industryData[company.industryId] : undefined;
   const industryName = company?.industryName ?? strings.page.industryFallback;
-  const report = data.reports[selectedCompanyId];
+  const reportsForCompany = data.reports[selectedCompanyId] ?? [];
+  const targetReportYear = selectedYear + 1;
+  const report = reportsForCompany.find((item) => item.reportYear === targetReportYear);
   const emissions = data.emissionsData[selectedCompanyId] ?? [];
   const target = data.targets[selectedCompanyId];
 
@@ -125,6 +144,7 @@ function PageContent() {
         selectedCountry={selectedCountry}
         selectedLanguage={language}
         strings={strings}
+        availableYears={availableYears}
         onCompanyChange={handleCompanyChange}
         onYearChange={setSelectedYear}
         onCountryChange={setSelectedCountry}
