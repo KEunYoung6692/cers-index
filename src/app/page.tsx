@@ -38,8 +38,6 @@ function PageContent() {
 
   const [selectedCompanyId, setSelectedCompanyId] = useState(defaultCompanyId);
   const [selectedYear, setSelectedYear] = useState(() => getDefaultYear(data, defaultCompanyId));
-  const [includeSubCompany, setIncludeSubCompany] = useState(false);
-
   useEffect(() => {
     if (!defaultCompanyId) {
       setSelectedCompanyId("");
@@ -140,7 +138,6 @@ function PageContent() {
         companies={filteredCompanies}
         selectedCompanyId={selectedCompanyId}
         selectedYear={selectedYear}
-        includeSubCompany={includeSubCompany}
         selectedCountry={selectedCountry}
         selectedLanguage={language}
         strings={strings}
@@ -148,7 +145,6 @@ function PageContent() {
         onCompanyChange={handleCompanyChange}
         onYearChange={setSelectedYear}
         onCountryChange={setSelectedCountry}
-        onSubCompanyToggle={setIncludeSubCompany}
         onLanguageChange={handleLanguageChange}
       />
       <div className="container py-6">

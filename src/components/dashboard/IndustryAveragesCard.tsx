@@ -71,7 +71,7 @@ export function IndustryAveragesCard({ industryData, industryName, strings }: In
         <MetricCard
           icon={<Award className="h-4 w-4" />}
           label={averagesStrings.avgPcrcScore}
-          value={industryData.avgPcrc}
+          value={industryData.avgPcrc.toFixed(2)}
           unit="/100"
           highlight
         />

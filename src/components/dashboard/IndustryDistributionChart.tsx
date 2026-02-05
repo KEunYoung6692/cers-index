@@ -58,7 +58,7 @@ export function IndustryDistributionChart({ industryData, currentScore, industry
           </CardTitle>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <span>{distributionStrings.sampleSize} = {industryData.companyCount}</span>
-            <span>{distributionStrings.medianLabel}: {median === null ? "—" : median.toFixed(0)}</span>
+            <span>{distributionStrings.medianLabel}: {median === null ? "—" : median.toFixed(2)}</span>
           </div>
         </div>
         <p className="text-xs text-muted-foreground">{distributionStrings.pcrcDistribution}</p>
@@ -108,7 +108,7 @@ export function IndustryDistributionChart({ industryData, currentScore, industry
           <div className="mt-3 flex items-center gap-2 text-xs">
             <div className="flex items-center gap-1.5">
               <div className="h-3 w-3 rounded-sm bg-accent" />
-              <span className="text-muted-foreground">{distributionStrings.yourCompany}: {currentScore.pcrcScore.toFixed(1)}</span>
+              <span className="text-muted-foreground">{distributionStrings.yourCompany}: {currentScore.pcrcScore.toFixed(2)}</span>
             </div>
           </div>
         )}

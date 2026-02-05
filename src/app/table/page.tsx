@@ -21,11 +21,11 @@ type TableRowData = {
   industryName: string;
   year: number;
   emissions: number | null;
-  pcrcScore: number;
-  rank: number;
-  ri: number;
-  tag: number;
-  mms: number;
+  pcrcScore: number | null;
+  rank: number | null;
+  ri: number | null;
+  tag: number | null;
+  mms: number | null;
 };
 
 function formatNumber(value: number, locale: string, fractionDigits = 0) {
@@ -54,7 +54,7 @@ function TablePageContent() {
   }, [langParam, language]);
 
   const rows = useMemo<TableRowData[]>(() => {
-    const collected: TableRowData[] = [];
+    const rowMap = new Map<string, TableRowData>();
 
     data.companies.forEach((company) => {
       const runs = data.scoreRuns[company.id] ?? [];
@@ -65,8 +65,8 @@ function TablePageContent() {
         const totalEmissions = emission
           ? emission.totalEmissions ?? emission.s1Emissions + emission.s2Emissions
           : null;
-
-        collected.push({
+        const key = `${company.id}-${run.evalYear}`;
+        rowMap.set(key, {
           companyId: company.id,
           companyName: company.name,
           industryName: company.industryName,
@@ -79,17 +79,42 @@ function TablePageContent() {
           mms: run.mmsScore,
         });
       });
+
+      emissions.forEach((entry) => {
+        const key = `${company.id}-${entry.year}`;
+        const existing = rowMap.get(key);
+        const totalEmissions = entry.totalEmissions ?? entry.s1Emissions + entry.s2Emissions;
+        if (existing) {
+          existing.emissions = totalEmissions;
+        } else {
+          rowMap.set(key, {
+            companyId: company.id,
+            companyName: company.name,
+            industryName: company.industryName,
+            year: entry.year,
+            emissions: totalEmissions,
+            pcrcScore: null,
+            rank: null,
+            ri: null,
+            tag: null,
+            mms: null,
+          });
+        }
+      });
     });
+
+    const collected = Array.from(rowMap.values());
 
     const rowsByYear = new Map<number, TableRowData[]>();
     collected.forEach((row) => {
+      if (row.pcrcScore === null) return;
       const list = rowsByYear.get(row.year) ?? [];
       list.push(row);
       rowsByYear.set(row.year, list);
     });
 
     rowsByYear.forEach((list) => {
-      list.sort((a, b) => b.pcrcScore - a.pcrcScore);
+      list.sort((a, b) => (b.pcrcScore ?? 0) - (a.pcrcScore ?? 0));
       list.forEach((row, index) => {
         row.rank = index + 1;
       });
@@ -105,6 +130,9 @@ function TablePageContent() {
   const [query, setQuery] = useState("");
   const [selectedYear, setSelectedYear] = useState("all");
   const [selectedIndustry, setSelectedIndustry] = useState("all");
+  const scoreFractionDigits = 2;
+  const formatScore = (value: number | null) =>
+    value === null ? "—" : formatNumber(value, locale, scoreFractionDigits);
 
   const availableYears = useMemo(() => {
     const years = new Set<number>();
@@ -131,7 +159,8 @@ function TablePageContent() {
     });
   }, [rows, query, selectedIndustry, selectedYear]);
 
-  const getScoreColor = (score: number) => {
+  const getScoreColor = (score: number | null) => {
+    if (score === null) return "";
     if (score >= 80) return "text-score-excellent";
     if (score >= 60) return "text-score-good";
     if (score >= 40) return "text-score-moderate";
@@ -235,14 +264,14 @@ function TablePageContent() {
                     <TableCell className="text-right font-mono">
                       {row.emissions === null ? "—" : formatNumber(row.emissions, locale)}
                     </TableCell>
-                    <TableCell className="text-right font-mono">{formatNumber(row.ri, locale, 1)}</TableCell>
-                    <TableCell className="text-right font-mono">{formatNumber(row.tag, locale, 1)}</TableCell>
-                    <TableCell className="text-right font-mono">{formatNumber(row.mms, locale, 1)}</TableCell>
+                    <TableCell className="text-right font-mono">{formatScore(row.ri)}</TableCell>
+                    <TableCell className="text-right font-mono">{formatScore(row.tag)}</TableCell>
+                    <TableCell className="text-right font-mono">{formatScore(row.mms)}</TableCell>
                     <TableCell className={`text-right font-mono bg-accent/5 ${getScoreColor(row.pcrcScore)}`}>
-                      {formatNumber(row.pcrcScore, locale, 1)}
+                      {formatScore(row.pcrcScore)}
                     </TableCell>
                     <TableCell className="text-right font-mono font-semibold text-accent bg-accent/10">
-                      {row.rank}
+                      {row.rank ?? "—"}
                     </TableCell>
                   </TableRow>
                 ))}

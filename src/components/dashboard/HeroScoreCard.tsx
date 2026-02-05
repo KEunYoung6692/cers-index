@@ -25,7 +25,7 @@ function ScoreBar({ label, score, max, colorClass }: ScoreBarProps) {
     <div className="space-y-1">
       <div className="flex items-center justify-between text-xs">
         <span className="font-medium text-muted-foreground">{label}</span>
-        <span className="font-mono">{score.toFixed(1)}<span className="text-muted-foreground">/{max}</span></span>
+        <span className="font-mono">{score.toFixed(2)}<span className="text-muted-foreground">/{max}</span></span>
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
         <div 
@@ -72,7 +72,7 @@ export function HeroScoreCard({ scoreRun, yoyChange, industryPercentile, strings
             <p className="text-sm font-medium text-muted-foreground">{strings.hero.pcrcScore}</p>
             <div className="flex items-baseline gap-2">
               <span className={cn("font-mono text-6xl font-bold tracking-tighter animate-fade-in", getScoreColor(scoreRun.pcrcScore))}>
-                {scoreRun.pcrcScore.toFixed(1)}
+                {scoreRun.pcrcScore.toFixed(2)}
               </span>
               <span className="text-2xl text-muted-foreground">/100</span>
             </div>
@@ -97,7 +97,7 @@ export function HeroScoreCard({ scoreRun, yoyChange, industryPercentile, strings
                 yoyChange < 0 ? "text-score-poor" : "text-muted-foreground"
               )}>
                 {yoyChange === null ? "—" :
-                 yoyChange > 0 ? `+${yoyChange.toFixed(1)}` : yoyChange.toFixed(1)} {strings.hero.yoy}
+                 yoyChange > 0 ? `+${yoyChange.toFixed(2)}` : yoyChange.toFixed(2)} {strings.hero.yoy}
               </span>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, ChevronsUpDown, Building2, Calendar, ToggleLeft, ToggleRight, Sun, Moon } from 'lucide-react';
+import { Check, ChevronsUpDown, Building2, Calendar, Sun, Moon, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -30,7 +30,6 @@ interface DashboardHeaderProps {
   companies: Company[];
   selectedCompanyId: string;
   selectedYear: number;
-  includeSubCompany: boolean;
   selectedCountry: string;
   selectedLanguage: Language;
   strings: I18nStrings;
@@ -38,7 +37,6 @@ interface DashboardHeaderProps {
   onCompanyChange: (companyId: string) => void;
   onYearChange: (year: number) => void;
   onCountryChange: (country: string) => void;
-  onSubCompanyToggle: (include: boolean) => void;
   onLanguageChange: (language: Language) => void;
 }
 
@@ -48,7 +46,6 @@ export function DashboardHeader({
   companies,
   selectedCompanyId,
   selectedYear,
-  includeSubCompany,
   selectedCountry,
   selectedLanguage,
   strings,
@@ -56,7 +53,6 @@ export function DashboardHeader({
   onCompanyChange,
   onYearChange,
   onCountryChange,
-  onSubCompanyToggle,
   onLanguageChange,
 }: DashboardHeaderProps) {
   const [open, setOpen] = useState(false);
@@ -150,27 +146,18 @@ export function DashboardHeader({
             </SelectContent>
           </Select>
 
-          {/* Sub-company Toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onSubCompanyToggle(!includeSubCompany)}
-            className="gap-2 text-muted-foreground hover:text-foreground"
-          >
-            {includeSubCompany ? (
-              <ToggleRight className="h-5 w-5 text-accent" />
-            ) : (
-              <ToggleLeft className="h-5 w-5" />
-            )}
-            <span className="text-xs">{headerStrings.subEntities}</span>
-          </Button>
         </div>
 
         {/* Right: Language + Theme */}
         <div className="flex items-center gap-2">
           <Select value={selectedLanguage} onValueChange={(value) => onLanguageChange(value as Language)}>
-            <SelectTrigger className="w-[90px]">
-              <SelectValue />
+            <SelectTrigger className="w-[170px]">
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">{headerStrings.language}</span>
+                <span className="text-xs text-muted-foreground">·</span>
+                <span className="text-sm font-medium">{selectedLanguage}</span>
+              </div>
             </SelectTrigger>
             <SelectContent>
               {LANGUAGES.map((language) => (
