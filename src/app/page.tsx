@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AbsoluteEmissionsCard } from "@/components/dashboard/AbsoluteEmissionsCard";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -23,7 +23,7 @@ import {
 import { useDashboardData } from "@/lib/data/use-dashboard-data";
 import { getI18nStrings, type Language, HTML_LANG_BY_LANGUAGE, isLanguage } from "@/lib/i18n";
 
-export default function Page() {
+function PageContent() {
   const { data, loading, error, source } = useDashboardData();
   const [selectedCountry, setSelectedCountry] = useState("KR");
   const router = useRouter();
@@ -169,5 +169,19 @@ export default function Page() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense
+      fallback={(
+        <main className="min-h-screen bg-background">
+          <div className="container py-6 text-muted-foreground">Loading...</div>
+        </main>
+      )}
+    >
+      <PageContent />
+    </Suspense>
   );
 }

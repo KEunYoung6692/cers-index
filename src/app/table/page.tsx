@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ function formatNumber(value: number, locale: string, fractionDigits = 0) {
   }).format(value);
 }
 
-export default function TablePage() {
+function TablePageContent() {
   const { data, loading, error } = useDashboardData();
   const searchParams = useSearchParams();
   const langParam = searchParams.get("lang");
@@ -217,5 +217,19 @@ export default function TablePage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function TablePage() {
+  return (
+    <Suspense
+      fallback={(
+        <main className="min-h-screen bg-background">
+          <div className="container py-6 text-muted-foreground">Loading...</div>
+        </main>
+      )}
+    >
+      <TablePageContent />
+    </Suspense>
   );
 }
