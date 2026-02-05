@@ -227,7 +227,7 @@ const I18N_STRINGS = {
   },
 } as const;
 
-export type I18nStrings = typeof I18N_STRINGS.EN;
+export type I18nStrings = (typeof I18N_STRINGS)[Language];
 
 export function getI18nStrings(language: Language): I18nStrings {
   return I18N_STRINGS[language];
