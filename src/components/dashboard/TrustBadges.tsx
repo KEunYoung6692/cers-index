@@ -1,4 +1,4 @@
-import { ShieldCheck, FileText, Eye, Award } from 'lucide-react';
+import { ShieldCheck, FileText, Eye } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Report } from '@/data/mockData';
@@ -45,7 +45,7 @@ export function TrustBadges({ report, evidenceCoverage, strings }: TrustBadgesPr
   const trustStrings = strings.trust;
 
   return (
-    <Card className="col-span-4">
+    <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-medium text-muted-foreground">{trustStrings.title}</CardTitle>
       </CardHeader>

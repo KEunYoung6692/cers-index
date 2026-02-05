@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AbsoluteEmissionsCard } from "@/components/dashboard/AbsoluteEmissionsCard";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { HeroScoreCard } from "@/components/dashboard/HeroScoreCard";
@@ -8,6 +9,9 @@ import { IndustryAveragesCard } from "@/components/dashboard/IndustryAveragesCar
 import { IndustryDistributionChart } from "@/components/dashboard/IndustryDistributionChart";
 import { IntensityTrendChart } from "@/components/dashboard/IntensityTrendChart";
 import { TrustBadges } from "@/components/dashboard/TrustBadges";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
 import {
   calculateIndustryPercentile,
   calculateYoYChange,
@@ -17,12 +21,15 @@ import {
   getScoreRunsForCompany,
 } from "@/lib/data/metrics";
 import { useDashboardData } from "@/lib/data/use-dashboard-data";
-import { getI18nStrings, type Language, HTML_LANG_BY_LANGUAGE } from "@/lib/i18n";
+import { getI18nStrings, type Language, HTML_LANG_BY_LANGUAGE, isLanguage } from "@/lib/i18n";
 
 export default function Page() {
   const { data, loading, error, source } = useDashboardData();
   const [selectedCountry, setSelectedCountry] = useState("KR");
-  const [language, setLanguage] = useState<Language>("EN");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const langParam = searchParams.get("lang");
+  const [language, setLanguage] = useState<Language>(isLanguage(langParam) ? langParam : "EN");
   const strings = getI18nStrings(language);
   const filteredCompanies = useMemo(
     () => data.companies.filter((company) => (company.country || "KR") === selectedCountry),
@@ -55,6 +62,19 @@ export default function Page() {
   useEffect(() => {
     document.documentElement.lang = HTML_LANG_BY_LANGUAGE[language];
   }, [language]);
+
+  useEffect(() => {
+    if (isLanguage(langParam) && langParam !== language) {
+      setLanguage(langParam);
+    }
+  }, [langParam, language]);
+
+  const handleLanguageChange = (nextLanguage: Language) => {
+    setLanguage(nextLanguage);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("lang", nextLanguage);
+    router.replace(`/?${params.toString()}`);
+  };
 
   const handleCompanyChange = (companyId: string) => {
     setSelectedCompanyId(companyId);
@@ -111,7 +131,7 @@ export default function Page() {
         onYearChange={setSelectedYear}
         onCountryChange={setSelectedCountry}
         onSubCompanyToggle={setIncludeSubCompany}
-        onLanguageChange={setLanguage}
+        onLanguageChange={handleLanguageChange}
       />
       <div className="container py-6">
         {!hasCompanies ? (
@@ -126,7 +146,16 @@ export default function Page() {
               industryPercentile={industryPercentile}
               strings={strings}
             />
-            <TrustBadges report={report} evidenceCoverage={evidenceCoverage} strings={strings} />
+            <div className="col-span-4 flex flex-col gap-6">
+              <Card>
+                <CardContent className="p-3">
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link href={`/table?lang=${language}`}>{strings.table.viewTable}</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+              <TrustBadges report={report} evidenceCoverage={evidenceCoverage} strings={strings} />
+            </div>
             <IndustryDistributionChart
               industryData={industry}
               currentScore={scoreRun}

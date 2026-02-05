@@ -14,6 +14,10 @@ export const LOCALE_BY_LANGUAGE: Record<Language, string> = {
   JP: "ja-JP",
 };
 
+export function isLanguage(value: string | null): value is Language {
+  return value === "EN" || value === "KR" || value === "JP";
+}
+
 const I18N_STRINGS = {
   EN: {
     header: {
@@ -83,6 +87,29 @@ const I18N_STRINGS = {
       s2: "S2",
       scope1: "Scope 1",
       scope2: "Scope 2",
+    },
+    table: {
+      title: "All Company Scores",
+      viewTable: "View Full Table",
+      back: "Back to Dashboard",
+      noData: "No table data available",
+      caption: "Emissions are total S1+S2 (tCO₂e).",
+      searchPlaceholder: "Search company...",
+      filters: {
+        year: "Year",
+        industry: "Industry",
+        allYears: "All years",
+        allIndustries: "All industries",
+      },
+      columns: {
+        company: "Company",
+        industry: "Industry",
+        year: "Year",
+        emissions: "Emissions (tCO₂e)",
+        ri: "RI",
+        tag: "TAG",
+        mms: "MMS",
+      },
     },
   },
   KR: {
@@ -154,6 +181,29 @@ const I18N_STRINGS = {
       scope1: "스코프 1",
       scope2: "스코프 2",
     },
+    table: {
+      title: "전체 점수 테이블",
+      viewTable: "전체 테이블 보기",
+      back: "대시보드로 돌아가기",
+      noData: "표시할 데이터가 없습니다",
+      caption: "탄소배출량은 S1+S2 합계(tCO₂e) 기준입니다.",
+      searchPlaceholder: "기업 검색...",
+      filters: {
+        year: "연도",
+        industry: "업종",
+        allYears: "전체 연도",
+        allIndustries: "전체 업종",
+      },
+      columns: {
+        company: "기업",
+        industry: "업종",
+        year: "연도",
+        emissions: "탄소배출량 (tCO₂e)",
+        ri: "RI",
+        tag: "TAG",
+        mms: "MMS",
+      },
+    },
   },
   JP: {
     header: {
@@ -223,6 +273,29 @@ const I18N_STRINGS = {
       s2: "S2",
       scope1: "スコープ1",
       scope2: "スコープ2",
+    },
+    table: {
+      title: "全体スコア表",
+      viewTable: "全体テーブルを見る",
+      back: "ダッシュボードへ戻る",
+      noData: "表示できるデータがありません",
+      caption: "排出量はS1+S2合計（tCO₂e）です。",
+      searchPlaceholder: "企業を検索...",
+      filters: {
+        year: "年度",
+        industry: "業種",
+        allYears: "すべての年度",
+        allIndustries: "すべての業種",
+      },
+      columns: {
+        company: "企業",
+        industry: "業種",
+        year: "年度",
+        emissions: "排出量（tCO₂e）",
+        ri: "RI",
+        tag: "TAG",
+        mms: "MMS",
+      },
     },
   },
 } as const;
