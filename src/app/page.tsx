@@ -17,7 +17,6 @@ import {
   calculateYoYChange,
   getCompanyById,
   getDefaultYear,
-  getEvidenceCoverage,
   getScoreRunsForCompany,
 } from "@/lib/data/metrics";
 import { useDashboardData } from "@/lib/data/use-dashboard-data";
@@ -113,7 +112,6 @@ function PageContent() {
   const report = data.reports[selectedCompanyId];
   const emissions = data.emissionsData[selectedCompanyId] ?? [];
   const target = data.targets[selectedCompanyId];
-  const evidenceCoverage = selectedCompanyId ? getEvidenceCoverage(data, selectedCompanyId) : 0;
 
   const hasCompanies = filteredCompanies.length > 0;
 
@@ -146,7 +144,7 @@ function PageContent() {
               industryPercentile={industryPercentile}
               strings={strings}
             />
-            <div className="col-span-4 flex flex-col gap-6">
+            <div className="col-span-4 flex flex-col gap-4">
               <Card>
                 <CardContent className="p-3">
                   <Button variant="outline" className="w-full" asChild>
@@ -154,7 +152,14 @@ function PageContent() {
                   </Button>
                 </CardContent>
               </Card>
-              <TrustBadges report={report} evidenceCoverage={evidenceCoverage} strings={strings} />
+              <Card>
+                <CardContent className="p-3">
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link href={`/logic?lang=${language}`}>{strings.table.logicWidget}</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+              <TrustBadges report={report} strings={strings} />
             </div>
             <IndustryDistributionChart
               industryData={industry}

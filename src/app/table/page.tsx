@@ -16,10 +16,13 @@ import {
 } from "@/lib/i18n";
 
 type TableRowData = {
+  companyId: string;
   companyName: string;
   industryName: string;
   year: number;
   emissions: number | null;
+  pcrcScore: number;
+  rank: number;
   ri: number;
   tag: number;
   mms: number;
@@ -64,14 +67,31 @@ function TablePageContent() {
           : null;
 
         collected.push({
+          companyId: company.id,
           companyName: company.name,
           industryName: company.industryName,
           year: run.evalYear,
           emissions: totalEmissions,
+          pcrcScore: run.pcrcScore,
+          rank: 0,
           ri: run.riScore,
           tag: run.tagScore,
           mms: run.mmsScore,
         });
+      });
+    });
+
+    const rowsByYear = new Map<number, TableRowData[]>();
+    collected.forEach((row) => {
+      const list = rowsByYear.get(row.year) ?? [];
+      list.push(row);
+      rowsByYear.set(row.year, list);
+    });
+
+    rowsByYear.forEach((list) => {
+      list.sort((a, b) => b.pcrcScore - a.pcrcScore);
+      list.forEach((row, index) => {
+        row.rank = index + 1;
       });
     });
 
@@ -110,6 +130,13 @@ function TablePageContent() {
       return matchesQuery && matchesYear && matchesIndustry;
     });
   }, [rows, query, selectedIndustry, selectedYear]);
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return "text-score-excellent";
+    if (score >= 60) return "text-score-good";
+    if (score >= 40) return "text-score-moderate";
+    return "text-score-poor";
+  };
 
   if (loading) {
     return (
@@ -195,11 +222,13 @@ function TablePageContent() {
                   <TableHead className="w-[100px] text-right">{strings.table.columns.ri}</TableHead>
                   <TableHead className="w-[100px] text-right">{strings.table.columns.tag}</TableHead>
                   <TableHead className="w-[100px] text-right">{strings.table.columns.mms}</TableHead>
+                  <TableHead className="w-[110px] text-right bg-accent/5">{strings.table.columns.pcrc}</TableHead>
+                  <TableHead className="w-[90px] text-right bg-accent/10">{strings.table.columns.rank}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredRows.map((row) => (
-                  <TableRow key={`${row.companyName}-${row.year}`}>
+                  <TableRow key={`${row.companyId}-${row.year}`}>
                     <TableCell className="font-medium">{row.companyName}</TableCell>
                     <TableCell className="text-muted-foreground">{row.industryName}</TableCell>
                     <TableCell>{row.year}</TableCell>
@@ -209,6 +238,12 @@ function TablePageContent() {
                     <TableCell className="text-right font-mono">{formatNumber(row.ri, locale, 1)}</TableCell>
                     <TableCell className="text-right font-mono">{formatNumber(row.tag, locale, 1)}</TableCell>
                     <TableCell className="text-right font-mono">{formatNumber(row.mms, locale, 1)}</TableCell>
+                    <TableCell className={`text-right font-mono bg-accent/5 ${getScoreColor(row.pcrcScore)}`}>
+                      {formatNumber(row.pcrcScore, locale, 1)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono font-semibold text-accent bg-accent/10">
+                      {row.rank}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

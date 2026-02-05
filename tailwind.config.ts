@@ -14,8 +14,27 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        sans: [
+          "Inter",
+          "Pretendard",
+          "Noto Sans KR",
+          "Noto Sans JP",
+          "Apple SD Gothic Neo",
+          "Malgun Gothic",
+          "Hiragino Kaku Gothic ProN",
+          "Yu Gothic",
+          "system-ui",
+          "sans-serif",
+        ],
+        mono: [
+          "JetBrains Mono",
+          "SFMono-Regular",
+          "Menlo",
+          "Monaco",
+          "Consolas",
+          "Liberation Mono",
+          "monospace",
+        ],
       },
       colors: {
         border: "hsl(var(--border))",

@@ -1,4 +1,4 @@
-import { ShieldCheck, FileText, Eye } from 'lucide-react';
+import { ShieldCheck, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Report } from '@/data/mockData';
@@ -7,7 +7,6 @@ import type { I18nStrings } from '@/lib/i18n';
 
 interface TrustBadgesProps {
   report: Report | undefined;
-  evidenceCoverage: number;
   strings: I18nStrings;
 }
 
@@ -20,7 +19,7 @@ interface TrustBadgeItemProps {
 
 function TrustBadgeItem({ icon, label, value, status }: TrustBadgeItemProps) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border bg-card p-3 transition-shadow hover:shadow-card">
+    <div className="flex items-center gap-3 rounded-lg border bg-card p-2.5 transition-shadow hover:shadow-card">
       <div className={cn(
         "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
         status === 'good' && "bg-score-good/10 text-score-good",
@@ -37,7 +36,7 @@ function TrustBadgeItem({ icon, label, value, status }: TrustBadgeItemProps) {
   );
 }
 
-export function TrustBadges({ report, evidenceCoverage, strings }: TrustBadgesProps) {
+export function TrustBadges({ report, strings }: TrustBadgesProps) {
   const hasAssurance = report?.assuranceOrg !== null && report?.assuranceOrg !== undefined;
   const frameworks = report?.frameworks || [];
   const displayFrameworks = frameworks.slice(0, 4);
@@ -46,10 +45,10 @@ export function TrustBadges({ report, evidenceCoverage, strings }: TrustBadgesPr
 
   return (
     <Card>
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{trustStrings.title}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2">
         {/* Assurance */}
         <TrustBadgeItem
           icon={<ShieldCheck className="h-5 w-5" />}
@@ -87,27 +86,7 @@ export function TrustBadges({ report, evidenceCoverage, strings }: TrustBadgesPr
           status={frameworks.length > 0 ? 'good' : 'neutral'}
         />
 
-        {/* Evidence Coverage */}
-        <TrustBadgeItem
-          icon={<Eye className="h-5 w-5" />}
-          label={trustStrings.evidenceCoverage}
-          value={
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-16 overflow-hidden rounded-full bg-secondary">
-                <div 
-                  className={cn(
-                    "h-full rounded-full",
-                    evidenceCoverage >= 80 ? "bg-score-good" :
-                    evidenceCoverage >= 50 ? "bg-score-moderate" : "bg-score-poor"
-                  )}
-                  style={{ width: `${evidenceCoverage}%` }}
-                />
-              </div>
-              <span className="font-mono text-sm">{evidenceCoverage}%</span>
-            </div>
-          }
-          status={evidenceCoverage >= 80 ? 'good' : evidenceCoverage >= 50 ? 'neutral' : 'warning'}
-        />
+        {/* Evidence Coverage removed */}
       </CardContent>
     </Card>
   );
