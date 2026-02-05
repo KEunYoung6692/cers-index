@@ -12,16 +12,18 @@ import {
   calculateIndustryPercentile,
   calculateYoYChange,
   getCompanyById,
-  getDataMixRatio,
   getDefaultYear,
   getEvidenceCoverage,
   getScoreRunsForCompany,
 } from "@/lib/data/metrics";
 import { useDashboardData } from "@/lib/data/use-dashboard-data";
+import { getI18nStrings, type Language, HTML_LANG_BY_LANGUAGE } from "@/lib/i18n";
 
 export default function Page() {
   const { data, loading, error, source } = useDashboardData();
   const [selectedCountry, setSelectedCountry] = useState("KR");
+  const [language, setLanguage] = useState<Language>("EN");
+  const strings = getI18nStrings(language);
   const filteredCompanies = useMemo(
     () => data.companies.filter((company) => (company.country || "KR") === selectedCountry),
     [data.companies, selectedCountry],
@@ -50,6 +52,10 @@ export default function Page() {
     });
   }, [data, defaultCompanyId, filteredCompanies]);
 
+  useEffect(() => {
+    document.documentElement.lang = HTML_LANG_BY_LANGUAGE[language];
+  }, [language]);
+
   const handleCompanyChange = (companyId: string) => {
     setSelectedCompanyId(companyId);
     setSelectedYear((current) => {
@@ -62,7 +68,7 @@ export default function Page() {
   if (source === "db" && loading) {
     return (
       <main className="min-h-screen bg-background">
-        <div className="container py-6 text-muted-foreground">Loading dashboard data...</div>
+        <div className="container py-6 text-muted-foreground">{strings.page.loading}</div>
       </main>
     );
   }
@@ -70,7 +76,9 @@ export default function Page() {
   if (error) {
     return (
       <main className="min-h-screen bg-background">
-        <div className="container py-6 text-destructive">Failed to load data: {error}</div>
+        <div className="container py-6 text-destructive">
+          {strings.page.failedToLoad.replace("{error}", error)}
+        </div>
       </main>
     );
   }
@@ -81,12 +89,11 @@ export default function Page() {
   const industryPercentile = calculateIndustryPercentile(data, selectedCompanyId);
   const company = getCompanyById(data, selectedCompanyId);
   const industry = company ? data.industryData[company.industryId] : undefined;
-  const industryName = company?.industryName ?? "Industry";
+  const industryName = company?.industryName ?? strings.page.industryFallback;
   const report = data.reports[selectedCompanyId];
   const emissions = data.emissionsData[selectedCompanyId] ?? [];
   const target = data.targets[selectedCompanyId];
   const evidenceCoverage = selectedCompanyId ? getEvidenceCoverage(data, selectedCompanyId) : 0;
-  const dataMix = selectedCompanyId ? getDataMixRatio(data, selectedCompanyId) : { verified: 0, self: 0, proxy: 0 };
 
   const hasCompanies = filteredCompanies.length > 0;
 
@@ -98,17 +105,18 @@ export default function Page() {
         selectedYear={selectedYear}
         includeSubCompany={includeSubCompany}
         selectedCountry={selectedCountry}
-        report={report}
-        dataMix={dataMix}
+        selectedLanguage={language}
+        strings={strings}
         onCompanyChange={handleCompanyChange}
         onYearChange={setSelectedYear}
         onCountryChange={setSelectedCountry}
         onSubCompanyToggle={setIncludeSubCompany}
+        onLanguageChange={setLanguage}
       />
       <div className="container py-6">
         {!hasCompanies ? (
           <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-            No companies available for {selectedCountry}.
+            {strings.page.noCompanies.replace("{country}", selectedCountry)}
           </div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-12">
@@ -116,16 +124,18 @@ export default function Page() {
               scoreRun={scoreRun}
               yoyChange={yoyChange}
               industryPercentile={industryPercentile}
+              strings={strings}
             />
-            <TrustBadges report={report} evidenceCoverage={evidenceCoverage} />
+            <TrustBadges report={report} evidenceCoverage={evidenceCoverage} strings={strings} />
             <IndustryDistributionChart
               industryData={industry}
               currentScore={scoreRun}
               industryName={industryName}
+              strings={strings}
             />
-            <IndustryAveragesCard industryData={industry} industryName={industryName} />
-            <IntensityTrendChart emissionsData={emissions} target={target} selectedYear={selectedYear} />
-            <AbsoluteEmissionsCard emissionsData={emissions} selectedYear={selectedYear} />
+            <IndustryAveragesCard industryData={industry} industryName={industryName} strings={strings} />
+            <IntensityTrendChart emissionsData={emissions} target={target} selectedYear={selectedYear} strings={strings} />
+            <AbsoluteEmissionsCard emissionsData={emissions} selectedYear={selectedYear} strings={strings} />
           </div>
         )}
       </div>

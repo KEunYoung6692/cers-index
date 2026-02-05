@@ -2,11 +2,13 @@ import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { ScoreRun } from '@/data/mockData';
+import type { I18nStrings } from '@/lib/i18n';
 
 interface HeroScoreCardProps {
   scoreRun: ScoreRun | undefined;
   yoyChange: number | null;
   industryPercentile: number | null;
+  strings: I18nStrings;
 }
 
 interface ScoreBarProps {
@@ -35,12 +37,12 @@ function ScoreBar({ label, score, max, colorClass }: ScoreBarProps) {
   );
 }
 
-export function HeroScoreCard({ scoreRun, yoyChange, industryPercentile }: HeroScoreCardProps) {
+export function HeroScoreCard({ scoreRun, yoyChange, industryPercentile, strings }: HeroScoreCardProps) {
   if (!scoreRun) {
     return (
       <Card className="col-span-8 flex items-center justify-center">
         <CardContent className="py-12 text-center text-muted-foreground">
-          No score data available for selected period
+          {strings.hero.noScoreData}
         </CardContent>
       </Card>
     );
@@ -66,7 +68,8 @@ export function HeroScoreCard({ scoreRun, yoyChange, industryPercentile }: HeroS
         <div className="flex items-start justify-between">
           {/* Main Score */}
           <div className="space-y-1">
-            <p className="text-sm font-medium text-muted-foreground">PCRC Score</p>
+            <p className="text-[1.75rem] font-semibold tracking-tight">{strings.hero.cersIndex}</p>
+            <p className="text-sm font-medium text-muted-foreground">{strings.hero.pcrcScore}</p>
             <div className="flex items-baseline gap-2">
               <span className={cn("font-mono text-6xl font-bold tracking-tighter animate-fade-in", getScoreColor(scoreRun.pcrcScore))}>
                 {scoreRun.pcrcScore.toFixed(1)}
@@ -79,8 +82,10 @@ export function HeroScoreCard({ scoreRun, yoyChange, industryPercentile }: HeroS
           <div className="flex flex-col items-end gap-2 text-right">
             {industryPercentile !== null && (
               <div className="rounded-lg bg-accent/10 px-3 py-1.5">
-                <p className="text-xs text-muted-foreground">Industry Rank</p>
-                <p className="font-mono text-lg font-semibold text-accent">Top {100 - industryPercentile}%</p>
+                <p className="text-xs text-muted-foreground">{strings.hero.industryRank}</p>
+                <p className="font-mono text-lg font-semibold text-accent">
+                  {strings.hero.topPercent.replace("{percent}", (100 - industryPercentile).toString())}
+                </p>
               </div>
             )}
             <div className="flex items-center gap-2">
@@ -91,8 +96,8 @@ export function HeroScoreCard({ scoreRun, yoyChange, industryPercentile }: HeroS
                 yoyChange > 0 ? "text-score-good" :
                 yoyChange < 0 ? "text-score-poor" : "text-muted-foreground"
               )}>
-                {yoyChange === null ? "—" : 
-                 yoyChange > 0 ? `+${yoyChange.toFixed(1)}` : yoyChange.toFixed(1)} YoY
+                {yoyChange === null ? "—" :
+                 yoyChange > 0 ? `+${yoyChange.toFixed(1)}` : yoyChange.toFixed(1)} {strings.hero.yoy}
               </span>
             </div>
           </div>
@@ -101,19 +106,19 @@ export function HeroScoreCard({ scoreRun, yoyChange, industryPercentile }: HeroS
         {/* Score Breakdown Bars */}
         <div className="mt-8 grid gap-4">
           <ScoreBar 
-            label="RI (Reduction Intensity)" 
+            label={strings.hero.riLabel}
             score={scoreRun.riScore} 
             max={scoreRun.riMax}
             colorClass="bg-ri"
           />
           <ScoreBar 
-            label="TAG (Target & Governance)" 
+            label={strings.hero.tagLabel}
             score={scoreRun.tagScore} 
             max={scoreRun.tagMax}
             colorClass="bg-tag"
           />
           <ScoreBar 
-            label="MMS (Mitigation Measures)" 
+            label={strings.hero.mmsLabel}
             score={scoreRun.mmsScore} 
             max={scoreRun.mmsMax}
             colorClass="bg-mms"

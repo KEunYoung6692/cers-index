@@ -3,10 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Report } from '@/data/mockData';
 import { cn } from '@/lib/utils';
+import type { I18nStrings } from '@/lib/i18n';
 
 interface TrustBadgesProps {
   report: Report | undefined;
   evidenceCoverage: number;
+  strings: I18nStrings;
 }
 
 interface TrustBadgeItemProps {
@@ -35,26 +37,27 @@ function TrustBadgeItem({ icon, label, value, status }: TrustBadgeItemProps) {
   );
 }
 
-export function TrustBadges({ report, evidenceCoverage }: TrustBadgesProps) {
+export function TrustBadges({ report, evidenceCoverage, strings }: TrustBadgesProps) {
   const hasAssurance = report?.assuranceOrg !== null && report?.assuranceOrg !== undefined;
   const frameworks = report?.frameworks || [];
   const displayFrameworks = frameworks.slice(0, 4);
   const extraCount = frameworks.length - 4;
+  const trustStrings = strings.trust;
 
   return (
     <Card className="col-span-4">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-medium text-muted-foreground">Trust Indicators</CardTitle>
+        <CardTitle className="text-sm font-medium text-muted-foreground">{trustStrings.title}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {/* Assurance */}
         <TrustBadgeItem
           icon={<ShieldCheck className="h-5 w-5" />}
-          label="Assurance"
+          label={trustStrings.assurance}
           value={hasAssurance ? (
             <span className="text-score-good">{report?.assuranceOrg}</span>
           ) : (
-            <span className="text-muted-foreground">Not stated</span>
+            <span className="text-muted-foreground">{trustStrings.notStated}</span>
           )}
           status={hasAssurance ? 'good' : 'warning'}
         />
@@ -62,7 +65,7 @@ export function TrustBadges({ report, evidenceCoverage }: TrustBadgesProps) {
         {/* Frameworks */}
         <TrustBadgeItem
           icon={<FileText className="h-5 w-5" />}
-          label="Frameworks"
+          label={trustStrings.frameworks}
           value={
             frameworks.length > 0 ? (
               <div className="flex items-center gap-1.5">
@@ -78,7 +81,7 @@ export function TrustBadges({ report, evidenceCoverage }: TrustBadgesProps) {
                 )}
               </div>
             ) : (
-              <span className="text-muted-foreground">None reported</span>
+              <span className="text-muted-foreground">{trustStrings.noneReported}</span>
             )
           }
           status={frameworks.length > 0 ? 'good' : 'neutral'}
@@ -87,7 +90,7 @@ export function TrustBadges({ report, evidenceCoverage }: TrustBadgesProps) {
         {/* Evidence Coverage */}
         <TrustBadgeItem
           icon={<Eye className="h-5 w-5" />}
-          label="Evidence Coverage"
+          label={trustStrings.evidenceCoverage}
           value={
             <div className="flex items-center gap-2">
               <div className="h-2 w-16 overflow-hidden rounded-full bg-secondary">

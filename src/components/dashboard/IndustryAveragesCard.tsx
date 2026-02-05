@@ -3,10 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { IndustryData } from '@/data/mockData';
 import { cn } from '@/lib/utils';
+import type { I18nStrings } from '@/lib/i18n';
 
 interface IndustryAveragesCardProps {
   industryData: IndustryData | undefined;
   industryName: string;
+  strings: I18nStrings;
 }
 
 interface MetricCardProps {
@@ -37,15 +39,16 @@ function MetricCard({ icon, label, value, unit, highlight }: MetricCardProps) {
   );
 }
 
-export function IndustryAveragesCard({ industryData, industryName }: IndustryAveragesCardProps) {
+export function IndustryAveragesCard({ industryData, industryName, strings }: IndustryAveragesCardProps) {
+  const averagesStrings = strings.industryAverages;
   if (!industryData) {
     return (
       <Card className="col-span-4">
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Industry Averages</CardTitle>
+          <CardTitle className="text-sm font-medium">{averagesStrings.title}</CardTitle>
         </CardHeader>
         <CardContent className="flex h-[200px] items-center justify-center text-muted-foreground">
-          No industry data available
+          {averagesStrings.noData}
         </CardContent>
       </Card>
     );
@@ -55,7 +58,7 @@ export function IndustryAveragesCard({ industryData, industryName }: IndustryAve
     <Card className="col-span-4">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium">Industry Averages</CardTitle>
+          <CardTitle className="text-sm font-medium">{averagesStrings.title}</CardTitle>
           {industryData.alpha && (
             <Badge variant="outline" className="font-mono text-xs">
               α = {industryData.alpha.toFixed(2)}
@@ -67,20 +70,20 @@ export function IndustryAveragesCard({ industryData, industryName }: IndustryAve
       <CardContent className="space-y-3">
         <MetricCard
           icon={<Award className="h-4 w-4" />}
-          label="Avg. PCRC Score"
+          label={averagesStrings.avgPcrcScore}
           value={industryData.avgPcrc}
           unit="/100"
           highlight
         />
         <MetricCard
           icon={<Activity className="h-4 w-4" />}
-          label="Avg. Intensity"
+          label={averagesStrings.avgIntensity}
           value={industryData.avgIntensity}
           unit="tCO₂e/M$"
         />
         <div className="flex items-center gap-2 rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
           <TrendingUp className="h-4 w-4" />
-          <span>Based on {industryData.companyCount} companies in this sector</span>
+          <span>{averagesStrings.basedOn.replace("{count}", industryData.companyCount.toString())}</span>
         </div>
       </CardContent>
     </Card>

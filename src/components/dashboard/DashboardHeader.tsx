@@ -23,8 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import type { Company, Report } from '@/data/mockData';
+import type { Company } from '@/data/mockData';
+import { type I18nStrings, type Language, LANGUAGES } from '@/lib/i18n';
 
 interface DashboardHeaderProps {
   companies: Company[];
@@ -32,12 +32,13 @@ interface DashboardHeaderProps {
   selectedYear: number;
   includeSubCompany: boolean;
   selectedCountry: string;
-  report?: Report;
-  dataMix: { verified: number; self: number; proxy: number };
+  selectedLanguage: Language;
+  strings: I18nStrings;
   onCompanyChange: (companyId: string) => void;
   onYearChange: (year: number) => void;
   onCountryChange: (country: string) => void;
   onSubCompanyToggle: (include: boolean) => void;
+  onLanguageChange: (language: Language) => void;
 }
 
 const availableYears = [2024, 2023, 2022, 2021];
@@ -49,17 +50,19 @@ export function DashboardHeader({
   selectedYear,
   includeSubCompany,
   selectedCountry,
-  report,
-  dataMix,
+  selectedLanguage,
+  strings,
   onCompanyChange,
   onYearChange,
   onCountryChange,
   onSubCompanyToggle,
+  onLanguageChange,
 }: DashboardHeaderProps) {
   const [open, setOpen] = useState(false);
   const selectedCompany = companies.find(c => c.id === selectedCompanyId);
   const { theme, resolvedTheme, setTheme } = useTheme();
   const isDark = (theme === 'dark') || (theme === 'system' && resolvedTheme === 'dark');
+  const headerStrings = strings.header;
 
   return (
     <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
@@ -91,16 +94,16 @@ export function DashboardHeader({
               >
                 <div className="flex items-center gap-2 truncate">
                   <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  {selectedCompany ? selectedCompany.name : "Select company..."}
+                  {selectedCompany ? selectedCompany.name : headerStrings.companyPlaceholder}
                 </div>
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[280px] p-0" align="start">
               <Command>
-                <CommandInput placeholder="Search company..." />
+                <CommandInput placeholder={headerStrings.searchPlaceholder} />
                 <CommandList>
-                  <CommandEmpty>No company found.</CommandEmpty>
+                  <CommandEmpty>{headerStrings.noCompanyFound}</CommandEmpty>
                   <CommandGroup>
                     {companies.map((company) => (
                       <CommandItem
@@ -158,27 +161,24 @@ export function DashboardHeader({
             ) : (
               <ToggleLeft className="h-5 w-5" />
             )}
-            <span className="text-xs">Sub-entities</span>
+            <span className="text-xs">{headerStrings.subEntities}</span>
           </Button>
         </div>
 
-        {/* Right: Meta Badges */}
+        {/* Right: Language + Theme */}
         <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="font-mono text-xs">
-            S1+S2
-          </Badge>
-          <Badge variant="outline" className="text-xs">
-            <span className="text-score-good">{dataMix.verified}%</span>
-            <span className="mx-1 text-muted-foreground">/</span>
-            <span>{dataMix.self}%</span>
-            <span className="mx-1 text-muted-foreground">/</span>
-            <span className="text-muted-foreground">{dataMix.proxy}%</span>
-          </Badge>
-          {report && (
-            <Badge variant="outline" className="text-xs font-normal">
-              FY{report.reportYear} · {new Date(report.publicationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-            </Badge>
-          )}
+          <Select value={selectedLanguage} onValueChange={(value) => onLanguageChange(value as Language)}>
+            <SelectTrigger className="w-[90px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {LANGUAGES.map((language) => (
+                <SelectItem key={language} value={language}>
+                  {language}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button
             variant="ghost"
             size="icon"

@@ -1,23 +1,25 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { IndustryData, ScoreRun } from '@/data/mockData';
-import { cn } from '@/lib/utils';
+import type { I18nStrings } from '@/lib/i18n';
 
 interface IndustryDistributionChartProps {
   industryData: IndustryData | undefined;
   currentScore: ScoreRun | undefined;
   industryName: string;
+  strings: I18nStrings;
 }
 
-export function IndustryDistributionChart({ industryData, currentScore, industryName }: IndustryDistributionChartProps) {
+export function IndustryDistributionChart({ industryData, currentScore, industryName, strings }: IndustryDistributionChartProps) {
+  const distributionStrings = strings.industryDistribution;
   if (!industryData) {
     return (
       <Card className="col-span-8">
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Industry Distribution</CardTitle>
+          <CardTitle className="text-sm font-medium">{distributionStrings.title}</CardTitle>
         </CardHeader>
         <CardContent className="flex h-[250px] items-center justify-center text-muted-foreground">
-          No industry data available
+          {distributionStrings.noData}
         </CardContent>
       </Card>
     );
@@ -52,14 +54,14 @@ export function IndustryDistributionChart({ industryData, currentScore, industry
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium">
-            Industry Distribution · {industryName}
+            {distributionStrings.title} · {industryName}
           </CardTitle>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span>N = {industryData.companyCount}</span>
-            <span>Median: {median === null ? "—" : median.toFixed(0)}</span>
+            <span>{distributionStrings.sampleSize} = {industryData.companyCount}</span>
+            <span>{distributionStrings.medianLabel}: {median === null ? "—" : median.toFixed(0)}</span>
           </div>
         </div>
-        <p className="text-xs text-muted-foreground">PCRC Score Distribution</p>
+        <p className="text-xs text-muted-foreground">{distributionStrings.pcrcDistribution}</p>
       </CardHeader>
       <CardContent>
         <div className="h-[220px]">
@@ -86,7 +88,7 @@ export function IndustryDistributionChart({ industryData, currentScore, industry
                   border: '1px solid hsl(var(--border))',
                   borderRadius: 'var(--radius)',
                 }}
-                formatter={(value: number) => [value, 'Companies']}
+                formatter={(value: number) => [value, distributionStrings.companies]}
               />
               <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                 {bins.map((_, index) => (
@@ -106,7 +108,7 @@ export function IndustryDistributionChart({ industryData, currentScore, industry
           <div className="mt-3 flex items-center gap-2 text-xs">
             <div className="flex items-center gap-1.5">
               <div className="h-3 w-3 rounded-sm bg-accent" />
-              <span className="text-muted-foreground">Your company: {currentScore.pcrcScore.toFixed(1)}</span>
+              <span className="text-muted-foreground">{distributionStrings.yourCompany}: {currentScore.pcrcScore.toFixed(1)}</span>
             </div>
           </div>
         )}

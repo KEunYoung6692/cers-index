@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { EmissionData, Target } from '@/data/mockData';
+import type { I18nStrings } from '@/lib/i18n';
 
 type MetricView = 'total' | 's1s2';
 
@@ -12,12 +13,14 @@ interface IntensityTrendChartProps {
   emissionsData: EmissionData[];
   target: Target | undefined;
   selectedYear?: number;
+  strings: I18nStrings;
 }
 
-export function IntensityTrendChart({ emissionsData, target, selectedYear }: IntensityTrendChartProps) {
+export function IntensityTrendChart({ emissionsData, target, selectedYear, strings }: IntensityTrendChartProps) {
   const [metricView, setMetricView] = useState<MetricView>('total');
 
-  const metricLabel = metricView === 'total' ? 'Total' : 'S1+S2';
+  const trendStrings = strings.intensityTrend;
+  const metricLabel = metricView === 'total' ? trendStrings.total : trendStrings.s1s2;
 
   const availableYears = emissionsData.map((d) => d.year);
   const maxYear = availableYears.length > 0 ? Math.max(...availableYears) : undefined;
@@ -60,10 +63,12 @@ export function IntensityTrendChart({ emissionsData, target, selectedYear }: Int
     return (
       <Card className="col-span-8">
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Intensity Trend (S1+S2)</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            {trendStrings.title} ({trendStrings.s1s2})
+          </CardTitle>
         </CardHeader>
         <CardContent className="flex h-[250px] items-center justify-center text-muted-foreground">
-          No emissions data available
+          {trendStrings.noData}
         </CardContent>
       </Card>
     );
@@ -74,13 +79,13 @@ export function IntensityTrendChart({ emissionsData, target, selectedYear }: Int
       <CardHeader className="pb-2">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-1">
-            <CardTitle className="text-sm font-medium">Intensity Trend ({metricLabel})</CardTitle>
-            <p className="text-xs text-muted-foreground">tCO₂e per M$ revenue</p>
+            <CardTitle className="text-sm font-medium">{trendStrings.title} ({metricLabel})</CardTitle>
+            <p className="text-xs text-muted-foreground">{trendStrings.unit}</p>
           </div>
           <Tabs value={metricView} onValueChange={(value) => setMetricView(value as MetricView)}>
             <TabsList className="h-8">
-              <TabsTrigger value="total" className="px-2.5 text-xs">Total</TabsTrigger>
-              <TabsTrigger value="s1s2" className="px-2.5 text-xs">S1+S2</TabsTrigger>
+              <TabsTrigger value="total" className="px-2.5 text-xs">{trendStrings.total}</TabsTrigger>
+              <TabsTrigger value="s1s2" className="px-2.5 text-xs">{trendStrings.s1s2}</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -112,7 +117,7 @@ export function IntensityTrendChart({ emissionsData, target, selectedYear }: Int
                   boxShadow: 'var(--shadow-card)',
                 }}
                 labelStyle={{ color: 'hsl(var(--foreground))' }}
-                formatter={(value: number) => [value.toFixed(2), 'Intensity']}
+                formatter={(value: number) => [value.toFixed(2), trendStrings.tooltipIntensity]}
               />
               {targetIntensity && (
                 <ReferenceLine 
@@ -120,7 +125,7 @@ export function IntensityTrendChart({ emissionsData, target, selectedYear }: Int
                   stroke="hsl(var(--accent))" 
                   strokeDasharray="5 5"
                   label={{ 
-                    value: `${target?.targetYear} Target`, 
+                    value: trendStrings.targetLabel.replace("{year}", String(target?.targetYear)),
                     position: 'right',
                     className: "fill-accent text-xs"
                   }}
@@ -141,11 +146,15 @@ export function IntensityTrendChart({ emissionsData, target, selectedYear }: Int
           <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-2">
               <div className="h-0.5 w-4 bg-primary" />
-              <span>Actual Intensity ({metricLabel})</span>
+              <span>{trendStrings.actualIntensity.replace("{metric}", metricLabel)}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-0.5 w-4 border-t-2 border-dashed border-accent" />
-              <span>Target ({target.targetReductionPct}% reduction by {target.targetYear})</span>
+              <span>
+                {trendStrings.targetLegend
+                  .replace("{pct}", target.targetReductionPct.toString())
+                  .replace("{year}", target.targetYear.toString())}
+              </span>
             </div>
           </div>
         )}

@@ -1,10 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmissionData } from '@/data/mockData';
 import { cn } from '@/lib/utils';
+import type { I18nStrings } from '@/lib/i18n';
 
 interface AbsoluteEmissionsCardProps {
   emissionsData: EmissionData[];
   selectedYear?: number;
+  strings: I18nStrings;
 }
 
 function formatNumber(num: number): string {
@@ -17,7 +19,8 @@ function formatNumber(num: number): string {
   return num.toFixed(0);
 }
 
-export function AbsoluteEmissionsCard({ emissionsData, selectedYear }: AbsoluteEmissionsCardProps) {
+export function AbsoluteEmissionsCard({ emissionsData, selectedYear, strings }: AbsoluteEmissionsCardProps) {
+  const emissionsStrings = strings.absoluteEmissions;
   const availableYears = emissionsData.map((d) => d.year);
   const maxYear = availableYears.length > 0 ? Math.max(...availableYears) : undefined;
   const upperYear = selectedYear ?? maxYear;
@@ -31,10 +34,10 @@ export function AbsoluteEmissionsCard({ emissionsData, selectedYear }: AbsoluteE
     return (
       <Card className="col-span-4">
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Absolute Emissions</CardTitle>
+          <CardTitle className="text-sm font-medium">{emissionsStrings.title}</CardTitle>
         </CardHeader>
         <CardContent className="flex h-[200px] items-center justify-center text-muted-foreground">
-          No data available
+          {emissionsStrings.noData}
         </CardContent>
       </Card>
     );
@@ -47,8 +50,8 @@ export function AbsoluteEmissionsCard({ emissionsData, selectedYear }: AbsoluteE
     <Card className="col-span-4">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium">Absolute Emissions</CardTitle>
-          <p className="text-xs text-muted-foreground">tCO₂e</p>
+          <CardTitle className="text-sm font-medium">{emissionsStrings.title}</CardTitle>
+          <p className="text-xs text-muted-foreground">{emissionsStrings.unit}</p>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -79,8 +82,8 @@ export function AbsoluteEmissionsCard({ emissionsData, selectedYear }: AbsoluteE
                 </div>
               </div>
               <div className="flex gap-4 text-xs text-muted-foreground">
-                <span>S1: {formatNumber(data.s1Emissions)}</span>
-                <span>S2: {formatNumber(data.s2Emissions)}</span>
+                <span>{emissionsStrings.s1}: {formatNumber(data.s1Emissions)}</span>
+                <span>{emissionsStrings.s2}: {formatNumber(data.s2Emissions)}</span>
               </div>
             </div>
           );
@@ -89,11 +92,11 @@ export function AbsoluteEmissionsCard({ emissionsData, selectedYear }: AbsoluteE
         <div className="mt-4 flex items-center gap-4 border-t pt-3 text-xs">
           <div className="flex items-center gap-1.5">
             <div className="h-3 w-3 rounded-sm bg-primary/70" />
-            <span className="text-muted-foreground">Scope 1</span>
+            <span className="text-muted-foreground">{emissionsStrings.scope1}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="h-3 w-3 rounded-sm bg-primary/35" />
-            <span className="text-muted-foreground">Scope 2</span>
+            <span className="text-muted-foreground">{emissionsStrings.scope2}</span>
           </div>
         </div>
       </CardContent>
