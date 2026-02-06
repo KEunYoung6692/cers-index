@@ -186,13 +186,11 @@
 ## mms_observation
 
 **목적**: 특정 회사/연도(score_run)에 대해 각 MMS 지표가 “예/아니오/불명”인지 기록
-
-* `score_run_id` : 어떤 평가 실행에 속하는지
+* `company_id`
 * `indicator_id` : 어떤 MMS 지표인지
 * `status` : `yes/no/unknown` (unknown을 허용해야 “보고서 한계”를 정직하게 표현 가능)
 * `points_awarded` : 실제 부여점수(규칙 기반이든 LLM 기반이든 결과만 저장)
 * `data_level` : 이 판정 자체의 신뢰도(예: LLM 추정 vs 명시 문구)
-* `sub_company_id` : 특정 공장/자회사에 한정된 MMS라면 연결(대부분은 NULL)
 * `evidence_page`, `evidence_note` : 판정 근거 위치
 
 ---

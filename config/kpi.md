@@ -24,7 +24,9 @@
 
 PCRC 점수는 100점 만점으로 환산되며, 크게 세 가지 핵심 모듈의 가중 합으로 구성된다.
 
-$PCRC = (w_1 \times RI) + (w_2 \times TAG) + (w_3 \times MMS)$
+$$
+PCRC_i = \sum_j(x_{ij} w_{ij})~, ~~~~~~~j=\{\,j \mid RI,\; TAG,\; MMS\,\}
+$$
 
 여기서,
 
@@ -33,6 +35,25 @@ $PCRC = (w_1 \times RI) + (w_2 \times TAG) + (w_3 \times MMS)$
 - $MMS$ (Management Maturity Score): 경영 성숙도 점수 (20%)
 
 가중치($w$)는 금융 상품의 성격(단기 대출 vs 장기 투자)에 따라 조정될 수 있으나, 기본 모델에서는 실질적인 효율성 개선($RI$)에 가장 높은 비중을 둔다.
+
+**w 계산 로직**
+
+원점수 산정(x) → 확률분포비율로 변환(= 정규화, p) → 엔트로피 산출(불확실성 측정, E, 이때 k는 정규화 함수) → 변별력(d) 산출 → 최종 가중치(w)
+
+$$
+x_{ij} ~= ~score_j \times w_{0 ,j} , ~~~~~~~w_{0, j} = 초기가중치(하이퍼파라미터)
+$$
+
+$$
+\begin{aligned}
+X &= [x_{ij}], \quad i=1,\dots,m,\; j=\{\,j \mid RI,\; TAG,\; MMS\,\} \\
+P_{ij} &= \frac{x_{ij}}{\sum_{r=1}^{m} x_{rj}} \\
+k &= \frac{1}{\ln(m)} \\
+E_j &= -k\sum_{i=1}^{m} P_{ij}\ln(P_{ij}) \\
+d_j &= 1 - E_j \\
+w_j &= \frac{d_j}{\sum_{j} d_j}
+\end{aligned}
+$$
 
 ### 4.2. 세부 지표 산출 로직
 

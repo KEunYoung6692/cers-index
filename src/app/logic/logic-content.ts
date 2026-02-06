@@ -50,11 +50,11 @@ const LOGIC_HTML_BY_LANGUAGE: Record<Language, string> = {
 
   <h2>1. 산식 개요 (최종 산식)</h2>
   <p>PCRC는 3개 모듈 점수의 가중합으로 정의합니다.</p>
-  <div class="formula">$$\mathrm{PCRC}=(w_1\times RI)+(w_2\times TAG)+(w_3\times MMS)$$</div>
+  <div class="formula">$$\mathrm{PCRC}_i=\sum_{j}(x_{ij}\times w_j),\; j\in\{RI,\;TAG,\;MMS\}$$</div>
   <ul>
-    <li><strong>RI</strong> (Reduction Intensity Score): 감축 집약도 점수</li>
-    <li><strong>TAG</strong> (Target Alignment Gap Score): 목표 정렬 격차 점수</li>
-    <li><strong>MMS</strong> (Management Maturity Score): 탄소경영 성숙도 점수</li>
+    <li><strong>RI</strong> (Reduction Intensity Score): 감축 집약도 점수 (기본 60%)</li>
+    <li><strong>TAG</strong> (Target Alignment Gap Score): 목표 정렬 격차 점수 (기본 20%)</li>
+    <li><strong>MMS</strong> (Management Maturity Score): 탄소경영 성숙도 점수 (기본 20%)</li>
     <li><strong>가중치 \(w_j\)</strong>: 2장에서 정의되는 최종 가중치로, 엔트로피 가중치법(EWM) 결과(또는 정책 입력)입니다.</li>
   </ul>
 
@@ -269,11 +269,11 @@ $$</div>
 
 <h2>1. Formula Overview (Final Definition)</h2>
 <p>PCRC is defined as a weighted sum of three module scores.</p>
-<div class="formula">$$\mathrm{PCRC}=(w_1\times RI)+(w_2\times TAG)+(w_3\times MMS)$$</div>
+<div class="formula">$$\mathrm{PCRC}_i=\sum_{j}(x_{ij}\times w_j),\; j\in\{RI,\;TAG,\;MMS\}$$</div>
 <ul>
-  <li><strong>RI</strong> (Reduction Intensity Score): performance via intensity improvement</li>
-  <li><strong>TAG</strong> (Target Alignment Gap Score): alignment between targets and realized trajectory</li>
-  <li><strong>MMS</strong> (Management Maturity Score): quality/maturity of carbon management</li>
+  <li><strong>RI</strong> (Reduction Intensity Score): performance via intensity improvement (default 60%)</li>
+  <li><strong>TAG</strong> (Target Alignment Gap Score): alignment between targets and realized trajectory (default 20%)</li>
+  <li><strong>MMS</strong> (Management Maturity Score): quality/maturity of carbon management (default 20%)</li>
   <li><strong>Final weights \(w_j\)</strong>: final module weights defined in Section 2 (EWM output or policy input).</li>
 </ul>
 
@@ -325,6 +325,68 @@ TAG_{score} =
 \left( \dfrac{\text{Actual reduction rate}}{\text{Target reduction rate}} \right)\times 100 & (\text{if Actual} < \text{Target})
 \end{cases}
 $$</div>
+
+<h3>3.3 MMS</h3>
+<p>
+  To complement limited quantitative data, MMS scores qualitative carbon management maturity
+  (governance, verification, coverage, strategic integration) as a leading indicator.
+</p>
+<table>
+  <thead>
+    <tr>
+      <th style="width:18%">Category</th>
+      <th>Key checkpoints (examples)</th>
+      <th style="width:28%">Evidence</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Data reliability</strong></td>
+      <td>Third-party assurance and level (Limited vs Reasonable)</td>
+      <td>Assurance statement</td>
+    </tr>
+    <tr>
+      <td><strong>Coverage</strong></td>
+      <td>Scope 3 coverage and management (key categories)</td>
+      <td>Scope 3 disclosure table/methodology</td>
+    </tr>
+    <tr>
+      <td><strong>Strategic integration</strong></td>
+      <td>Use of ICP, MAC/CBA in decision making</td>
+      <td>Internal policy/investment process</td>
+    </tr>
+    <tr>
+      <td><strong>Governance</strong></td>
+      <td>Board/committee involvement, KPI/comp linkage, dedicated team</td>
+      <td>Governance chart, compensation policy, committee records</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>4. Data Quality Tiers — handling missing/asymmetric data</h2>
+<p>Apply a data hierarchy to improve model stability in information-asymmetry environments.</p>
+<ul>
+  <li><strong>Level 1 (Verified Data)</strong>: third-party verified emissions (100% weight).</li>
+  <li><strong>Level 2 (Self-Reported)</strong>: company-reported data (10% discount).</li>
+  <li><strong>Level 3 (Proxy/Estimated)</strong>: proxy/estimated values (30% discount).</li>
+</ul>
+<p class="small">Keep the discount application point (inputs vs scores) consistent for auditability.</p>
+
+<h2>5. Minimum Requirements (web/DB)</h2>
+<h3>5.1 Required inputs</h3>
+<ul>
+  <li>Scope 1+2 emissions for years \(t\) and \(t-1\) (unit: tCO\(_2\)e)</li>
+  <li>Denominator (revenue or production) and unit</li>
+  <li>Base year, target year, and target reduction rate (or annual target path)</li>
+  <li>Assurance status/level, Scope 3 coverage, ICP/MAC/CBA, governance evidence (docs/URLs)</li>
+</ul>
+
+<h3>5.2 Auditability — recommended metadata</h3>
+<ul>
+  <li>Source (report name/URL), page/table/footnote location</li>
+  <li>Boundary (organizational/operational), Scope 2 method (market-based/location-based)</li>
+  <li>Emission factor version and applied standard (country/supplier)</li>
+</ul>
 
 
   <h2>References</h2>
@@ -396,11 +458,11 @@ $$</div>
 
 <h2>1. 算式概要（最終定義）</h2>
 <p>PCRC は 3 つのモジュール得点の加重和として定義します。</p>
-<div class="formula">$$\mathrm{PCRC}=(w_1\times RI)+(w_2\times TAG)+(w_3\times MMS)$$</div>
+<div class="formula">$$\mathrm{PCRC}_i=\sum_{j}(x_{ij}\times w_j),\; j\in\{RI,\;TAG,\;MMS\}$$</div>
 <ul>
-  <li><strong>RI</strong>：原単位改善による実績評価</li>
-  <li><strong>TAG</strong>：目標と実績経路の整合性評価</li>
-  <li><strong>MMS</strong>：マネジメント成熟度</li>
+  <li><strong>RI</strong>：原単位改善による実績評価（標準 60%）</li>
+  <li><strong>TAG</strong>：目標と実績経路の整合性評価（標準 20%）</li>
+  <li><strong>MMS</strong>：マネジメント成熟度（標準 20%）</li>
   <li><strong>最終重み \(w_j\)</strong>：第 2 章で定義（EWM 結果またはポリシー入力）</li>
 </ul>
 
@@ -440,6 +502,68 @@ TAG_{score} =
 \left( \dfrac{\text{実績削減率}}{\text{目標削減率}} \right)\times 100 & (\text{if 実績} < \text{目標})
 \end{cases}
 $$</div>
+
+<h3>3.3 MMS</h3>
+<p>
+  定量データの制約を補完するため、MMS では炭素経営の質的成熟度
+  （ガバナンス・検証・カバレッジ・戦略統合）を先行指標として評価します。
+</p>
+<table>
+  <thead>
+    <tr>
+      <th style="width:18%">評価項目</th>
+      <th>主要チェックポイント（例）</th>
+      <th style="width:28%">根拠/証拠</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>データ信頼性</strong></td>
+      <td>第三者検証の有無と水準（Limited vs Reasonable）</td>
+      <td>Assurance statement</td>
+    </tr>
+    <tr>
+      <td><strong>カバレッジ</strong></td>
+      <td>Scope 3 の算定・管理範囲（主要カテゴリ含む）</td>
+      <td>Scope 3 開示表/方法論</td>
+    </tr>
+    <tr>
+      <td><strong>戦略的統合</strong></td>
+      <td>ICP、MAC/CBA の意思決定への活用</td>
+      <td>内部方針/投資意思決定プロセス</td>
+    </tr>
+    <tr>
+      <td><strong>ガバナンス</strong></td>
+      <td>取締役会/委員会の関与、KPI・報酬連動、専任組織</td>
+      <td>ガバナンス図、報酬規程、委員会記録</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>4. データ品質階層 — 欠損/非対称データへの対応</h2>
+<p>情報非対称の環境でモデルの安定性を高めるため、データ階層を適用します。</p>
+<ul>
+  <li><strong>Level 1 (Verified Data)</strong>: 第三者検証済み排出量（100% 反映）</li>
+  <li><strong>Level 2 (Self-Reported)</strong>: 企業自己開示（10% 割引）</li>
+  <li><strong>Level 3 (Proxy/Estimated)</strong>: 代理/推計値（30% 割引）</li>
+</ul>
+<p class="small">割引の適用箇所（入力値/スコア）は監査可能性のため一貫させます。</p>
+
+<h2>5. 実装（Web/DB）での最小要件</h2>
+<h3>5.1 必須入力</h3>
+<ul>
+  <li>\(t, t-1\) 年の Scope 1+2 排出量（単位: tCO\(_2\)e）</li>
+  <li>分母（売上または生産量）と単位</li>
+  <li>基準年・目標年・目標削減率（または年次目標値）</li>
+  <li>検証の有無/水準、Scope 3 カバレッジ、ICP/MAC/CBA、ガバナンス証拠（文書/URL）</li>
+</ul>
+
+<h3>5.2 監査可能性 — 推奨メタデータ</h3>
+<ul>
+  <li>出典（報告書名/URL）、ページ/表/脚注位置</li>
+  <li>算定境界（組織/運用）、Scope 2 方式（市場基準/ロケーション基準）</li>
+  <li>排出係数のバージョンと適用基準（国/サプライヤ）</li>
+</ul>
 
 
   <h2>参考文献</h2>

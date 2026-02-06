@@ -130,7 +130,6 @@ Table "emission" {
 Table "denominator" {
   "denom_id" SERIAL [pk, increment]
   "company_id" INTEGER [not null]
-  "report_id" INTEGER
   "denom_year" INTEGER [not null]
   "denom_type" VARCHAR(50) [not null] // revenue/production/rtk/mwh ...
   "denom_value" NUMERIC(20,6)
@@ -158,7 +157,6 @@ Table "denominator" {
 Table "emission_target" {
   "target_id" SERIAL [pk, increment]
   "company_id" INTEGER [not null]
-  "report_id" INTEGER
   "scope" VARCHAR(10) [not null] // 'S1S2','S1','S2','S3'
   "baseline_year" INTEGER
   "target_year" INTEGER [not null]
@@ -176,8 +174,6 @@ Table "emission_target" {
 
   Indexes {
     company_id [name: "idx_emission_target_company_id"]
-    sub_company_id [name: "idx_emission_target_sub_company_id"]
-    report_id [name: "idx_emission_target_report_id"]
     target_year [name: "idx_emission_target_year"]
     scope [name: "idx_emission_target_scope"]
   }
@@ -268,13 +264,12 @@ Table "mms_indicator_def" {
 
 Table "mms_observation" {
   "obs_id" SERIAL [pk, increment]
-  "score_run_id" INTEGER [not null]
   "indicator_id" INTEGER [not null]
-  "status" VARCHAR(20) [not null, default: 'unknown'] // yes/no/unknown
+  "status" VARCHAR(20) [default: 'unknown'] // yes/no/unknown
   "points_awarded" NUMERIC(10,3) [not null, default: 0]
   "data_level" INTEGER [not null, default: 2]
 
-  "sub_company_id" INTEGER
+  "company_id" INTEGER
   "evidence_page" INTEGER
   "evidence_note" VARCHAR(255)
   "notes" VARCHAR
@@ -288,7 +283,7 @@ Table "mms_observation" {
   Indexes {
     score_run_id [name: "idx_mms_observation_score_run_id"]
     indicator_id [name: "idx_mms_observation_indicator_id"]
-    sub_company_id [name: "idx_mms_observation_sub_company_id"]
+    company_id [name: "idx_mms_observation_company_id"]
   }
 }
 ```
