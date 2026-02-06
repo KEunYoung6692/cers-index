@@ -1,6 +1,7 @@
 import { ShieldCheck, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { Report } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 import type { I18nStrings } from '@/lib/i18n';
@@ -46,7 +47,15 @@ export function TrustBadges({ report, strings }: TrustBadgesProps) {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{trustStrings.title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          <span className="inline-flex items-center gap-2">
+            {trustStrings.title}
+            <InfoTooltip label={trustStrings.tooltipLabel} contentClassName="space-y-1">
+              <p>{trustStrings.tooltipAssurance}</p>
+              <p>{trustStrings.tooltipFrameworks}</p>
+            </InfoTooltip>
+          </span>
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         {/* Assurance */}

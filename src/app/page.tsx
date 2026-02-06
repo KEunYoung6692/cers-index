@@ -181,6 +181,7 @@ function PageContent() {
               industryData={industry}
               currentScore={scoreRun}
               industryName={industryName}
+              companyName={company?.name}
               strings={strings}
             />
             <IndustryAveragesCard industryData={industry} industryName={industryName} strings={strings} />

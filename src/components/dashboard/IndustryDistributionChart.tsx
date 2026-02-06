@@ -7,10 +7,17 @@ interface IndustryDistributionChartProps {
   industryData: IndustryData | undefined;
   currentScore: ScoreRun | undefined;
   industryName: string;
+  companyName?: string;
   strings: I18nStrings;
 }
 
-export function IndustryDistributionChart({ industryData, currentScore, industryName, strings }: IndustryDistributionChartProps) {
+export function IndustryDistributionChart({
+  industryData,
+  currentScore,
+  industryName,
+  companyName,
+  strings,
+}: IndustryDistributionChartProps) {
   const distributionStrings = strings.industryDistribution;
   if (!industryData) {
     return (
@@ -108,7 +115,9 @@ export function IndustryDistributionChart({ industryData, currentScore, industry
           <div className="mt-3 flex items-center gap-2 text-xs">
             <div className="flex items-center gap-1.5">
               <div className="h-3 w-3 rounded-sm bg-accent" />
-              <span className="text-muted-foreground">{distributionStrings.yourCompany}: {currentScore.pcrcScore.toFixed(2)}</span>
+              <span className="text-muted-foreground">
+                {(companyName || distributionStrings.yourCompany)}: {currentScore.pcrcScore.toFixed(2)}
+              </span>
             </div>
           </div>
         )}

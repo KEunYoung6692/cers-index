@@ -1,5 +1,6 @@
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { cn } from '@/lib/utils';
 import { ScoreRun } from '@/data/mockData';
 import type { I18nStrings } from '@/lib/i18n';
@@ -68,7 +69,18 @@ export function HeroScoreCard({ scoreRun, yoyChange, industryPercentile, strings
         <div className="flex items-start justify-between">
           {/* Main Score */}
           <div className="space-y-1">
-            <p className="text-[1.75rem] font-semibold tracking-tight">{strings.hero.cersIndex}</p>
+            <p className="text-[1.75rem] font-semibold tracking-tight">
+              <span className="inline-flex items-center gap-2">
+                {strings.hero.cersIndex}
+                <InfoTooltip label={strings.hero.tooltipLabel} contentClassName="space-y-1">
+                  <p>{strings.hero.tooltipCers}</p>
+                  <p>{strings.hero.tooltipPcrc}</p>
+                  <p>{strings.hero.tooltipRi}</p>
+                  <p>{strings.hero.tooltipTag}</p>
+                  <p>{strings.hero.tooltipMms}</p>
+                </InfoTooltip>
+              </span>
+            </p>
             <p className="text-sm font-medium text-muted-foreground">{strings.hero.pcrcScore}</p>
             <div className="flex items-baseline gap-2">
               <span className={cn("font-mono text-6xl font-bold tracking-tighter animate-fade-in", getScoreColor(scoreRun.pcrcScore))}>
