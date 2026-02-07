@@ -15,6 +15,9 @@ function getPool() {
     PGDATABASE,
     PGPORT,
     PGSSLMODE,
+    PGPOOL_MAX,
+    PGPOOL_IDLE_TIMEOUT_MS,
+    PGPOOL_CONNECTION_TIMEOUT_MS,
   } = process.env;
 
   const hasDiscreteConfig = PGHOST && PGUSER && PGPASSWORD && PGDATABASE;
@@ -23,11 +26,21 @@ function getPool() {
   }
 
   if (!pool) {
+    const poolMax = Math.max(1, Number(PGPOOL_MAX ?? 1) || 1);
+    const idleTimeoutMillis = Math.max(1_000, Number(PGPOOL_IDLE_TIMEOUT_MS ?? 10_000) || 10_000);
+    const connectionTimeoutMillis = Math.max(
+      1_000,
+      Number(PGPOOL_CONNECTION_TIMEOUT_MS ?? 10_000) || 10_000,
+    );
+
     pool = new Pool(
       DATABASE_URL
         ? {
             connectionString: DATABASE_URL,
             ssl: PGSSLMODE === "require" ? { rejectUnauthorized: false } : undefined,
+            max: poolMax,
+            idleTimeoutMillis,
+            connectionTimeoutMillis,
           }
         : {
             host: PGHOST,
@@ -36,6 +49,9 @@ function getPool() {
             database: PGDATABASE,
             port: PGPORT ? Number(PGPORT) : 5432,
             ssl: PGSSLMODE === "require" ? { rejectUnauthorized: false } : undefined,
+            max: poolMax,
+            idleTimeoutMillis,
+            connectionTimeoutMillis,
           },
     );
   }
