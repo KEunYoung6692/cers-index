@@ -19,6 +19,7 @@ import {
   getDefaultYear,
   getScoreRunsForCompany,
 } from "@/lib/data/metrics";
+import { getLocalizedIndustryName } from "@/lib/data/industry";
 import { useDashboardData } from "@/lib/data/use-dashboard-data";
 import { getI18nStrings, type Language, HTML_LANG_BY_LANGUAGE, isLanguage } from "@/lib/i18n";
 
@@ -123,10 +124,15 @@ function PageContent() {
   const industryPercentile = calculateIndustryPercentile(data, selectedCompanyId);
   const company = getCompanyById(data, selectedCompanyId);
   const industry = company ? data.industryData[company.industryId] : undefined;
-  const industryName = company?.industryName ?? strings.page.industryFallback;
+  const industryName = getLocalizedIndustryName(company, language, strings.page.industryFallback);
   const reportsForCompany = data.reports[selectedCompanyId] ?? [];
   const targetReportYear = selectedYear + 1;
-  const report = reportsForCompany.find((item) => item.reportYear === targetReportYear);
+  const report =
+    reportsForCompany.find((item) => item.reportYear === targetReportYear) ??
+    [...reportsForCompany]
+      .filter((item) => item.reportYear <= targetReportYear)
+      .sort((a, b) => b.reportYear - a.reportYear)[0] ??
+    reportsForCompany[0];
   const emissions = data.emissionsData[selectedCompanyId] ?? [];
   const target = data.targets[selectedCompanyId];
 

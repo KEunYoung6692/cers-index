@@ -38,8 +38,11 @@ function TrustBadgeItem({ icon, label, value, status }: TrustBadgeItemProps) {
 }
 
 export function TrustBadges({ report, strings }: TrustBadgesProps) {
-  const hasAssurance = report?.assuranceOrg !== null && report?.assuranceOrg !== undefined;
-  const frameworks = report?.frameworks || [];
+  const assuranceOrg = report?.assuranceOrg?.trim() ?? "";
+  const hasAssurance = assuranceOrg.length > 0;
+  const frameworks = (report?.frameworks ?? [])
+    .map((framework) => framework.trim())
+    .filter((framework) => framework.length > 0);
   const displayFrameworks = frameworks.slice(0, 4);
   const extraCount = frameworks.length - 4;
   const trustStrings = strings.trust;
@@ -63,7 +66,7 @@ export function TrustBadges({ report, strings }: TrustBadgesProps) {
           icon={<ShieldCheck className="h-5 w-5" />}
           label={trustStrings.assurance}
           value={hasAssurance ? (
-            <span className="text-score-good">{report?.assuranceOrg}</span>
+            <span className="text-score-good">{assuranceOrg}</span>
           ) : (
             <span className="text-muted-foreground">{trustStrings.notStated}</span>
           )}

@@ -49,6 +49,12 @@ function toNumber(value: unknown, fallback = 0) {
   return Number.isNaN(num) ? fallback : num;
 }
 
+function toNullableNumber(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+}
+
 function mapDataLevelStatus(dataLevel: number | null) {
   switch (dataLevel) {
     case 1:
@@ -67,6 +73,41 @@ function buildEvidencePage(page: number | null) {
   return `p.${page}`;
 }
 
+function normalizeEmissionValue(value: number, unit: unknown) {
+  if (!Number.isFinite(value)) return null;
+  if (typeof unit !== "string") return value;
+
+  const normalizedUnit = unit.trim().toLowerCase().replace(/[\s_-]/g, "");
+  if (normalizedUnit.startsWith("ktco2")) {
+    return value * 1_000;
+  }
+  return value;
+}
+
+function normalizeDenomType(denomType: unknown) {
+  if (typeof denomType !== "string") return "other";
+  const normalized = denomType.trim().toLowerCase();
+  return normalized.length > 0 ? normalized : "other";
+}
+
+function getDenomTypePriority(denomType: string) {
+  if (denomType === "revenue") return 3;
+  if (denomType === "production") return 2;
+  if (denomType === "other") return 1;
+  return 0;
+}
+
+function mapIndustryLanguageCode(
+  languageCode: unknown,
+): "EN" | "JP" | "KR" | null {
+  if (typeof languageCode !== "string") return null;
+  const normalized = languageCode.trim().toLowerCase();
+  if (normalized === "en" || normalized === "eng") return "EN";
+  if (normalized === "jp" || normalized === "ja" || normalized === "jpn") return "JP";
+  if (normalized === "kr" || normalized === "ko" || normalized === "kor") return "KR";
+  return null;
+}
+
 export async function getDashboardDataFromDb(): Promise<DashboardData> {
   // 참고: config/db_schema 기준으로 테이블을 조회합니다.
   const pool = getPool();
@@ -75,7 +116,7 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
     `SELECT table_name, column_name
      FROM information_schema.columns
      WHERE table_schema = current_schema()
-       AND table_name IN ('emission', 'denominator', 'emission_target', 'report', 'report_framework')`,
+       AND table_name IN ('emission', 'denominator', 'emission_target', 'report', 'report_framework', 'mms_observation', 'industry_i18n')`,
   );
 
   const columnsByTable = new Map<string, Set<string>>();
@@ -104,13 +145,18 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
     : hasColumn("report_framework", "framework_code")
       ? "framework_code"
       : null;
+  const hasMmsObservationScoreRunId = hasColumn("mms_observation", "score_run_id");
+  const hasMmsObservationCompanyId = hasColumn("mms_observation", "company_id");
+  const hasIndustryI18nIndustryId = hasColumn("industry_i18n", "industry_id");
+  const hasIndustryI18nLanguageCode = hasColumn("industry_i18n", "language_code");
+  const hasIndustryI18nName = hasColumn("industry_i18n", "industry_name_i18n");
+  const hasIndustryI18n =
+    hasIndustryI18nIndustryId &&
+    hasIndustryI18nLanguageCode &&
+    hasIndustryI18nName;
 
-  if (!reportDateColumn) {
-    throw new Error("report table must include submission_date or publication_date");
-  }
-
-  if (!reportFrameworkColumn) {
-    throw new Error("report_framework table must include framework or framework_code");
+  if (!hasMmsObservationScoreRunId && !hasMmsObservationCompanyId) {
+    throw new Error("mms_observation table must include score_run_id or company_id");
   }
 
   const [
@@ -123,6 +169,7 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
     denomRes,
     targetsRes,
     alphaRes,
+    industryI18nRes,
     mmsDefsRes,
     mmsObsRes,
   ] = await Promise.all([
@@ -143,19 +190,25 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
        ORDER BY sr.company_id, sr.eval_year DESC`,
     ),
     pool.query(
-      `SELECT report_id, company_id, report_year, ${reportDateColumn} AS report_date, assurance_org
-       FROM report`,
+      reportDateColumn
+        ? `SELECT report_id, company_id, report_year, ${reportDateColumn} AS report_date, assurance_org
+           FROM report`
+        : `SELECT NULL::INTEGER AS report_id, NULL::INTEGER AS company_id, NULL::INTEGER AS report_year, NULL::DATE AS report_date, NULL::VARCHAR AS assurance_org
+           WHERE FALSE`,
     ),
     pool.query(
-      `SELECT report_id, ${reportFrameworkColumn} AS framework
-       FROM report_framework`,
+      reportFrameworkColumn
+        ? `SELECT report_id, ${reportFrameworkColumn} AS framework
+           FROM report_framework`
+        : `SELECT NULL::INTEGER AS report_id, NULL::VARCHAR AS framework
+           WHERE FALSE`,
     ),
     pool.query(
       hasEmissionCompany
-        ? `SELECT company_id, emission_year, scope, emissions_value, data_level, evidence_page, evidence_note
+        ? `SELECT company_id, emission_year, scope, emissions_value, unit, data_level, evidence_page, evidence_note
            FROM emission
            WHERE scope IN ('S1', 'S2', 'S1S2', 'TOTAL')`
-        : `SELECT sc.company_id AS company_id, e.emission_year, e.scope, e.emissions_value, e.data_level, e.evidence_page, e.evidence_note
+        : `SELECT sc.company_id AS company_id, e.emission_year, e.scope, e.emissions_value, e.unit, e.data_level, e.evidence_page, e.evidence_note
            FROM emission e
            JOIN sub_company sc ON sc.sub_company_id = e.sub_company_id
            WHERE sc.is_self IS TRUE
@@ -183,11 +236,20 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
        ORDER BY industry_id, config_id DESC`,
     ),
     pool.query(
+      hasIndustryI18n
+        ? `SELECT industry_id, language_code, industry_name_i18n
+           FROM industry_i18n`
+        : `SELECT NULL::INTEGER AS industry_id, NULL::VARCHAR AS language_code, NULL::VARCHAR AS industry_name_i18n
+           WHERE FALSE`,
+    ),
+    pool.query(
       `SELECT indicator_id, indicator_name
        FROM mms_indicator_def`,
     ),
     pool.query(
-      `SELECT score_run_id, indicator_id, status, points_awarded, data_level, evidence_page, evidence_note
+      `SELECT ${hasMmsObservationScoreRunId ? "score_run_id" : "NULL::INTEGER AS score_run_id"},
+              ${hasMmsObservationCompanyId ? "company_id" : "NULL::INTEGER AS company_id"},
+              indicator_id, status, points_awarded, data_level, evidence_page, evidence_note
        FROM mms_observation`,
     ),
   ]);
@@ -195,14 +257,34 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
   const industryNameById = new Map<number, string>(
     industriesRes.rows.map((row) => [row.industry_id as number, row.industry_name as string]),
   );
+  const industryI18nById = new Map<number, { EN?: string; JP?: string; KR?: string }>();
+
+  for (const row of industryI18nRes.rows) {
+    const industryId = toNullableNumber(row.industry_id);
+    if (industryId === null) continue;
+    const languageKey = mapIndustryLanguageCode(row.language_code);
+    if (!languageKey) continue;
+    const localizedName = (row.industry_name_i18n as string | null)?.trim();
+    if (!localizedName) continue;
+
+    const key = Math.trunc(industryId);
+    if (!industryI18nById.has(key)) {
+      industryI18nById.set(key, {});
+    }
+    industryI18nById.get(key)![languageKey] = localizedName;
+  }
 
   const companies = companiesRes.rows.map((row) => {
     const industryId = row.industry_id !== null ? String(row.industry_id) : "unknown";
+    const numericIndustryId = toNullableNumber(row.industry_id);
+    const localizedNames = numericIndustryId === null ? undefined : industryI18nById.get(Math.trunc(numericIndustryId));
     return {
       id: String(row.company_id),
       name: row.company_name as string,
       industryId,
       industryName: (row.industry_name as string) ?? industryNameById.get(row.industry_id as number) ?? "Unknown",
+      industryNameEn: localizedNames?.EN,
+      industryNameJp: localizedNames?.JP,
       country: ((row.country as string) ?? "KR").toUpperCase(),
     };
   });
@@ -275,9 +357,15 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
       continue;
     }
     const companyId = String(row.company_id);
-    const year = row.emission_year as number;
-    const scope = row.scope as string;
-    const value = toNumber(row.emissions_value);
+    const yearValue = toNullableNumber(row.emission_year);
+    if (yearValue === null) continue;
+    const year = Math.trunc(yearValue);
+    const scope = typeof row.scope === "string" ? row.scope.toUpperCase() : "";
+    if (!["S1", "S2", "S1S2", "TOTAL"].includes(scope)) continue;
+    const rawValue = toNullableNumber(row.emissions_value);
+    if (rawValue === null) continue;
+    const value = normalizeEmissionValue(rawValue, row.unit);
+    if (value === null) continue;
     const key = `${companyId}:${year}`;
     if (!emissionAggregates.has(key)) {
       emissionAggregates.set(key, { companyId, year, s1: 0, s2: 0, s1s2: 0, total: 0 });
@@ -336,30 +424,42 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
   }
 
   const denominatorEvidence: Record<string, EvidenceItem[]> = {};
+  const selectedDenominatorByYear = new Map<
+    string,
+    { companyId: string; year: number; denomValue: number; denomType: string; priority: number; dataLevel: number }
+  >();
+
   for (const row of denomRes.rows) {
     if (row.company_id === null || row.company_id === undefined) {
       continue;
     }
     const companyId = String(row.company_id);
-    const year = row.denom_year as number;
-    const denomValue = toNumber(row.denom_value);
-    const denomType = (row.denom_type as string) ?? "revenue";
+    const yearValue = toNullableNumber(row.denom_year);
+    if (yearValue === null) continue;
+    const year = Math.trunc(yearValue);
+    const denomValue = toNullableNumber(row.denom_value);
+    const denomType = normalizeDenomType(row.denom_type);
+    const priority = getDenomTypePriority(denomType);
+    const dataLevel = toNullableNumber(row.data_level) ?? Number.POSITIVE_INFINITY;
 
-    if (!emissionsData[companyId]) emissionsData[companyId] = [];
-    let entry = emissionsData[companyId].find((item) => item.year === year);
-    if (!entry) {
-      entry = {
-        year,
-        s1Emissions: 0,
-        s2Emissions: 0,
-        denomValue: 0,
-        denomType,
-      };
-      emissionsData[companyId].push(entry);
+    if (denomValue !== null && denomValue > 0) {
+      const key = `${companyId}:${year}`;
+      const existing = selectedDenominatorByYear.get(key);
+      const shouldReplace =
+        !existing ||
+        priority > existing.priority ||
+        (priority === existing.priority && dataLevel < existing.dataLevel);
+      if (shouldReplace) {
+        selectedDenominatorByYear.set(key, {
+          companyId,
+          year,
+          denomValue,
+          denomType,
+          priority,
+          dataLevel,
+        });
+      }
     }
-
-    entry.denomValue = denomValue;
-    entry.denomType = denomType;
 
     if (row.evidence_page || row.evidence_note) {
       const status = mapDataLevelStatus(row.data_level as number | null);
@@ -375,6 +475,28 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
     }
   }
 
+  for (const selected of selectedDenominatorByYear.values()) {
+    if (!emissionsData[selected.companyId]) emissionsData[selected.companyId] = [];
+    let entry = emissionsData[selected.companyId].find((item) => item.year === selected.year);
+    if (!entry) {
+      entry = {
+        year: selected.year,
+        s1Emissions: 0,
+        s2Emissions: 0,
+        denomValue: 0,
+        denomType: selected.denomType,
+      };
+      emissionsData[selected.companyId].push(entry);
+    }
+
+    entry.denomValue = selected.denomValue;
+    entry.denomType = selected.denomType;
+  }
+
+  for (const companyId of Object.keys(emissionsData)) {
+    emissionsData[companyId].sort((a, b) => b.year - a.year);
+  }
+
   const targets: DashboardData["targets"] = {};
   const targetEvidence: Record<string, EvidenceItem[]> = {};
 
@@ -383,14 +505,18 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
       continue;
     }
     const companyId = String(row.company_id);
-    const scope = row.scope as string;
-    const targetYear = row.target_year as number;
-    const baselineYear = (row.baseline_year as number | null) ?? targetYear;
+    const scope = (row.scope as string) ?? "S1S2";
+    const targetYearValue = toNullableNumber(row.target_year);
+    if (targetYearValue === null) continue;
+    const targetYear = Math.trunc(targetYearValue);
+    const baselineYearValue = toNullableNumber(row.baseline_year);
+    const baselineYear = baselineYearValue === null ? targetYear : Math.trunc(baselineYearValue);
+    const targetReductionPct = toNullableNumber(row.target_reduction_pct);
 
-    if (!targets[companyId] || targetYear > targets[companyId].targetYear) {
+    if (targetReductionPct !== null && (!targets[companyId] || targetYear > targets[companyId].targetYear)) {
       targets[companyId] = {
         scope,
-        targetReductionPct: toNumber(row.target_reduction_pct),
+        targetReductionPct,
         baseYear: baselineYear,
         targetYear,
       };
@@ -415,7 +541,13 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
 
   const mmsEvidence: Record<string, EvidenceItem[]> = {};
   for (const row of mmsObsRes.rows) {
-    const companyId = scoreRunIdToCompanyId.get(row.score_run_id as number);
+    const companyIdFromObservation =
+      row.company_id !== null && row.company_id !== undefined ? String(row.company_id) : null;
+    const companyId =
+      companyIdFromObservation ??
+      (row.score_run_id !== null && row.score_run_id !== undefined
+        ? scoreRunIdToCompanyId.get(row.score_run_id as number) ?? null
+        : null);
     if (!companyId) continue;
 
     if (!mmsEvidence[companyId]) mmsEvidence[companyId] = [];
@@ -483,9 +615,11 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
       const emissions = emissionsData[companyId] ?? [];
       if (emissions.length === 0) continue;
       const latest = [...emissions].sort((a, b) => b.year - a.year)[0];
-      if (latest.denomValue > 0) {
+      if (latest.denomValue > 0 && latest.denomType === "revenue") {
         const intensity = ((latest.s1Emissions + latest.s2Emissions) / latest.denomValue) * 1_000_000;
-        intensityValues.push(intensity);
+        if (Number.isFinite(intensity)) {
+          intensityValues.push(intensity);
+        }
       }
     }
     if (intensityValues.length > 0) {

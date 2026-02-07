@@ -10,13 +10,14 @@ interface AbsoluteEmissionsCardProps {
 }
 
 function formatNumber(num: number): string {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(2) + 'M';
+  const safe = Number.isFinite(num) ? Math.max(0, num) : 0;
+  if (safe >= 1000000) {
+    return (safe / 1000000).toFixed(2) + 'M';
   }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'K';
+  if (safe >= 1000) {
+    return (safe / 1000).toFixed(1) + 'K';
   }
-  return num.toFixed(0);
+  return safe.toFixed(0);
 }
 
 export function AbsoluteEmissionsCard({ emissionsData, selectedYear, strings }: AbsoluteEmissionsCardProps) {
@@ -44,7 +45,14 @@ export function AbsoluteEmissionsCard({ emissionsData, selectedYear, strings }: 
   }
 
   // Find max for bar scaling
-  const maxEmissions = Math.max(...sortedData.map(d => d.s1Emissions + d.s2Emissions));
+  const maxEmissions = Math.max(
+    0,
+    ...sortedData.map((d) => {
+      const s1 = Number.isFinite(d.s1Emissions) ? Math.max(0, d.s1Emissions) : 0;
+      const s2 = Number.isFinite(d.s2Emissions) ? Math.max(0, d.s2Emissions) : 0;
+      return s1 + s2;
+    }),
+  );
 
   return (
     <Card className="col-span-4">
@@ -56,9 +64,11 @@ export function AbsoluteEmissionsCard({ emissionsData, selectedYear, strings }: 
       </CardHeader>
       <CardContent className="space-y-4">
         {sortedData.map((data, index) => {
-          const total = data.s1Emissions + data.s2Emissions;
-          const percentage = (total / maxEmissions) * 100;
-          const s1Percentage = (data.s1Emissions / total) * 100;
+          const s1 = Number.isFinite(data.s1Emissions) ? Math.max(0, data.s1Emissions) : 0;
+          const s2 = Number.isFinite(data.s2Emissions) ? Math.max(0, data.s2Emissions) : 0;
+          const total = s1 + s2;
+          const percentage = maxEmissions > 0 ? Math.min(100, Math.max(0, (total / maxEmissions) * 100)) : 0;
+          const s1Percentage = total > 0 ? (s1 / total) * 100 : 0;
           
           return (
             <div key={data.year} className={cn("space-y-2", index === 0 && "animate-fade-in")}>
@@ -82,8 +92,8 @@ export function AbsoluteEmissionsCard({ emissionsData, selectedYear, strings }: 
                 </div>
               </div>
               <div className="flex gap-4 text-xs text-muted-foreground">
-                <span>{emissionsStrings.s1}: {formatNumber(data.s1Emissions)}</span>
-                <span>{emissionsStrings.s2}: {formatNumber(data.s2Emissions)}</span>
+                <span>{emissionsStrings.s1}: {formatNumber(s1)}</span>
+                <span>{emissionsStrings.s2}: {formatNumber(s2)}</span>
               </div>
             </div>
           );

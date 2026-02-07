@@ -36,30 +36,33 @@ export function IntensityTrendChart({ emissionsData, target, selectedYear, strin
     () =>
       scopedEmissions
         .map((d) => {
-          const s1s2 = d.s1Emissions + d.s2Emissions;
-          const total = d.totalEmissions ?? s1s2;
+          const s1 = Number.isFinite(d.s1Emissions) ? Math.max(0, d.s1Emissions) : 0;
+          const s2 = Number.isFinite(d.s2Emissions) ? Math.max(0, d.s2Emissions) : 0;
+          const s1s2 = s1 + s2;
+          const total = Number.isFinite(d.totalEmissions) ? Math.max(0, d.totalEmissions) : s1s2;
           const emissions = metricView === 'total' ? total : s1s2;
-          const denom = d.denomValue || 0;
+          const denom = Number.isFinite(d.denomValue) && d.denomValue > 0 ? d.denomValue : null;
           return {
             year: d.year,
-            intensity: denom > 0 ? (emissions / denom) * 1000000 : 0,
+            intensity: denom ? (emissions / denom) * 1000000 : null,
             emissions,
           };
         })
         .sort((a, b) => a.year - b.year),
     [scopedEmissions, metricView],
   );
+  const hasIntensityData = chartData.some((point) => point.intensity !== null && Number.isFinite(point.intensity));
 
   // Calculate target line if available
   let targetIntensity: number | null = null;
-  if (target && chartData.length > 0) {
+  if (target && hasIntensityData) {
     const baseYearData = chartData.find(d => d.year === target.baseYear);
-    if (baseYearData) {
+    if (baseYearData && baseYearData.intensity !== null) {
       targetIntensity = baseYearData.intensity * (1 - target.targetReductionPct / 100);
     }
   }
 
-  if (chartData.length === 0) {
+  if (!hasIntensityData) {
     return (
       <Card className="col-span-8">
         <CardHeader>
@@ -82,7 +85,14 @@ export function IntensityTrendChart({ emissionsData, target, selectedYear, strin
             <CardTitle className="text-sm font-medium">{trendStrings.title} ({metricLabel})</CardTitle>
             <p className="text-xs text-muted-foreground">{trendStrings.unit}</p>
           </div>
-          <Tabs value={metricView} onValueChange={(value) => setMetricView(value as MetricView)}>
+          <Tabs
+            value={metricView}
+            onValueChange={(value) => {
+              if (value === 'total' || value === 's1s2') {
+                setMetricView(value);
+              }
+            }}
+          >
             <TabsList className="h-8">
               <TabsTrigger value="total" className="px-2.5 text-xs">{trendStrings.total}</TabsTrigger>
               <TabsTrigger value="s1s2" className="px-2.5 text-xs">{trendStrings.s1s2}</TabsTrigger>
@@ -107,7 +117,9 @@ export function IntensityTrendChart({ emissionsData, target, selectedYear, strin
                 className="text-muted-foreground"
                 axisLine={{ className: "stroke-border" }}
                 tickLine={{ className: "stroke-border" }}
-                tickFormatter={(value) => value.toFixed(1)}
+                tickFormatter={(value) =>
+                  typeof value === "number" && Number.isFinite(value) ? value.toFixed(1) : "0.0"
+                }
               />
               <Tooltip 
                 contentStyle={{ 
@@ -117,9 +129,12 @@ export function IntensityTrendChart({ emissionsData, target, selectedYear, strin
                   boxShadow: 'var(--shadow-card)',
                 }}
                 labelStyle={{ color: 'hsl(var(--foreground))' }}
-                formatter={(value: number) => [value.toFixed(2), trendStrings.tooltipIntensity]}
+                formatter={(value: number | string) => {
+                  const numeric = typeof value === "number" ? value : Number(value);
+                  return [Number.isFinite(numeric) ? numeric.toFixed(2) : "—", trendStrings.tooltipIntensity];
+                }}
               />
-              {targetIntensity && (
+              {targetIntensity !== null && (
                 <ReferenceLine 
                   y={targetIntensity} 
                   stroke="hsl(var(--accent))" 

@@ -20,7 +20,9 @@ interface ScoreBarProps {
 }
 
 function ScoreBar({ label, score, max, colorClass }: ScoreBarProps) {
-  const percentage = (score / max) * 100;
+  const safeMax = Number.isFinite(max) && max > 0 ? max : 100;
+  const safeScore = Number.isFinite(score) ? Math.max(0, score) : 0;
+  const percentage = Math.min(100, Math.max(0, (safeScore / safeMax) * 100));
   
   return (
     <div className="space-y-1">

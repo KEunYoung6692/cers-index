@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/select';
 import type { Company } from '@/data/mockData';
 import { type I18nStrings, type Language, LANGUAGES } from '@/lib/i18n';
+import { getLocalizedIndustryName } from '@/lib/data/industry';
 
 interface DashboardHeaderProps {
   companies: Company[];
@@ -119,7 +120,9 @@ export function DashboardHeader({
                         />
                         <div className="flex flex-col">
                           <span>{company.name}</span>
-                          <span className="text-xs text-muted-foreground">{company.industryName}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {getLocalizedIndustryName(company, selectedLanguage, company.industryName)}
+                          </span>
                         </div>
                       </CommandItem>
                     ))}

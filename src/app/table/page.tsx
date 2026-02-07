@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useDashboardData } from "@/lib/data/use-dashboard-data";
+import { getLocalizedIndustryName } from "@/lib/data/industry";
 import {
   getI18nStrings,
   HTML_LANG_BY_LANGUAGE,
@@ -57,6 +58,7 @@ function TablePageContent() {
     const rowMap = new Map<string, TableRowData>();
 
     data.companies.forEach((company) => {
+      const localizedIndustryName = getLocalizedIndustryName(company, language, "Unknown");
       const runs = data.scoreRuns[company.id] ?? [];
       const emissions = data.emissionsData[company.id] ?? [];
 
@@ -69,7 +71,7 @@ function TablePageContent() {
         rowMap.set(key, {
           companyId: company.id,
           companyName: company.name,
-          industryName: company.industryName,
+          industryName: localizedIndustryName,
           year: run.evalYear,
           emissions: totalEmissions,
           pcrcScore: run.pcrcScore,
@@ -90,7 +92,7 @@ function TablePageContent() {
           rowMap.set(key, {
             companyId: company.id,
             companyName: company.name,
-            industryName: company.industryName,
+            industryName: localizedIndustryName,
             year: entry.year,
             emissions: totalEmissions,
             pcrcScore: null,
@@ -125,7 +127,7 @@ function TablePageContent() {
       if (nameCompare !== 0) return nameCompare;
       return b.year - a.year;
     });
-  }, [data]);
+  }, [data, language]);
 
   const [query, setQuery] = useState("");
   const [selectedYear, setSelectedYear] = useState("all");
@@ -262,7 +264,7 @@ function TablePageContent() {
                     <TableCell className="text-muted-foreground">{row.industryName}</TableCell>
                     <TableCell>{row.year}</TableCell>
                     <TableCell className="text-right font-mono">
-                      {row.emissions === null ? "—" : formatNumber(row.emissions, locale)}
+                      {row.emissions === null || !Number.isFinite(row.emissions) ? "—" : formatNumber(row.emissions, locale)}
                     </TableCell>
                     <TableCell className="text-right font-mono">{formatScore(row.ri)}</TableCell>
                     <TableCell className="text-right font-mono">{formatScore(row.tag)}</TableCell>

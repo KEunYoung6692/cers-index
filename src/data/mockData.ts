@@ -5,6 +5,8 @@ export interface Company {
     name: string;
     industryId: string;
     industryName: string;
+    industryNameEn?: string;
+    industryNameJp?: string;
     country: string;
   }
   
