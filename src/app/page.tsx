@@ -16,12 +16,14 @@ import {
   calculateIndustryPercentile,
   calculateYoYChange,
   getCompanyById,
-  getDefaultYear,
   getScoreRunsForCompany,
 } from "@/lib/data/metrics";
+import { getDisplayCompanyName } from "@/lib/data/company";
 import { getLocalizedIndustryName } from "@/lib/data/industry";
 import { useDashboardData } from "@/lib/data/use-dashboard-data";
 import { getI18nStrings, type Language, HTML_LANG_BY_LANGUAGE, isLanguage } from "@/lib/i18n";
+
+const FIXED_HEADER_YEAR = 2024;
 
 function PageContent() {
   const { data, loading, error, source } = useDashboardData();
@@ -38,7 +40,7 @@ function PageContent() {
   const defaultCompanyId = filteredCompanies[0]?.id ?? "";
 
   const [selectedCompanyId, setSelectedCompanyId] = useState(defaultCompanyId);
-  const [selectedYear, setSelectedYear] = useState(() => getDefaultYear(data, defaultCompanyId));
+  const selectedYear = FIXED_HEADER_YEAR;
   useEffect(() => {
     if (!defaultCompanyId) {
       setSelectedCompanyId("");
@@ -48,12 +50,6 @@ function PageContent() {
     setSelectedCompanyId((current) => {
       const exists = filteredCompanies.some((company) => company.id === current);
       return exists ? current : defaultCompanyId;
-    });
-
-    setSelectedYear((current) => {
-      const runs = getScoreRunsForCompany(data, defaultCompanyId);
-      const hasCurrentYear = runs.some((run) => run.evalYear === current);
-      return hasCurrentYear ? current : getDefaultYear(data, defaultCompanyId);
     });
   }, [data, defaultCompanyId, filteredCompanies]);
 
@@ -76,31 +72,9 @@ function PageContent() {
 
   const handleCompanyChange = (companyId: string) => {
     setSelectedCompanyId(companyId);
-    setSelectedYear((current) => {
-      const runs = getScoreRunsForCompany(data, companyId);
-      const hasCurrentYear = runs.some((run) => run.evalYear === current);
-      return hasCurrentYear ? current : getDefaultYear(data, companyId);
-    });
   };
 
   const scoreRuns = getScoreRunsForCompany(data, selectedCompanyId);
-  const availableYears = useMemo(() => {
-    const companyScoreYears = scoreRuns.map((run) => run.evalYear);
-    const companyEmissionYears = (data.emissionsData[selectedCompanyId] ?? []).map((entry) => entry.year);
-    const companyYears = Array.from(new Set([...companyScoreYears, ...companyEmissionYears])).sort((a, b) => b - a);
-    if (companyYears.length > 0) return companyYears;
-
-    const allScoreYears = Object.values(data.scoreRuns).flat().map((run) => run.evalYear);
-    const allEmissionYears = Object.values(data.emissionsData).flat().map((entry) => entry.year);
-    return Array.from(new Set([...allScoreYears, ...allEmissionYears])).sort((a, b) => b - a);
-  }, [scoreRuns, data.scoreRuns, data.emissionsData, selectedCompanyId]);
-
-  useEffect(() => {
-    if (availableYears.length === 0) return;
-    if (!availableYears.includes(selectedYear)) {
-      setSelectedYear(availableYears[0]);
-    }
-  }, [availableYears, selectedYear]);
 
   if (source === "db" && loading) {
     return (
@@ -123,6 +97,7 @@ function PageContent() {
   const yoyChange = calculateYoYChange(data, selectedCompanyId);
   const industryPercentile = calculateIndustryPercentile(data, selectedCompanyId);
   const company = getCompanyById(data, selectedCompanyId);
+  const companyName = getDisplayCompanyName(company, strings.industryDistribution.yourCompany);
   const industry = company ? data.industryData[company.industryId] : undefined;
   const industryName = getLocalizedIndustryName(company, language, strings.page.industryFallback);
   const reportsForCompany = data.reports[selectedCompanyId] ?? [];
@@ -147,9 +122,7 @@ function PageContent() {
         selectedCountry={selectedCountry}
         selectedLanguage={language}
         strings={strings}
-        availableYears={availableYears}
         onCompanyChange={handleCompanyChange}
-        onYearChange={setSelectedYear}
         onCountryChange={setSelectedCountry}
         onLanguageChange={handleLanguageChange}
       />
@@ -187,7 +160,7 @@ function PageContent() {
               industryData={industry}
               currentScore={scoreRun}
               industryName={industryName}
-              companyName={company?.name}
+              companyName={companyName}
               strings={strings}
             />
             <IndustryAveragesCard industryData={industry} industryName={industryName} strings={strings} />
