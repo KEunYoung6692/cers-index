@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/select';
 import type { Company } from '@/data/mockData';
 import { type I18nStrings, type Language, LANGUAGES } from '@/lib/i18n';
+import { getCompanySearchText, getDisplayCompanyName } from '@/lib/data/company';
 import { getLocalizedIndustryName } from '@/lib/data/industry';
 
 interface DashboardHeaderProps {
@@ -34,9 +35,7 @@ interface DashboardHeaderProps {
   selectedCountry: string;
   selectedLanguage: Language;
   strings: I18nStrings;
-  availableYears: number[];
   onCompanyChange: (companyId: string) => void;
-  onYearChange: (year: number) => void;
   onCountryChange: (country: string) => void;
   onLanguageChange: (language: Language) => void;
 }
@@ -50,17 +49,16 @@ export function DashboardHeader({
   selectedCountry,
   selectedLanguage,
   strings,
-  availableYears,
   onCompanyChange,
-  onYearChange,
   onCountryChange,
   onLanguageChange,
 }: DashboardHeaderProps) {
   const [open, setOpen] = useState(false);
   const selectedCompany = companies.find(c => c.id === selectedCompanyId);
+  const headerStrings = strings.header;
+  const selectedCompanyName = getDisplayCompanyName(selectedCompany, headerStrings.companyPlaceholder);
   const { theme, resolvedTheme, setTheme } = useTheme();
   const isDark = (theme === 'dark') || (theme === 'system' && resolvedTheme === 'dark');
-  const headerStrings = strings.header;
 
   return (
     <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
@@ -92,7 +90,7 @@ export function DashboardHeader({
               >
                 <div className="flex items-center gap-2 truncate">
                   <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  {selectedCompany ? selectedCompany.name : headerStrings.companyPlaceholder}
+                  {selectedCompanyName}
                 </div>
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
@@ -103,51 +101,47 @@ export function DashboardHeader({
                 <CommandList>
                   <CommandEmpty>{headerStrings.noCompanyFound}</CommandEmpty>
                   <CommandGroup>
-                    {companies.map((company) => (
-                      <CommandItem
-                        key={company.id}
-                        value={company.name}
-                        onSelect={() => {
-                          onCompanyChange(company.id);
-                          setOpen(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            selectedCompanyId === company.id ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        <div className="flex flex-col">
-                          <span>{company.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {getLocalizedIndustryName(company, selectedLanguage, company.industryName)}
-                          </span>
-                        </div>
-                      </CommandItem>
-                    ))}
+                    {companies.map((company) => {
+                      const displayCompanyName = getDisplayCompanyName(company, headerStrings.companyPlaceholder);
+                      const searchValue = getCompanySearchText(company) || displayCompanyName;
+                      return (
+                        <CommandItem
+                          key={company.id}
+                          value={searchValue}
+                          onSelect={() => {
+                            onCompanyChange(company.id);
+                            setOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedCompanyId === company.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <div className="flex flex-col">
+                            <span>{displayCompanyName}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {getLocalizedIndustryName(company, selectedLanguage, company.industryName)}
+                            </span>
+                          </div>
+                        </CommandItem>
+                      );
+                    })}
                   </CommandGroup>
                 </CommandList>
               </Command>
             </PopoverContent>
           </Popover>
 
-          {/* Year Select */}
-          <Select value={selectedYear.toString()} onValueChange={(v) => onYearChange(parseInt(v))}>
-            <SelectTrigger className="w-[120px]">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <SelectValue />
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              {availableYears.map((year) => (
-                <SelectItem key={year} value={year.toString()}>
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Fixed Year */}
+          <div
+            className="flex h-10 w-[120px] items-center gap-2 rounded-md border border-input bg-background px-3 text-sm"
+            aria-label="Selected year"
+          >
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <span>{selectedYear}</span>
+          </div>
 
         </div>
 

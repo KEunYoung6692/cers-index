@@ -113,7 +113,7 @@ function getDenomTypePriority(denomType: string) {
   return 0;
 }
 
-function mapIndustryLanguageCode(
+function mapLanguageCode(
   languageCode: unknown,
 ): "EN" | "JP" | "KR" | null {
   if (typeof languageCode !== "string") return null;
@@ -132,7 +132,7 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
     `SELECT table_name, column_name
      FROM information_schema.columns
      WHERE table_schema = current_schema()
-       AND table_name IN ('emission', 'denominator', 'emission_target', 'report', 'report_framework', 'mms_observation', 'industry_i18n')`,
+       AND table_name IN ('emission', 'denominator', 'emission_target', 'report', 'report_framework', 'mms_observation', 'industry_i18n', 'company_i18n')`,
   );
 
   const columnsByTable = new Map<string, Set<string>>();
@@ -170,6 +170,13 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
     hasIndustryI18nIndustryId &&
     hasIndustryI18nLanguageCode &&
     hasIndustryI18nName;
+  const hasCompanyI18nCompanyId = hasColumn("company_i18n", "company_id");
+  const hasCompanyI18nLanguageCode = hasColumn("company_i18n", "language_code");
+  const hasCompanyI18nName = hasColumn("company_i18n", "company_name_i18n");
+  const hasCompanyI18n =
+    hasCompanyI18nCompanyId &&
+    hasCompanyI18nLanguageCode &&
+    hasCompanyI18nName;
 
   if (!hasMmsObservationScoreRunId && !hasMmsObservationCompanyId) {
     throw new Error("mms_observation table must include score_run_id or company_id");
@@ -186,6 +193,7 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
     targetsRes,
     alphaRes,
     industryI18nRes,
+    companyI18nRes,
     mmsDefsRes,
     mmsObsRes,
   ] = await Promise.all([
@@ -259,6 +267,13 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
            WHERE FALSE`,
     ),
     pool.query(
+      hasCompanyI18n
+        ? `SELECT company_id, language_code, company_name_i18n
+           FROM company_i18n`
+        : `SELECT NULL::INTEGER AS company_id, NULL::VARCHAR AS language_code, NULL::VARCHAR AS company_name_i18n
+           WHERE FALSE`,
+    ),
+    pool.query(
       `SELECT indicator_id, indicator_name
        FROM mms_indicator_def`,
     ),
@@ -278,7 +293,7 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
   for (const row of industryI18nRes.rows) {
     const industryId = toNullableNumber(row.industry_id);
     if (industryId === null) continue;
-    const languageKey = mapIndustryLanguageCode(row.language_code);
+    const languageKey = mapLanguageCode(row.language_code);
     if (!languageKey) continue;
     const localizedName = (row.industry_name_i18n as string | null)?.trim();
     if (!localizedName) continue;
@@ -290,18 +305,49 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
     industryI18nById.get(key)![languageKey] = localizedName;
   }
 
+  const companyI18nById = new Map<number, { EN?: string; JP?: string; KR?: string }>();
+
+  for (const row of companyI18nRes.rows) {
+    const companyId = toNullableNumber(row.company_id);
+    if (companyId === null) continue;
+    const languageKey = mapLanguageCode(row.language_code);
+    if (!languageKey) continue;
+    const localizedName = (row.company_name_i18n as string | null)?.trim();
+    if (!localizedName) continue;
+
+    const key = Math.trunc(companyId);
+    if (!companyI18nById.has(key)) {
+      companyI18nById.set(key, {});
+    }
+    companyI18nById.get(key)![languageKey] = localizedName;
+  }
+
   const companies = companiesRes.rows.map((row) => {
+    const numericCompanyId = toNullableNumber(row.company_id);
+    const country = ((row.country as string) ?? "KR").toUpperCase();
+    const baseCompanyName = ((row.company_name as string | null) ?? "").trim() || "Unknown";
     const industryId = row.industry_id !== null ? String(row.industry_id) : "unknown";
     const numericIndustryId = toNullableNumber(row.industry_id);
     const localizedNames = numericIndustryId === null ? undefined : industryI18nById.get(Math.trunc(numericIndustryId));
+    const localizedCompanyNames =
+      numericCompanyId === null ? undefined : companyI18nById.get(Math.trunc(numericCompanyId));
+    const englishCompanyName = localizedCompanyNames?.EN?.trim() || baseCompanyName;
+    const koreanCompanyName =
+      localizedCompanyNames?.KR?.trim() ||
+      (country === "KR" ? localizedCompanyNames?.JP?.trim() || baseCompanyName : undefined);
+    const japaneseCompanyName =
+      localizedCompanyNames?.JP?.trim() ||
+      (country === "JP" ? localizedCompanyNames?.KR?.trim() || baseCompanyName : undefined);
     return {
       id: String(row.company_id),
-      name: row.company_name as string,
+      name: englishCompanyName,
+      nameKr: koreanCompanyName,
+      nameJp: japaneseCompanyName,
       industryId,
       industryName: (row.industry_name as string) ?? industryNameById.get(row.industry_id as number) ?? "Unknown",
       industryNameEn: localizedNames?.EN,
       industryNameJp: localizedNames?.JP,
-      country: ((row.country as string) ?? "KR").toUpperCase(),
+      country,
     };
   });
 

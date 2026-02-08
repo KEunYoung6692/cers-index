@@ -3,6 +3,8 @@
 export interface Company {
     id: string;
     name: string;
+    nameKr?: string;
+    nameJp?: string;
     industryId: string;
     industryName: string;
     industryNameEn?: string;
@@ -64,12 +66,12 @@ export interface EmissionData {
   
   // Mock companies
   export const companies: Company[] = [
-    { id: '1', name: 'Samsung Electronics', industryId: 'tech', industryName: 'Technology Hardware', country: 'KR' },
-    { id: '2', name: 'SK Hynix', industryId: 'tech', industryName: 'Technology Hardware', country: 'KR' },
-    { id: '3', name: 'LG Energy Solution', industryId: 'battery', industryName: 'Batteries & Storage', country: 'KR' },
-    { id: '4', name: 'POSCO Holdings', industryId: 'steel', industryName: 'Steel & Metals', country: 'JP' },
-    { id: '5', name: 'Hyundai Motor', industryId: 'auto', industryName: 'Automobiles', country: 'KR' },
-    { id: '6', name: 'Korean Air', industryId: 'aviation', industryName: 'Airlines', country: 'JP' },
+    { id: '1', name: 'Samsung Electronics', nameKr: '삼성전자', industryId: 'tech', industryName: 'Technology Hardware', country: 'KR' },
+    { id: '2', name: 'SK Hynix', nameKr: 'SK하이닉스', industryId: 'tech', industryName: 'Technology Hardware', country: 'KR' },
+    { id: '3', name: 'LG Energy Solution', nameKr: 'LG에너지솔루션', industryId: 'battery', industryName: 'Batteries & Storage', country: 'KR' },
+    { id: '4', name: 'POSCO Holdings', nameJp: 'ポスコホールディングス', industryId: 'steel', industryName: 'Steel & Metals', country: 'JP' },
+    { id: '5', name: 'Hyundai Motor', nameKr: '현대자동차', industryId: 'auto', industryName: 'Automobiles', country: 'KR' },
+    { id: '6', name: 'Korean Air', nameJp: '大韓航空', industryId: 'aviation', industryName: 'Airlines', country: 'JP' },
   ];
   
   // Mock score runs

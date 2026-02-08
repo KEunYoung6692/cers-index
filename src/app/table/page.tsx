@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useDashboardData } from "@/lib/data/use-dashboard-data";
+import { getDisplayCompanyName } from "@/lib/data/company";
 import { getLocalizedIndustryName } from "@/lib/data/industry";
 import {
   getI18nStrings,
@@ -28,6 +29,10 @@ type TableRowData = {
   tag: number | null;
   mms: number | null;
 };
+
+type SortOption = "rank_asc" | "rank_desc" | "name_asc" | "name_desc";
+
+const FIXED_TABLE_YEAR = 2024;
 
 function formatNumber(value: number, locale: string, fractionDigits = 0) {
   return new Intl.NumberFormat(locale, {
@@ -59,6 +64,7 @@ function TablePageContent() {
 
     data.companies.forEach((company) => {
       const localizedIndustryName = getLocalizedIndustryName(company, language, "Unknown");
+      const displayCompanyName = getDisplayCompanyName(company, company.name);
       const runs = data.scoreRuns[company.id] ?? [];
       const emissions = data.emissionsData[company.id] ?? [];
 
@@ -70,7 +76,7 @@ function TablePageContent() {
         const key = `${company.id}-${run.evalYear}`;
         rowMap.set(key, {
           companyId: company.id,
-          companyName: company.name,
+          companyName: displayCompanyName,
           industryName: localizedIndustryName,
           year: run.evalYear,
           emissions: totalEmissions,
@@ -91,7 +97,7 @@ function TablePageContent() {
         } else {
           rowMap.set(key, {
             companyId: company.id,
-            companyName: company.name,
+            companyName: displayCompanyName,
             industryName: localizedIndustryName,
             year: entry.year,
             emissions: totalEmissions,
@@ -107,8 +113,10 @@ function TablePageContent() {
 
     const collected = Array.from(rowMap.values());
 
+    const fixedYearRows = collected.filter((row) => row.year === FIXED_TABLE_YEAR);
+
     const rowsByYear = new Map<number, TableRowData[]>();
-    collected.forEach((row) => {
+    fixedYearRows.forEach((row) => {
       if (row.pcrcScore === null) return;
       const list = rowsByYear.get(row.year) ?? [];
       list.push(row);
@@ -122,7 +130,7 @@ function TablePageContent() {
       });
     });
 
-    return collected.sort((a, b) => {
+    return fixedYearRows.sort((a, b) => {
       const nameCompare = a.companyName.localeCompare(b.companyName);
       if (nameCompare !== 0) return nameCompare;
       return b.year - a.year;
@@ -130,17 +138,11 @@ function TablePageContent() {
   }, [data, language]);
 
   const [query, setQuery] = useState("");
-  const [selectedYear, setSelectedYear] = useState("all");
   const [selectedIndustry, setSelectedIndustry] = useState("all");
+  const [selectedSort, setSelectedSort] = useState<SortOption>("rank_asc");
   const scoreFractionDigits = 2;
   const formatScore = (value: number | null) =>
     value === null ? "—" : formatNumber(value, locale, scoreFractionDigits);
-
-  const availableYears = useMemo(() => {
-    const years = new Set<number>();
-    rows.forEach((row) => years.add(row.year));
-    return Array.from(years).sort((a, b) => b - a);
-  }, [rows]);
 
   const availableIndustries = useMemo(() => {
     const industries = new Set<string>();
@@ -155,11 +157,40 @@ function TablePageContent() {
         !normalized ||
         row.companyName.toLowerCase().includes(normalized) ||
         row.industryName.toLowerCase().includes(normalized);
-      const matchesYear = selectedYear === "all" || row.year === Number(selectedYear);
       const matchesIndustry = selectedIndustry === "all" || row.industryName === selectedIndustry;
-      return matchesQuery && matchesYear && matchesIndustry;
+      return matchesQuery && matchesIndustry;
     });
-  }, [rows, query, selectedIndustry, selectedYear]);
+  }, [rows, query, selectedIndustry]);
+
+  const sortedRows = useMemo(() => {
+    const next = [...filteredRows];
+    switch (selectedSort) {
+      case "rank_asc":
+        next.sort((a, b) => {
+          if (a.rank === null && b.rank === null) return 0;
+          if (a.rank === null) return 1;
+          if (b.rank === null) return -1;
+          return a.rank - b.rank;
+        });
+        break;
+      case "rank_desc":
+        next.sort((a, b) => {
+          if (a.rank === null && b.rank === null) return 0;
+          if (a.rank === null) return 1;
+          if (b.rank === null) return -1;
+          return b.rank - a.rank;
+        });
+        break;
+      case "name_desc":
+        next.sort((a, b) => b.companyName.localeCompare(a.companyName, locale));
+        break;
+      case "name_asc":
+      default:
+        next.sort((a, b) => a.companyName.localeCompare(b.companyName, locale));
+        break;
+    }
+    return next;
+  }, [filteredRows, selectedSort, locale]);
 
   const getScoreColor = (score: number | null) => {
     if (score === null) return "";
@@ -203,19 +234,6 @@ function TablePageContent() {
         </div>
 
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder={strings.table.filters.year} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{strings.table.filters.allYears}</SelectItem>
-              {availableYears.map((year) => (
-                <SelectItem key={year} value={year.toString()}>
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
           <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
             <SelectTrigger className="w-[220px]">
               <SelectValue placeholder={strings.table.filters.industry} />
@@ -235,9 +253,22 @@ function TablePageContent() {
             placeholder={strings.table.searchPlaceholder}
             className="h-9 w-56 rounded-md border border-input bg-background px-3 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           />
+          <div className="ml-auto">
+            <Select value={selectedSort} onValueChange={(value) => setSelectedSort(value as SortOption)}>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder={strings.table.filters.sort} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="rank_asc">{strings.table.filters.sortOptions.rankAsc}</SelectItem>
+                <SelectItem value="rank_desc">{strings.table.filters.sortOptions.rankDesc}</SelectItem>
+                <SelectItem value="name_asc">{strings.table.filters.sortOptions.nameAsc}</SelectItem>
+                <SelectItem value="name_desc">{strings.table.filters.sortOptions.nameDesc}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        {filteredRows.length === 0 ? (
+        {sortedRows.length === 0 ? (
           <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
             {strings.table.noData}
           </div>
@@ -258,7 +289,7 @@ function TablePageContent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRows.map((row) => (
+                {sortedRows.map((row) => (
                   <TableRow key={`${row.companyId}-${row.year}`}>
                     <TableCell className="font-medium">{row.companyName}</TableCell>
                     <TableCell className="text-muted-foreground">{row.industryName}</TableCell>

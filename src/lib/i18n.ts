@@ -112,8 +112,15 @@ const I18N_STRINGS = {
       filters: {
         year: "Year",
         industry: "Industry",
+        sort: "Sort",
         allYears: "All years",
         allIndustries: "All industries",
+        sortOptions: {
+          rankAsc: "Rank (Low to High)",
+          rankDesc: "Rank (High to Low)",
+          nameAsc: "Name (A to Z)",
+          nameDesc: "Name (Z to A)",
+        },
       },
       columns: {
         company: "Company",
@@ -221,8 +228,15 @@ const I18N_STRINGS = {
       filters: {
         year: "연도",
         industry: "업종",
+        sort: "정렬",
         allYears: "전체 연도",
         allIndustries: "전체 업종",
+        sortOptions: {
+          rankAsc: "랭킹 오름차순",
+          rankDesc: "랭킹 내림차순",
+          nameAsc: "이름 오름차순",
+          nameDesc: "이름 내림차순",
+        },
       },
       columns: {
         company: "기업",
@@ -330,8 +344,15 @@ const I18N_STRINGS = {
       filters: {
         year: "年度",
         industry: "業種",
+        sort: "並び替え",
         allYears: "すべての年度",
         allIndustries: "すべての業種",
+        sortOptions: {
+          rankAsc: "順位（昇順）",
+          rankDesc: "順位（降順）",
+          nameAsc: "名前（昇順）",
+          nameDesc: "名前（降順）",
+        },
       },
       columns: {
         company: "企業",
