@@ -10,9 +10,20 @@ interface InfoTooltipProps {
   children: React.ReactNode;
   contentClassName?: string;
   buttonClassName?: string;
+  side?: React.ComponentPropsWithoutRef<typeof PopoverContent>["side"];
+  align?: React.ComponentPropsWithoutRef<typeof PopoverContent>["align"];
+  sideOffset?: number;
 }
 
-export function InfoTooltip({ label, children, contentClassName, buttonClassName }: InfoTooltipProps) {
+export function InfoTooltip({
+  label,
+  children,
+  contentClassName,
+  buttonClassName,
+  side,
+  align,
+  sideOffset,
+}: InfoTooltipProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -28,6 +39,9 @@ export function InfoTooltip({ label, children, contentClassName, buttonClassName
         </button>
       </PopoverTrigger>
       <PopoverContent
+        side={side}
+        align={align}
+        sideOffset={sideOffset}
         className={cn(
           "w-auto max-w-xs p-2 text-xs leading-relaxed",
           contentClassName,

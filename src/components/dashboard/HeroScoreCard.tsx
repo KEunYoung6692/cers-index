@@ -80,12 +80,12 @@ export function HeroScoreCard({ scoreRun, yoyChange, industryPercentile, strings
             <p className="text-[1.75rem] font-semibold tracking-tight">
               <span className="inline-flex items-center gap-2">
                 {strings.hero.cersIndex}
-                <InfoTooltip label={strings.hero.tooltipLabel} contentClassName="space-y-1">
-                  <p>{strings.hero.tooltipCers}</p>
-                  <p>{strings.hero.tooltipPcrc}</p>
-                  <p>{strings.hero.tooltipRi}</p>
-                  <p>{strings.hero.tooltipTag}</p>
-                  <p>{strings.hero.tooltipMms}</p>
+                <InfoTooltip label={strings.hero.tooltipLabel} contentClassName="space-y-1" side="right" align="start">
+                  <p><span className="font-semibold">CERs Index</span>: {strings.hero.tooltipCers}</p>
+                  <p><span className="font-semibold">PCRC Score</span>: {strings.hero.tooltipPcrc}</p>
+                  <p><span className="font-semibold">RI</span>: {strings.hero.tooltipRi}</p>
+                  <p><span className="font-semibold">TAG</span>: {strings.hero.tooltipTag}</p>
+                  <p><span className="font-semibold">MMS</span>: {strings.hero.tooltipMms}</p>
                 </InfoTooltip>
               </span>
             </p>
