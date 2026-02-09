@@ -19,6 +19,12 @@ interface ScoreBarProps {
   colorClass: string;
 }
 
+const SCORE_MAX = {
+  ri: 60,
+  tag: 20,
+  mms: 20,
+} as const;
+
 function ScoreBar({ label, score, max, colorClass }: ScoreBarProps) {
   const safeMax = Number.isFinite(max) && max > 0 ? max : 100;
   const safeScore = Number.isFinite(score) ? Math.max(0, score) : 0;
@@ -122,19 +128,19 @@ export function HeroScoreCard({ scoreRun, yoyChange, industryPercentile, strings
           <ScoreBar 
             label={strings.hero.riLabel}
             score={scoreRun.riScore} 
-            max={scoreRun.riMax}
+            max={SCORE_MAX.ri}
             colorClass="bg-ri"
           />
           <ScoreBar 
             label={strings.hero.tagLabel}
             score={scoreRun.tagScore} 
-            max={scoreRun.tagMax}
+            max={SCORE_MAX.tag}
             colorClass="bg-tag"
           />
           <ScoreBar 
             label={strings.hero.mmsLabel}
             score={scoreRun.mmsScore} 
-            max={scoreRun.mmsMax}
+            max={SCORE_MAX.mms}
             colorClass="bg-mms"
           />
         </div>

@@ -4,9 +4,18 @@ import { useEffect, useState } from "react";
 import { mockDashboardData, type DashboardData } from "./dashboard";
 
 const DATA_SOURCE = process.env.NEXT_PUBLIC_DATA_SOURCE ?? "mock";
+const EMPTY_DASHBOARD_DATA: DashboardData = {
+  companies: [],
+  scoreRuns: {},
+  reports: {},
+  emissionsData: {},
+  targets: {},
+  industryData: {},
+  evidenceItems: {},
+};
 
 export function useDashboardData() {
-  const [data, setData] = useState<DashboardData>(mockDashboardData);
+  const [data, setData] = useState<DashboardData>(DATA_SOURCE === "db" ? EMPTY_DASHBOARD_DATA : mockDashboardData);
   const [loading, setLoading] = useState(DATA_SOURCE === "db");
   const [error, setError] = useState<string | null>(null);
 

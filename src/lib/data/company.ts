@@ -28,3 +28,24 @@ export function getCompanySearchText(company: Company | undefined) {
 
   return Array.from(new Set(candidates)).join(" ");
 }
+
+function toValidMarketCap(value: number | undefined) {
+  if (typeof value !== "number") return null;
+  if (!Number.isFinite(value) || value <= 0) return null;
+  return value;
+}
+
+export function compareCompaniesByMarketCapDesc(a: Company, b: Company) {
+  const marketCapA = toValidMarketCap(a.marketCap);
+  const marketCapB = toValidMarketCap(b.marketCap);
+
+  if (marketCapA !== null && marketCapB !== null && marketCapA !== marketCapB) {
+    return marketCapB - marketCapA;
+  }
+  if (marketCapA !== null && marketCapB === null) return -1;
+  if (marketCapA === null && marketCapB !== null) return 1;
+
+  const nameA = a.name?.trim() || "";
+  const nameB = b.name?.trim() || "";
+  return nameA.localeCompare(nameB, "en", { sensitivity: "base" });
+}

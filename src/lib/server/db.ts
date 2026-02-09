@@ -1,10 +1,28 @@
 import "server-only";
 
+import { readFile, stat } from "fs/promises";
+import path from "path";
 import { Pool } from "pg";
 import type { DashboardData } from "@/lib/data/dashboard";
 import type { EvidenceItem, ScoreRun, EmissionData } from "@/data/mockData";
 
 let pool: Pool | null = null;
+
+const DEFAULT_MARKET_CAP_CSV_PATH = "DB_company_code_market_cap_yfinance.csv";
+const DEFAULT_MARKET_CAP_FALLBACK = 1;
+
+type MarketCapCsvLookup = {
+  byCompanyId: Map<string, number>;
+  fallbackMarketCap: number;
+};
+
+let marketCapCsvCache:
+  | {
+      csvPath: string;
+      mtimeMs: number;
+      lookup: MarketCapCsvLookup;
+    }
+  | null = null;
 
 function getPool() {
   const {
@@ -124,6 +142,130 @@ function mapLanguageCode(
   return null;
 }
 
+function parseCsvLine(line: string) {
+  const fields: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i += 1) {
+    const ch = line[i];
+    if (ch === "\"") {
+      const next = line[i + 1];
+      if (inQuotes && next === "\"") {
+        current += "\"";
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (ch === "," && !inQuotes) {
+      fields.push(current);
+      current = "";
+      continue;
+    }
+
+    current += ch;
+  }
+
+  fields.push(current);
+  return fields.map((field) => field.trim());
+}
+
+function parseMarketCap(value: string | undefined) {
+  if (!value) return null;
+  const parsed = Number(value.trim());
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+  return parsed;
+}
+
+function getMarketCapCsvPath() {
+  const configured = process.env.MARKET_CAP_CSV_PATH?.trim();
+  return path.resolve(process.cwd(), configured || DEFAULT_MARKET_CAP_CSV_PATH);
+}
+
+async function loadMarketCapCsvLookup(): Promise<MarketCapCsvLookup | null> {
+  const csvPath = getMarketCapCsvPath();
+
+  try {
+    const stats = await stat(csvPath);
+    if (marketCapCsvCache && marketCapCsvCache.csvPath === csvPath && marketCapCsvCache.mtimeMs === stats.mtimeMs) {
+      return marketCapCsvCache.lookup;
+    }
+
+    const rawCsv = await readFile(csvPath, "utf8");
+    const lines = rawCsv.split(/\r?\n/).filter((line) => line.trim().length > 0);
+    if (lines.length <= 1) {
+      const lookup: MarketCapCsvLookup = {
+        byCompanyId: new Map(),
+        fallbackMarketCap: DEFAULT_MARKET_CAP_FALLBACK,
+      };
+      marketCapCsvCache = {
+        csvPath,
+        mtimeMs: stats.mtimeMs,
+        lookup,
+      };
+      return lookup;
+    }
+
+    const headers = parseCsvLine(lines[0]).map((header) => header.replace(/^\uFEFF/, ""));
+    const companyIdIndex = headers.findIndex((header) => header === "company_id");
+    const marketCapIndex = headers.findIndex((header) => header === "market_cap");
+    const byCompanyId = new Map<string, number>();
+    let minKnownMarketCap: number | null = null;
+
+    if (companyIdIndex === -1 || marketCapIndex === -1) {
+      const lookup: MarketCapCsvLookup = {
+        byCompanyId,
+        fallbackMarketCap: DEFAULT_MARKET_CAP_FALLBACK,
+      };
+      marketCapCsvCache = {
+        csvPath,
+        mtimeMs: stats.mtimeMs,
+        lookup,
+      };
+      return lookup;
+    }
+
+    for (let i = 1; i < lines.length; i += 1) {
+      const fields = parseCsvLine(lines[i]);
+      const companyId = fields[companyIdIndex]?.trim();
+      if (!companyId || byCompanyId.has(companyId)) continue;
+
+      const marketCap = parseMarketCap(fields[marketCapIndex]);
+      if (!marketCap) continue;
+
+      byCompanyId.set(companyId, marketCap);
+      if (minKnownMarketCap === null || marketCap < minKnownMarketCap) {
+        minKnownMarketCap = marketCap;
+      }
+    }
+
+    const fallbackMarketCap =
+      minKnownMarketCap === null
+        ? DEFAULT_MARKET_CAP_FALLBACK
+        : minKnownMarketCap > 1
+          ? minKnownMarketCap - 1
+          : minKnownMarketCap * 0.5;
+
+    const lookup: MarketCapCsvLookup = {
+      byCompanyId,
+      fallbackMarketCap,
+    };
+
+    marketCapCsvCache = {
+      csvPath,
+      mtimeMs: stats.mtimeMs,
+      lookup,
+    };
+
+    return lookup;
+  } catch {
+    return null;
+  }
+}
+
 export async function getDashboardDataFromDb(): Promise<DashboardData> {
   // 참고: config/db_schema 기준으로 테이블을 조회합니다.
   const pool = getPool();
@@ -132,7 +274,7 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
     `SELECT table_name, column_name
      FROM information_schema.columns
      WHERE table_schema = current_schema()
-       AND table_name IN ('emission', 'denominator', 'emission_target', 'report', 'report_framework', 'mms_observation', 'industry_i18n', 'company_i18n')`,
+       AND table_name IN ('company', 'emission', 'denominator', 'emission_target', 'report', 'report_framework', 'mms_observation', 'industry_i18n', 'company_i18n')`,
   );
 
   const columnsByTable = new Map<string, Set<string>>();
@@ -151,6 +293,9 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
   const hasEmissionCompany = hasColumn("emission", "company_id");
   const hasDenomCompany = hasColumn("denominator", "company_id");
   const hasTargetCompany = hasColumn("emission_target", "company_id");
+  const hasCompanyTicker = hasColumn("company", "ticker");
+  const hasCompanySymbol = hasColumn("company", "symbol");
+  const hasCompanyStockCode = hasColumn("company", "stock_code");
   const reportDateColumn = hasColumn("report", "submission_date")
     ? "submission_date"
     : hasColumn("report", "publication_date")
@@ -177,6 +322,13 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
     hasCompanyI18nCompanyId &&
     hasCompanyI18nLanguageCode &&
     hasCompanyI18nName;
+  const companyTickerColumn = hasCompanyTicker
+    ? "c.ticker"
+    : hasCompanySymbol
+      ? "c.symbol"
+      : hasCompanyStockCode
+        ? "c.stock_code"
+        : "NULL::VARCHAR";
 
   if (!hasMmsObservationScoreRunId && !hasMmsObservationCompanyId) {
     throw new Error("mms_observation table must include score_run_id or company_id");
@@ -202,7 +354,7 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
        FROM industry`,
     ),
     pool.query(
-      `SELECT c.company_id, c.company_name, c.industry_id, c.country, i.industry_name
+      `SELECT c.company_id, c.company_name, c.industry_id, c.country, ${companyTickerColumn} AS ticker, i.industry_name
        FROM company c
        LEFT JOIN industry i ON i.industry_id = c.industry_id`,
     ),
@@ -322,10 +474,11 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
     companyI18nById.get(key)![languageKey] = localizedName;
   }
 
-  const companies = companiesRes.rows.map((row) => {
+  const baseCompanies = companiesRes.rows.map((row) => {
     const numericCompanyId = toNullableNumber(row.company_id);
     const country = ((row.country as string) ?? "KR").toUpperCase();
     const baseCompanyName = ((row.company_name as string | null) ?? "").trim() || "Unknown";
+    const ticker = ((row.ticker as string | null) ?? "").trim() || undefined;
     const industryId = row.industry_id !== null ? String(row.industry_id) : "unknown";
     const numericIndustryId = toNullableNumber(row.industry_id);
     const localizedNames = numericIndustryId === null ? undefined : industryI18nById.get(Math.trunc(numericIndustryId));
@@ -343,6 +496,7 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
       name: englishCompanyName,
       nameKr: koreanCompanyName,
       nameJp: japaneseCompanyName,
+      ticker,
       industryId,
       industryName: (row.industry_name as string) ?? industryNameById.get(row.industry_id as number) ?? "Unknown",
       industryNameEn: localizedNames?.EN,
@@ -350,6 +504,14 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
       country,
     };
   });
+
+  const marketCapLookup = await loadMarketCapCsvLookup();
+  const companies = marketCapLookup
+    ? baseCompanies.map((company) => ({
+        ...company,
+        marketCap: marketCapLookup.byCompanyId.get(company.id) ?? marketCapLookup.fallbackMarketCap,
+      }))
+    : baseCompanies;
 
   const scoreRuns: Record<string, ScoreRun[]> = {};
   const scoreRunIdToCompanyId = new Map<number, string>();

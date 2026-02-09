@@ -5,6 +5,8 @@ export interface Company {
     name: string;
     nameKr?: string;
     nameJp?: string;
+    ticker?: string;
+    marketCap?: number;
     industryId: string;
     industryName: string;
     industryNameEn?: string;

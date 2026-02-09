@@ -18,7 +18,7 @@ import {
   getCompanyById,
   getScoreRunsForCompany,
 } from "@/lib/data/metrics";
-import { getDisplayCompanyName } from "@/lib/data/company";
+import { compareCompaniesByMarketCapDesc, getDisplayCompanyName } from "@/lib/data/company";
 import { getLocalizedIndustryName } from "@/lib/data/industry";
 import { useDashboardData } from "@/lib/data/use-dashboard-data";
 import { getI18nStrings, type Language, HTML_LANG_BY_LANGUAGE, isLanguage } from "@/lib/i18n";
@@ -34,7 +34,11 @@ function PageContent() {
   const [language, setLanguage] = useState<Language>(isLanguage(langParam) ? langParam : "EN");
   const strings = getI18nStrings(language);
   const filteredCompanies = useMemo(
-    () => data.companies.filter((company) => (company.country || "KR") === selectedCountry),
+    () =>
+      data.companies
+        .filter((company) => (company.country || "KR") === selectedCountry)
+        .slice()
+        .sort(compareCompaniesByMarketCapDesc),
     [data.companies, selectedCountry],
   );
   const defaultCompanyId = filteredCompanies[0]?.id ?? "";
