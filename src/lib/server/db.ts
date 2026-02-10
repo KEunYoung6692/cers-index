@@ -111,10 +111,32 @@ function normalizeEmissionValue(value: number, unit: unknown) {
   if (!Number.isFinite(value)) return null;
   if (typeof unit !== "string") return value;
 
-  const normalizedUnit = unit.trim().toLowerCase().replace(/[\s_-]/g, "");
-  if (normalizedUnit.startsWith("ktco2")) {
-    return value * 1_000;
+  const unitToken = unit
+    .trim()
+    .replace(/[\u2082\u00B2]/g, "2")
+    .split("/")[0]
+    .replace(/[^A-Za-z0-9]/g, "");
+  if (!unitToken) return value;
+
+  const normalizedUnit = unitToken.toLowerCase();
+  const startsWithAny = (prefixes: string[]) => prefixes.some((prefix) => normalizedUnit.startsWith(prefix));
+
+  // Normalize common CO2e mass units to tCO2e.
+  if (startsWithAny(["gco2", "gramco2"])) return value / 1_000_000;
+  if (startsWithAny(["kgco2", "kilogramco2"])) return value / 1_000;
+  if (startsWithAny(["ktco2", "ktonco2", "kilotonco2", "kilotonneco2"])) return value * 1_000;
+  if (
+    normalizedUnit.startsWith("mmtco2") ||
+    normalizedUnit.startsWith("megatonco2") ||
+    normalizedUnit.startsWith("megatonneco2") ||
+    normalizedUnit.startsWith("millionmetrictonco2") ||
+    normalizedUnit.startsWith("milliontonco2") ||
+    /^M[tT]CO2/.test(unitToken)
+  ) {
+    return value * 1_000_000;
   }
+  if (startsWithAny(["gtco2", "gigatonco2", "gigatonneco2"])) return value * 1_000_000_000;
+
   return value;
 }
 

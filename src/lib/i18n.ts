@@ -111,9 +111,11 @@ const I18N_STRINGS = {
       searchPlaceholder: "Search company...",
       filters: {
         year: "Year",
+        country: "Country",
         industry: "Industry",
         sort: "Sort",
         allYears: "All years",
+        allCountries: "All countries",
         allIndustries: "All industries",
         sortOptions: {
           rankAsc: "Rank (Low to High)",
@@ -227,9 +229,11 @@ const I18N_STRINGS = {
       searchPlaceholder: "기업 검색...",
       filters: {
         year: "연도",
+        country: "국가",
         industry: "업종",
         sort: "정렬",
         allYears: "전체 연도",
+        allCountries: "전체 국가",
         allIndustries: "전체 업종",
         sortOptions: {
           rankAsc: "랭킹 오름차순",
@@ -343,9 +347,11 @@ const I18N_STRINGS = {
       searchPlaceholder: "企業を検索...",
       filters: {
         year: "年度",
+        country: "国",
         industry: "業種",
         sort: "並び替え",
         allYears: "すべての年度",
+        allCountries: "すべての国",
         allIndustries: "すべての業種",
         sortOptions: {
           rankAsc: "順位（昇順）",

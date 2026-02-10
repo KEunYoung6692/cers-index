@@ -21,6 +21,7 @@ type TableRowData = {
   companyId: string;
   companyName: string;
   industryName: string;
+  country: string;
   year: number;
   emissions: number | null;
   pcrcScore: number | null;
@@ -31,8 +32,8 @@ type TableRowData = {
 };
 
 type SortOption = "rank_asc" | "rank_desc" | "name_asc" | "name_desc";
-
 const FIXED_TABLE_YEAR = 2024;
+const COUNTRY_ORDER = ["KR", "JP"] as const;
 
 function formatNumber(value: number, locale: string, fractionDigits = 0) {
   return new Intl.NumberFormat(locale, {
@@ -65,6 +66,7 @@ function TablePageContent() {
     data.companies.forEach((company) => {
       const localizedIndustryName = getLocalizedIndustryName(company, language, "Unknown");
       const displayCompanyName = getDisplayCompanyName(company, company.name);
+      const country = (company.country || "KR").toUpperCase();
       const runs = data.scoreRuns[company.id] ?? [];
       const emissions = data.emissionsData[company.id] ?? [];
 
@@ -78,6 +80,7 @@ function TablePageContent() {
           companyId: company.id,
           companyName: displayCompanyName,
           industryName: localizedIndustryName,
+          country,
           year: run.evalYear,
           emissions: totalEmissions,
           pcrcScore: run.pcrcScore,
@@ -99,6 +102,7 @@ function TablePageContent() {
             companyId: company.id,
             companyName: displayCompanyName,
             industryName: localizedIndustryName,
+            country,
             year: entry.year,
             emissions: totalEmissions,
             pcrcScore: null,
@@ -111,24 +115,7 @@ function TablePageContent() {
       });
     });
 
-    const collected = Array.from(rowMap.values());
-
-    const fixedYearRows = collected.filter((row) => row.year === FIXED_TABLE_YEAR);
-
-    const rowsByYear = new Map<number, TableRowData[]>();
-    fixedYearRows.forEach((row) => {
-      if (row.pcrcScore === null) return;
-      const list = rowsByYear.get(row.year) ?? [];
-      list.push(row);
-      rowsByYear.set(row.year, list);
-    });
-
-    rowsByYear.forEach((list) => {
-      list.sort((a, b) => (b.pcrcScore ?? 0) - (a.pcrcScore ?? 0));
-      list.forEach((row, index) => {
-        row.rank = index + 1;
-      });
-    });
+    const fixedYearRows = Array.from(rowMap.values()).filter((row) => row.year === FIXED_TABLE_YEAR);
 
     return fixedYearRows.sort((a, b) => {
       const nameCompare = a.companyName.localeCompare(b.companyName);
@@ -138,29 +125,78 @@ function TablePageContent() {
   }, [data, language]);
 
   const [query, setQuery] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState("all");
   const [selectedIndustry, setSelectedIndustry] = useState("all");
   const [selectedSort, setSelectedSort] = useState<SortOption>("rank_asc");
   const scoreFractionDigits = 2;
   const formatScore = (value: number | null) =>
     value === null ? "—" : formatNumber(value, locale, scoreFractionDigits);
 
+  const availableCountries = useMemo(() => {
+    const countries = new Set<string>();
+    rows.forEach((row) => countries.add(row.country));
+    return Array.from(countries).sort((a, b) => {
+      const aOrder = COUNTRY_ORDER.indexOf(a as (typeof COUNTRY_ORDER)[number]);
+      const bOrder = COUNTRY_ORDER.indexOf(b as (typeof COUNTRY_ORDER)[number]);
+      const aPriority = aOrder === -1 ? COUNTRY_ORDER.length : aOrder;
+      const bPriority = bOrder === -1 ? COUNTRY_ORDER.length : bOrder;
+      if (aPriority !== bPriority) return aPriority - bPriority;
+      return a.localeCompare(b);
+    });
+  }, [rows]);
+
   const availableIndustries = useMemo(() => {
     const industries = new Set<string>();
-    rows.forEach((row) => industries.add(row.industryName));
+    rows.forEach((row) => {
+      if (selectedCountry !== "all" && row.country !== selectedCountry) return;
+      industries.add(row.industryName);
+    });
     return Array.from(industries).sort((a, b) => a.localeCompare(b));
-  }, [rows]);
+  }, [rows, selectedCountry]);
+
+  useEffect(() => {
+    if (selectedIndustry === "all") return;
+    if (availableIndustries.includes(selectedIndustry)) return;
+    setSelectedIndustry("all");
+  }, [availableIndustries, selectedIndustry]);
+
+  const rankedRows = useMemo(() => {
+    const rankBaseRows =
+      selectedCountry === "all"
+        ? rows
+        : rows.filter((row) => row.country === selectedCountry);
+
+    const rankByKey = new Map<string, number>();
+    const scoredRows = rankBaseRows
+      .filter((row) => row.pcrcScore !== null)
+      .sort((a, b) => {
+        const scoreDiff = (b.pcrcScore ?? 0) - (a.pcrcScore ?? 0);
+        if (scoreDiff !== 0) return scoreDiff;
+        return a.companyName.localeCompare(b.companyName, locale);
+      });
+
+    scoredRows.forEach((row, index) => {
+      rankByKey.set(`${row.companyId}-${row.year}`, index + 1);
+    });
+
+    return rows.map((row) => ({
+      ...row,
+      rank: rankByKey.get(`${row.companyId}-${row.year}`) ?? null,
+    }));
+  }, [rows, selectedCountry, locale]);
 
   const filteredRows = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    return rows.filter((row) => {
+    return rankedRows.filter((row) => {
       const matchesQuery =
         !normalized ||
         row.companyName.toLowerCase().includes(normalized) ||
         row.industryName.toLowerCase().includes(normalized);
+      const matchesCountry = selectedCountry === "all" || row.country === selectedCountry;
       const matchesIndustry = selectedIndustry === "all" || row.industryName === selectedIndustry;
-      return matchesQuery && matchesIndustry;
+      return matchesQuery && matchesCountry && matchesIndustry;
     });
-  }, [rows, query, selectedIndustry]);
+  }, [rankedRows, query, selectedCountry, selectedIndustry]);
 
   const sortedRows = useMemo(() => {
     const next = [...filteredRows];
@@ -234,6 +270,19 @@ function TablePageContent() {
         </div>
 
         <div className="mb-4 flex flex-wrap items-center gap-2">
+          <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder={strings.table.filters.country} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{strings.table.filters.allCountries}</SelectItem>
+              {availableCountries.map((country) => (
+                <SelectItem key={country} value={country}>
+                  {country}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
             <SelectTrigger className="w-[220px]">
               <SelectValue placeholder={strings.table.filters.industry} />
