@@ -69,11 +69,12 @@ function TablePageContent() {
       const country = (company.country || "KR").toUpperCase();
       const runs = data.scoreRuns[company.id] ?? [];
       const emissions = data.emissionsData[company.id] ?? [];
+      const emissionsByYearDesc = [...emissions].sort((a, b) => b.year - a.year);
+      const fixedYearEmission = emissionsByYearDesc.find((entry) => entry.year === FIXED_TABLE_YEAR);
 
       runs.forEach((run) => {
-        const emission = emissions.find((entry) => entry.year === run.evalYear);
-        const totalEmissions = emission
-          ? emission.totalEmissions ?? emission.s1Emissions + emission.s2Emissions
+        const totalEmissions = fixedYearEmission
+          ? fixedYearEmission.totalEmissions ?? fixedYearEmission.s1Emissions + fixedYearEmission.s2Emissions
           : null;
         const key = `${company.id}-${run.evalYear}`;
         rowMap.set(key, {
