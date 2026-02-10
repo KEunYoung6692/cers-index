@@ -330,7 +330,6 @@ function TablePageContent() {
                   <TableHead>{strings.table.columns.company}</TableHead>
                   <TableHead>{strings.table.columns.industry}</TableHead>
                   <TableHead className="w-[100px]">{strings.table.columns.year}</TableHead>
-                  <TableHead className="w-[200px] text-right">{strings.table.columns.emissions}</TableHead>
                   <TableHead className="w-[100px] text-right">{strings.table.columns.ri}</TableHead>
                   <TableHead className="w-[100px] text-right">{strings.table.columns.tag}</TableHead>
                   <TableHead className="w-[100px] text-right">{strings.table.columns.mms}</TableHead>
@@ -344,9 +343,6 @@ function TablePageContent() {
                     <TableCell className="font-medium">{row.companyName}</TableCell>
                     <TableCell className="text-muted-foreground">{row.industryName}</TableCell>
                     <TableCell>{row.year}</TableCell>
-                    <TableCell className="text-right font-mono">
-                      {row.emissions === null || !Number.isFinite(row.emissions) ? "—" : formatNumber(row.emissions, locale)}
-                    </TableCell>
                     <TableCell className="text-right font-mono">{formatScore(row.ri)}</TableCell>
                     <TableCell className="text-right font-mono">{formatScore(row.tag)}</TableCell>
                     <TableCell className="text-right font-mono">{formatScore(row.mms)}</TableCell>
