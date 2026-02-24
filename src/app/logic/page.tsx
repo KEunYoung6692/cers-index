@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import LogicPageClient from "./LogicPageClient";
+import LogicPageSkeleton from "./LogicPageSkeleton";
 import { getLogicTitle } from "./logic-content";
 
 export async function generateMetadata({
@@ -16,11 +17,7 @@ export async function generateMetadata({
 export default function LogicPage() {
   return (
     <Suspense
-      fallback={(
-        <main className="min-h-screen bg-background">
-          <div className="container py-6 text-muted-foreground">Loading...</div>
-        </main>
-      )}
+      fallback={<LogicPageSkeleton />}
     >
       <LogicPageClient />
     </Suspense>

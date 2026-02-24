@@ -288,9 +288,30 @@ async function loadMarketCapCsvLookup(): Promise<MarketCapCsvLookup | null> {
   }
 }
 
-export async function getDashboardDataFromDb(): Promise<DashboardData> {
+type DashboardDbQueryScope = "full" | "main";
+
+type DashboardDbQueryOptions = {
+  scope?: DashboardDbQueryScope;
+  country?: string;
+  companyId?: string;
+};
+
+type DashboardDbQueryResult = {
+  data: DashboardData;
+  meta?: {
+    selectedCompanyId?: string;
+  };
+};
+
+export async function getDashboardDataFromDb(
+  options: DashboardDbQueryOptions = {},
+): Promise<DashboardDbQueryResult> {
   // 참고: config/db_schema 기준으로 테이블을 조회합니다.
   const pool = getPool();
+  const scope = options.scope ?? "full";
+  const isMainScope = scope === "main";
+  const requestedCountry = options.country?.trim().toUpperCase() || null;
+  const requestedCompanyId = options.companyId?.trim() || null;
 
   const schemaInfoRes = await pool.query(
     `SELECT table_name, column_name
@@ -356,9 +377,84 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
     throw new Error("mms_observation table must include score_run_id or company_id");
   }
 
+  const companiesRes = await pool.query(
+    `SELECT c.company_id, c.company_name, c.industry_id, c.country, ${companyTickerColumn} AS ticker, i.industry_name
+     FROM company c
+     LEFT JOIN industry i ON i.industry_id = c.industry_id
+     ${requestedCountry ? "WHERE UPPER(COALESCE(c.country, 'KR')) = $1" : ""}`,
+    requestedCountry ? [requestedCountry] : [],
+  );
+
+  const marketCapLookup = await loadMarketCapCsvLookup();
+  const companySelectionRows = companiesRes.rows.map((row) => {
+    const companyId = String(row.company_id);
+    return {
+      id: companyId,
+      name: ((row.company_name as string | null) ?? "").trim() || "Unknown",
+      marketCap: marketCapLookup
+        ? (marketCapLookup.byCompanyId.get(companyId) ?? marketCapLookup.fallbackMarketCap)
+        : undefined,
+    };
+  });
+  const sortedCompanySelectionRows = companySelectionRows.slice().sort((a, b) => {
+    const capA = typeof a.marketCap === "number" && Number.isFinite(a.marketCap) && a.marketCap > 0 ? a.marketCap : null;
+    const capB = typeof b.marketCap === "number" && Number.isFinite(b.marketCap) && b.marketCap > 0 ? b.marketCap : null;
+    if (capA !== null && capB !== null && capA !== capB) return capB - capA;
+    if (capA !== null && capB === null) return -1;
+    if (capA === null && capB !== null) return 1;
+    return a.name.localeCompare(b.name, "en", { sensitivity: "base" });
+  });
+
+  const companyIdsInScope = new Set(companySelectionRows.map((company) => company.id));
+  const effectiveSelectedCompanyId =
+    isMainScope && companyIdsInScope.size > 0
+      ? requestedCompanyId && companyIdsInScope.has(requestedCompanyId)
+        ? requestedCompanyId
+        : (sortedCompanySelectionRows[0]?.id ?? undefined)
+      : undefined;
+
+  if (isMainScope && companySelectionRows.length === 0) {
+    return {
+      data: {
+        companies: [],
+        scoreRuns: {},
+        reports: {},
+        emissionsData: {},
+        targets: {},
+        industryData: {},
+        evidenceItems: {},
+      },
+      meta: {},
+    };
+  }
+
+  const scopedCompanyIdNumbers = Array.from(
+    new Set(
+      companiesRes.rows
+        .map((row) => toNullableNumber(row.company_id))
+        .filter((value): value is number => value !== null)
+        .map((value) => Math.trunc(value)),
+    ),
+  );
+  const detailCompanyIdNumbers =
+    isMainScope && effectiveSelectedCompanyId
+      ? [Math.trunc(Number(effectiveSelectedCompanyId))].filter((value) => Number.isFinite(value))
+      : scopedCompanyIdNumbers;
+  const scopedIndustryIdNumbers = Array.from(
+    new Set(
+      companiesRes.rows
+        .map((row) => toNullableNumber(row.industry_id))
+        .filter((value): value is number => value !== null)
+        .map((value) => Math.trunc(value)),
+    ),
+  );
+  const applyCompanyScopeFilter = Boolean(requestedCountry) && scopedCompanyIdNumbers.length > 0;
+  const applyDetailCompanyFilter = isMainScope && detailCompanyIdNumbers.length > 0;
+  const applyIndustryScopeFilter = (Boolean(requestedCountry) || isMainScope) && scopedIndustryIdNumbers.length > 0;
+  const emptyQueryResult = { rows: [] as Array<Record<string, unknown>> };
+
   const [
     industriesRes,
-    companiesRes,
     scoreRunsRes,
     reportsRes,
     reportFrameworkRes,
@@ -376,87 +472,115 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
        FROM industry`,
     ),
     pool.query(
-      `SELECT c.company_id, c.company_name, c.industry_id, c.country, ${companyTickerColumn} AS ticker, i.industry_name
-       FROM company c
-       LEFT JOIN industry i ON i.industry_id = c.industry_id`,
-    ),
-    pool.query(
       `SELECT sr.score_run_id, sr.company_id, sr.eval_year, sr.ri_score, sr.tag_score, sr.mms_score, sr.pcrc_score,
               sc.ri_max, sc.tag_max, sc.mms_max
        FROM score_run sr
        LEFT JOIN scoring_config sc ON sc.config_id = sr.config_id
+       ${applyCompanyScopeFilter ? "WHERE sr.company_id = ANY($1::int[])" : ""}
        ORDER BY sr.company_id, sr.eval_year DESC`,
+      applyCompanyScopeFilter ? [scopedCompanyIdNumbers] : [],
     ),
     pool.query(
       reportDateColumn
         ? `SELECT report_id, company_id, report_year, ${reportDateColumn} AS report_date, assurance_org
-           FROM report`
+           FROM report
+           ${applyDetailCompanyFilter ? "WHERE company_id = ANY($1::int[])" : ""}`
         : `SELECT NULL::INTEGER AS report_id, NULL::INTEGER AS company_id, NULL::INTEGER AS report_year, NULL::DATE AS report_date, NULL::VARCHAR AS assurance_org
            WHERE FALSE`,
+      applyDetailCompanyFilter ? [detailCompanyIdNumbers] : [],
     ),
     pool.query(
       reportFrameworkColumn
-        ? `SELECT report_id, ${reportFrameworkColumn} AS framework
-           FROM report_framework`
+        ? applyDetailCompanyFilter
+          ? `SELECT rf.report_id, rf.${reportFrameworkColumn} AS framework
+             FROM report_framework rf
+             JOIN report r ON r.report_id = rf.report_id
+             WHERE r.company_id = ANY($1::int[])`
+          : `SELECT report_id, ${reportFrameworkColumn} AS framework
+             FROM report_framework`
         : `SELECT NULL::INTEGER AS report_id, NULL::VARCHAR AS framework
            WHERE FALSE`,
+      applyDetailCompanyFilter ? [detailCompanyIdNumbers] : [],
     ),
     pool.query(
       hasEmissionCompany
         ? `SELECT company_id, emission_year, scope, emissions_value, unit, data_level, evidence_page, evidence_note
            FROM emission
            WHERE scope IN ('S1', 'S2', 'S1S2', 'TOTAL')`
+              + (applyCompanyScopeFilter ? `
+             AND company_id = ANY($1::int[])` : "")
         : `SELECT sc.company_id AS company_id, e.emission_year, e.scope, e.emissions_value, e.unit, e.data_level, e.evidence_page, e.evidence_note
            FROM emission e
            JOIN sub_company sc ON sc.sub_company_id = e.sub_company_id
            WHERE sc.is_self IS TRUE
-             AND e.scope IN ('S1', 'S2', 'S1S2', 'TOTAL')`,
+             AND e.scope IN ('S1', 'S2', 'S1S2', 'TOTAL')`
+              + (applyCompanyScopeFilter ? `
+             AND sc.company_id = ANY($1::int[])` : ""),
+      applyCompanyScopeFilter ? [scopedCompanyIdNumbers] : [],
     ),
     pool.query(
       hasDenomCompany
         ? `SELECT company_id, denom_year, denom_type, denom_value, data_level, evidence_page, evidence_note
-           FROM denominator`
+           FROM denominator
+           ${applyCompanyScopeFilter ? "WHERE company_id = ANY($1::int[])" : ""}`
         : `SELECT sc.company_id AS company_id, d.denom_year, d.denom_type, d.denom_value, d.data_level, d.evidence_page, d.evidence_note
            FROM denominator d
-           LEFT JOIN sub_company sc ON sc.sub_company_id = d.sub_company_id`,
+           LEFT JOIN sub_company sc ON sc.sub_company_id = d.sub_company_id
+           ${applyCompanyScopeFilter ? "WHERE sc.company_id = ANY($1::int[])" : ""}`,
+      applyCompanyScopeFilter ? [scopedCompanyIdNumbers] : [],
     ),
     pool.query(
       hasTargetCompany
         ? `SELECT company_id, scope, baseline_year, target_year, target_reduction_pct, evidence_page, evidence_note
-           FROM emission_target`
+           FROM emission_target
+           ${applyDetailCompanyFilter ? "WHERE company_id = ANY($1::int[])" : ""}`
         : `SELECT sc.company_id AS company_id, t.scope, t.baseline_year, t.target_year, t.target_reduction_pct, t.evidence_page, t.evidence_note
            FROM emission_target t
-           LEFT JOIN sub_company sc ON sc.sub_company_id = t.sub_company_id`,
+           LEFT JOIN sub_company sc ON sc.sub_company_id = t.sub_company_id
+           ${applyDetailCompanyFilter ? "WHERE sc.company_id = ANY($1::int[])" : ""}`,
+      applyDetailCompanyFilter ? [detailCompanyIdNumbers] : [],
     ),
     pool.query(
       `SELECT DISTINCT ON (industry_id) industry_id, alpha
        FROM scoring_config_alpha
+       ${applyIndustryScopeFilter ? "WHERE industry_id = ANY($1::int[])" : ""}
        ORDER BY industry_id, config_id DESC`,
+      applyIndustryScopeFilter ? [scopedIndustryIdNumbers] : [],
     ),
     pool.query(
       hasIndustryI18n
         ? `SELECT industry_id, language_code, industry_name_i18n
-           FROM industry_i18n`
+           FROM industry_i18n
+           ${applyIndustryScopeFilter ? "WHERE industry_id = ANY($1::int[])" : ""}`
         : `SELECT NULL::INTEGER AS industry_id, NULL::VARCHAR AS language_code, NULL::VARCHAR AS industry_name_i18n
            WHERE FALSE`,
+      applyIndustryScopeFilter ? [scopedIndustryIdNumbers] : [],
     ),
     pool.query(
       hasCompanyI18n
         ? `SELECT company_id, language_code, company_name_i18n
-           FROM company_i18n`
+           FROM company_i18n
+           ${applyCompanyScopeFilter ? "WHERE company_id = ANY($1::int[])" : ""}`
         : `SELECT NULL::INTEGER AS company_id, NULL::VARCHAR AS language_code, NULL::VARCHAR AS company_name_i18n
            WHERE FALSE`,
+      applyCompanyScopeFilter ? [scopedCompanyIdNumbers] : [],
     ),
-    pool.query(
-      `SELECT indicator_id, indicator_name
-       FROM mms_indicator_def`,
-    ),
-    pool.query(
-      `SELECT ${hasMmsObservationScoreRunId ? "score_run_id" : "NULL::INTEGER AS score_run_id"},
-              ${hasMmsObservationCompanyId ? "company_id" : "NULL::INTEGER AS company_id"},
-              indicator_id, status, points_awarded, data_level, evidence_page, evidence_note
-       FROM mms_observation`,
-    ),
+    isMainScope
+      ? Promise.resolve(emptyQueryResult)
+      : pool.query(
+          `SELECT indicator_id, indicator_name
+           FROM mms_indicator_def`,
+        ),
+    isMainScope
+      ? Promise.resolve(emptyQueryResult)
+      : pool.query(
+          `SELECT ${hasMmsObservationScoreRunId ? "score_run_id" : "NULL::INTEGER AS score_run_id"},
+                  ${hasMmsObservationCompanyId ? "company_id" : "NULL::INTEGER AS company_id"},
+                  indicator_id, status, points_awarded, data_level, evidence_page, evidence_note
+           FROM mms_observation
+           ${hasMmsObservationCompanyId && applyDetailCompanyFilter ? "WHERE company_id = ANY($1::int[])" : ""}`,
+          hasMmsObservationCompanyId && applyDetailCompanyFilter ? [detailCompanyIdNumbers] : [],
+        ),
   ]);
 
   const industryNameById = new Map<number, string>(
@@ -527,7 +651,6 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
     };
   });
 
-  const marketCapLookup = await loadMarketCapCsvLookup();
   const companies = marketCapLookup
     ? baseCompanies.map((company) => ({
         ...company,
@@ -874,7 +997,7 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
     }
   }
 
-  return {
+  let responseData: DashboardData = {
     companies,
     scoreRuns,
     reports,
@@ -882,5 +1005,28 @@ export async function getDashboardDataFromDb(): Promise<DashboardData> {
     targets,
     industryData,
     evidenceItems,
+  };
+
+  if (isMainScope) {
+    const selectedCompanyId = effectiveSelectedCompanyId;
+    const selectedCompany = selectedCompanyId ? companies.find((company) => company.id === selectedCompanyId) : undefined;
+    const selectedIndustryId = selectedCompany?.industryId;
+
+    responseData = {
+      companies,
+      scoreRuns: selectedCompanyId && scoreRuns[selectedCompanyId] ? { [selectedCompanyId]: scoreRuns[selectedCompanyId] } : {},
+      reports: selectedCompanyId && reports[selectedCompanyId] ? { [selectedCompanyId]: reports[selectedCompanyId] } : {},
+      emissionsData:
+        selectedCompanyId && emissionsData[selectedCompanyId] ? { [selectedCompanyId]: emissionsData[selectedCompanyId] } : {},
+      targets: selectedCompanyId && targets[selectedCompanyId] ? { [selectedCompanyId]: targets[selectedCompanyId] } : {},
+      industryData:
+        selectedIndustryId && industryData[selectedIndustryId] ? { [selectedIndustryId]: industryData[selectedIndustryId] } : {},
+      evidenceItems: {},
+    };
+  }
+
+  return {
+    data: responseData,
+    meta: isMainScope ? { selectedCompanyId: effectiveSelectedCompanyId } : undefined,
   };
 }

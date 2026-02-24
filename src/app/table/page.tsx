@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useDashboardData } from "@/lib/data/use-dashboard-data";
 import { getDisplayCompanyName } from "@/lib/data/company";
 import { getLocalizedIndustryName } from "@/lib/data/industry";
+import TablePageSkeleton from "./TablePageSkeleton";
 import {
   getI18nStrings,
   HTML_LANG_BY_LANGUAGE,
@@ -34,6 +35,7 @@ type TableRowData = {
 type SortOption = "rank_asc" | "rank_desc" | "name_asc" | "name_desc";
 const FIXED_TABLE_YEAR = 2024;
 const COUNTRY_ORDER = ["KR", "JP"] as const;
+const PAGE_SIZE_OPTIONS = [20, 50, 100] as const;
 
 function formatNumber(value: number, locale: string, fractionDigits = 0) {
   return new Intl.NumberFormat(locale, {
@@ -129,6 +131,8 @@ function TablePageContent() {
   const [selectedCountry, setSelectedCountry] = useState("all");
   const [selectedIndustry, setSelectedIndustry] = useState("all");
   const [selectedSort, setSelectedSort] = useState<SortOption>("rank_asc");
+  const [pageSize, setPageSize] = useState<number>(20);
+  const [currentPage, setCurrentPage] = useState(1);
   const scoreFractionDigits = 2;
   const formatScore = (value: number | null) =>
     value === null ? "—" : formatNumber(value, locale, scoreFractionDigits);
@@ -229,6 +233,54 @@ function TablePageContent() {
     return next;
   }, [filteredRows, selectedSort, locale]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query, selectedCountry, selectedIndustry, selectedSort, pageSize]);
+
+  const totalRows = sortedRows.length;
+  const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+
+  useEffect(() => {
+    if (currentPage <= totalPages) return;
+    setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
+  const pagedRows = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return sortedRows.slice(startIndex, startIndex + pageSize);
+  }, [sortedRows, currentPage, pageSize]);
+
+  const pageStart = totalRows === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const pageEnd = totalRows === 0 ? 0 : Math.min(currentPage * pageSize, totalRows);
+
+  const paginationLabels =
+    language === "KR"
+      ? {
+          rowsPerPage: "페이지당 행",
+          previous: "이전",
+          next: "다음",
+          page: "페이지",
+          of: "/",
+          showing: "표시",
+        }
+      : language === "JP"
+        ? {
+            rowsPerPage: "1ページあたり",
+            previous: "前へ",
+            next: "次へ",
+            page: "ページ",
+            of: "/",
+            showing: "表示",
+          }
+        : {
+            rowsPerPage: "Rows per page",
+            previous: "Previous",
+            next: "Next",
+            page: "Page",
+            of: "/",
+            showing: "Showing",
+          };
+
   const getScoreColor = (score: number | null) => {
     if (score === null) return "";
     if (score >= 80) return "text-score-excellent";
@@ -238,11 +290,7 @@ function TablePageContent() {
   };
 
   if (loading) {
-    return (
-      <main className="min-h-screen bg-background">
-        <div className="container py-6 text-muted-foreground">{strings.page.loading}</div>
-      </main>
-    );
+    return <TablePageSkeleton />;
   }
 
   if (error) {
@@ -324,6 +372,51 @@ function TablePageContent() {
           </div>
         ) : (
           <div className="rounded-lg border bg-card">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
+              <div className="text-sm text-muted-foreground">
+                {paginationLabels.showing} {formatNumber(pageStart, locale)}-{formatNumber(pageEnd, locale)} /{" "}
+                {formatNumber(totalRows, locale)}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="text-sm text-muted-foreground">{paginationLabels.rowsPerPage}</div>
+                <Select value={String(pageSize)} onValueChange={(value) => setPageSize(Number(value))}>
+                  <SelectTrigger className="h-8 w-[90px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAGE_SIZE_OPTIONS.map((size) => (
+                      <SelectItem key={size} value={String(size)}>
+                        {size}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="px-1 text-sm text-muted-foreground">
+                  {paginationLabels.page} {formatNumber(currentPage, locale)} {paginationLabels.of}{" "}
+                  {formatNumber(totalPages, locale)}
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  disabled={currentPage <= 1}
+                >
+                  {paginationLabels.previous}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  disabled={currentPage >= totalPages}
+                >
+                  {paginationLabels.next}
+                </Button>
+              </div>
+            </div>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -338,7 +431,7 @@ function TablePageContent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedRows.map((row) => (
+                {pagedRows.map((row) => (
                   <TableRow key={`${row.companyId}-${row.year}`}>
                     <TableCell className="font-medium">{row.companyName}</TableCell>
                     <TableCell className="text-muted-foreground">{row.industryName}</TableCell>
@@ -356,6 +449,31 @@ function TablePageContent() {
                 ))}
               </TableBody>
             </Table>
+            <div className="flex items-center justify-end gap-2 border-t px-4 py-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8"
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                disabled={currentPage <= 1}
+              >
+                {paginationLabels.previous}
+              </Button>
+              <div className="min-w-24 text-center text-sm text-muted-foreground">
+                {formatNumber(currentPage, locale)} / {formatNumber(totalPages, locale)}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8"
+                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                disabled={currentPage >= totalPages}
+              >
+                {paginationLabels.next}
+              </Button>
+            </div>
           </div>
         )}
       </div>
@@ -366,11 +484,7 @@ function TablePageContent() {
 export default function TablePage() {
   return (
     <Suspense
-      fallback={(
-        <main className="min-h-screen bg-background">
-          <div className="container py-6 text-muted-foreground">Loading...</div>
-        </main>
-      )}
+      fallback={<TablePageSkeleton />}
     >
       <TablePageContent />
     </Suspense>

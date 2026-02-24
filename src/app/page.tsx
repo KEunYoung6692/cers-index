@@ -11,6 +11,7 @@ import { IntensityTrendChart } from "@/components/dashboard/IntensityTrendChart"
 import { TrustBadges } from "@/components/dashboard/TrustBadges";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import {
   calculateIndustryPercentile,
@@ -25,9 +26,93 @@ import { getI18nStrings, type Language, HTML_LANG_BY_LANGUAGE, isLanguage } from
 
 const FIXED_HEADER_YEAR = 2024;
 
+function DashboardLoadingSkeleton() {
+  return (
+    <main className="min-h-screen bg-background">
+      <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+        <div className="container flex h-14 items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-10 w-[100px]" />
+            <Skeleton className="h-10 w-[280px]" />
+            <Skeleton className="h-10 w-[120px]" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-10 w-[170px]" />
+            <Skeleton className="h-8 w-8 rounded-full" />
+          </div>
+        </div>
+      </header>
+      <div className="container py-6">
+        <div className="grid gap-6 lg:grid-cols-12">
+          <Card className="col-span-8">
+            <CardContent className="space-y-4 p-6">
+              <Skeleton className="h-5 w-28" />
+              <Skeleton className="h-12 w-40" />
+              <div className="grid grid-cols-3 gap-3">
+                <Skeleton className="h-20" />
+                <Skeleton className="h-20" />
+                <Skeleton className="h-20" />
+              </div>
+            </CardContent>
+          </Card>
+          <div className="col-span-4 flex flex-col gap-4">
+            <Card>
+              <CardContent className="p-3">
+                <Skeleton className="h-9 w-full" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-3">
+                <Skeleton className="h-9 w-full" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="space-y-3 p-4">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+              </CardContent>
+            </Card>
+          </div>
+          <Card className="col-span-12 lg:col-span-8">
+            <CardContent className="space-y-4 p-6">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-64 w-full" />
+            </CardContent>
+          </Card>
+          <Card className="col-span-12 lg:col-span-4">
+            <CardContent className="space-y-4 p-6">
+              <Skeleton className="h-5 w-28" />
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-24 w-full" />
+            </CardContent>
+          </Card>
+          <Card className="col-span-12 lg:col-span-6">
+            <CardContent className="space-y-4 p-6">
+              <Skeleton className="h-5 w-36" />
+              <Skeleton className="h-60 w-full" />
+            </CardContent>
+          </Card>
+          <Card className="col-span-12 lg:col-span-6">
+            <CardContent className="space-y-4 p-6">
+              <Skeleton className="h-5 w-36" />
+              <Skeleton className="h-60 w-full" />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </main>
+  );
+}
+
 function PageContent() {
-  const { data, loading, error, source } = useDashboardData();
   const [selectedCountry, setSelectedCountry] = useState("KR");
+  const [selectedCompanyId, setSelectedCompanyId] = useState("");
+  const { data, loading, error, source, resolvedCompanyId } = useDashboardData({
+    scope: "main",
+    country: selectedCountry,
+    companyId: selectedCompanyId || undefined,
+  });
   const router = useRouter();
   const searchParams = useSearchParams();
   const langParam = searchParams.get("lang");
@@ -42,10 +127,14 @@ function PageContent() {
     [data.companies, selectedCountry],
   );
   const defaultCompanyId = filteredCompanies[0]?.id ?? "";
+  const activeCompanyId = source === "db" ? (resolvedCompanyId || selectedCompanyId) : selectedCompanyId;
+  const isInitialDbLoad = source === "db" && loading && data.companies.length === 0;
+  const isRefreshing = source === "db" && loading && data.companies.length > 0;
 
-  const [selectedCompanyId, setSelectedCompanyId] = useState(defaultCompanyId);
   const selectedYear = FIXED_HEADER_YEAR;
   useEffect(() => {
+    if (source === "db") return;
+
     if (!defaultCompanyId) {
       setSelectedCompanyId("");
       return;
@@ -55,7 +144,7 @@ function PageContent() {
       const exists = filteredCompanies.some((company) => company.id === current);
       return exists ? current : defaultCompanyId;
     });
-  }, [data, defaultCompanyId, filteredCompanies]);
+  }, [source, filteredCompanies, defaultCompanyId]);
 
   useEffect(() => {
     document.documentElement.lang = HTML_LANG_BY_LANGUAGE[language];
@@ -78,15 +167,14 @@ function PageContent() {
     setSelectedCompanyId(companyId);
   };
 
-  const scoreRuns = getScoreRunsForCompany(data, selectedCompanyId);
+  const handleCountryChange = (country: string) => {
+    setSelectedCountry(country);
+    setSelectedCompanyId("");
+  };
 
-  if (source === "db" && loading) {
-    return (
-      <main className="min-h-screen bg-background">
-        <div className="container py-6 text-muted-foreground">{strings.page.loading}</div>
-      </main>
-    );
-  }
+  const scoreRuns = getScoreRunsForCompany(data, activeCompanyId);
+
+  if (isInitialDbLoad) return <DashboardLoadingSkeleton />;
 
   if (error) {
     return (
@@ -98,13 +186,13 @@ function PageContent() {
     );
   }
   const scoreRun = scoreRuns.find((run) => run.evalYear === selectedYear) ?? scoreRuns[0];
-  const yoyChange = calculateYoYChange(data, selectedCompanyId);
-  const industryPercentile = calculateIndustryPercentile(data, selectedCompanyId);
-  const company = getCompanyById(data, selectedCompanyId);
+  const yoyChange = calculateYoYChange(data, activeCompanyId);
+  const industryPercentile = calculateIndustryPercentile(data, activeCompanyId);
+  const company = getCompanyById(data, activeCompanyId);
   const companyName = getDisplayCompanyName(company, strings.industryDistribution.yourCompany);
   const industry = company ? data.industryData[company.industryId] : undefined;
   const industryName = getLocalizedIndustryName(company, language, strings.page.industryFallback);
-  const reportsForCompany = data.reports[selectedCompanyId] ?? [];
+  const reportsForCompany = data.reports[activeCompanyId] ?? [];
   const targetReportYear = selectedYear + 1;
   const report =
     reportsForCompany.find((item) => item.reportYear === targetReportYear) ??
@@ -112,8 +200,8 @@ function PageContent() {
       .filter((item) => item.reportYear <= targetReportYear)
       .sort((a, b) => b.reportYear - a.reportYear)[0] ??
     reportsForCompany[0];
-  const emissions = data.emissionsData[selectedCompanyId] ?? [];
-  const target = data.targets[selectedCompanyId];
+  const emissions = data.emissionsData[activeCompanyId] ?? [];
+  const target = data.targets[activeCompanyId];
 
   const hasCompanies = filteredCompanies.length > 0;
 
@@ -121,16 +209,25 @@ function PageContent() {
     <main className="min-h-screen bg-background">
       <DashboardHeader
         companies={filteredCompanies}
-        selectedCompanyId={selectedCompanyId}
+        selectedCompanyId={activeCompanyId}
         selectedYear={selectedYear}
         selectedCountry={selectedCountry}
         selectedLanguage={language}
         strings={strings}
         onCompanyChange={handleCompanyChange}
-        onCountryChange={setSelectedCountry}
+        onCountryChange={handleCountryChange}
         onLanguageChange={handleLanguageChange}
       />
       <div className="container py-6">
+        {isRefreshing && (
+          <div className="mb-4 flex items-center justify-between rounded-lg border bg-card/60 px-4 py-3 backdrop-blur">
+            <div className="text-sm text-muted-foreground">{strings.page.loading}</div>
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-2 w-16 rounded-full" />
+              <Skeleton className="h-2 w-10 rounded-full" />
+            </div>
+          </div>
+        )}
         {!hasCompanies ? (
           <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
             {strings.page.noCompanies.replace("{country}", selectedCountry)}
