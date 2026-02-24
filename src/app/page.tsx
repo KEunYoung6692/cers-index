@@ -128,8 +128,6 @@ function PageContent() {
   );
   const defaultCompanyId = filteredCompanies[0]?.id ?? "";
   const activeCompanyId = source === "db" ? (resolvedCompanyId || selectedCompanyId) : selectedCompanyId;
-  const isInitialDbLoad = source === "db" && loading && data.companies.length === 0;
-  const isRefreshing = source === "db" && loading && data.companies.length > 0;
 
   const selectedYear = FIXED_HEADER_YEAR;
   useEffect(() => {
@@ -174,7 +172,7 @@ function PageContent() {
 
   const scoreRuns = getScoreRunsForCompany(data, activeCompanyId);
 
-  if (isInitialDbLoad) return <DashboardLoadingSkeleton />;
+  if (source === "db" && loading) return <DashboardLoadingSkeleton />;
 
   if (error) {
     return (
@@ -219,15 +217,6 @@ function PageContent() {
         onLanguageChange={handleLanguageChange}
       />
       <div className="container py-6">
-        {isRefreshing && (
-          <div className="mb-4 flex items-center justify-between rounded-lg border bg-card/60 px-4 py-3 backdrop-blur">
-            <div className="text-sm text-muted-foreground">{strings.page.loading}</div>
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-2 w-16 rounded-full" />
-              <Skeleton className="h-2 w-10 rounded-full" />
-            </div>
-          </div>
-        )}
         {!hasCompanies ? (
           <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
             {strings.page.noCompanies.replace("{country}", selectedCountry)}

@@ -16,6 +16,24 @@ interface IntensityTrendChartProps {
   strings: I18nStrings;
 }
 
+function formatCompactIntensity(value: number) {
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(abs >= 10_000_000 ? 0 : 1)}M`;
+  }
+  if (abs >= 1_000) {
+    return `${(value / 1_000).toFixed(abs >= 10_000 ? 0 : 1)}K`;
+  }
+  return value.toFixed(1);
+}
+
+function formatIntensityTooltip(value: number) {
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
 export function IntensityTrendChart({ emissionsData, target, selectedYear, strings }: IntensityTrendChartProps) {
   const [metricView, setMetricView] = useState<MetricView>('total');
 
@@ -103,7 +121,7 @@ export function IntensityTrendChart({ emissionsData, target, selectedYear, strin
       <CardContent>
         <div className="h-[250px]">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <LineChart data={chartData} margin={{ top: 10, right: 30, left: 4, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
               <XAxis 
                 dataKey="year" 
@@ -117,8 +135,9 @@ export function IntensityTrendChart({ emissionsData, target, selectedYear, strin
                 className="text-muted-foreground"
                 axisLine={{ className: "stroke-border" }}
                 tickLine={{ className: "stroke-border" }}
+                width={56}
                 tickFormatter={(value) =>
-                  typeof value === "number" && Number.isFinite(value) ? value.toFixed(1) : "0.0"
+                  typeof value === "number" && Number.isFinite(value) ? formatCompactIntensity(value) : "0"
                 }
               />
               <Tooltip 
@@ -131,7 +150,7 @@ export function IntensityTrendChart({ emissionsData, target, selectedYear, strin
                 labelStyle={{ color: 'hsl(var(--foreground))' }}
                 formatter={(value: number | string) => {
                   const numeric = typeof value === "number" ? value : Number(value);
-                  return [Number.isFinite(numeric) ? numeric.toFixed(2) : "—", trendStrings.tooltipIntensity];
+                  return [Number.isFinite(numeric) ? formatIntensityTooltip(numeric) : "—", trendStrings.tooltipIntensity];
                 }}
               />
               {targetIntensity !== null && (

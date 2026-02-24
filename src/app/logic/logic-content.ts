@@ -595,12 +595,37 @@ const extractTitle = (html: string) => {
 };
 
 const DEFAULT_LOGIC_LANGUAGE: Language = "EN";
+type LogicTheme = "light" | "dark";
+
+const applyLogicTheme = (html: string, theme: LogicTheme) => {
+  const themedBody = html.replace("<body>", `<body data-theme="${theme}">`);
+  const themeStyle = `
+  [data-theme="dark"] {
+    --fg:#e5e7eb;
+    --muted:#9ca3af;
+    --border:#374151;
+    --bg:#0b1020;
+    --code:#e5e7eb;
+    --codebg:#111827;
+  }
+  [data-theme="dark"] .callout { background:#0f172a; }
+  [data-theme="dark"] .formula { background:#0b1220; }
+  [data-theme="dark"] th { background:#111827; }
+  [data-theme="dark"] a { color:#93c5fd; }
+  [data-theme="dark"] .katex { color: var(--fg); }
+  [data-theme="dark"] .katex-display { overflow-x:auto; overflow-y:hidden; }
+  `;
+
+  return themedBody.includes("</style>")
+    ? themedBody.replace("</style>", `${themeStyle}\n  </style>`)
+    : themedBody;
+};
 
 export const getLogicLanguage = (value: string | null | undefined): Language =>
   isLanguage(value) ? value : DEFAULT_LOGIC_LANGUAGE;
 
-export const getLogicHtml = (value: string | null | undefined): string =>
-  LOGIC_HTML_BY_LANGUAGE[getLogicLanguage(value)].replaceAll("\\n", "\n");
+export const getLogicHtml = (value: string | null | undefined, theme: LogicTheme = "light"): string =>
+  applyLogicTheme(LOGIC_HTML_BY_LANGUAGE[getLogicLanguage(value)].replaceAll("\\n", "\n"), theme);
 
 export const getLogicTitle = (value: string | null | undefined): string =>
   extractTitle(getLogicHtml(value)) ?? "CERS Index";

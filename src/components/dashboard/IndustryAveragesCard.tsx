@@ -20,6 +20,13 @@ interface MetricCardProps {
   highlight?: boolean;
 }
 
+function formatWithThousands(value: number, fractionDigits = 1) {
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  }).format(value);
+}
+
 function MetricCard({ icon, label, value, unit, highlight }: MetricCardProps) {
   return (
     <div className={cn(
@@ -91,7 +98,7 @@ export function IndustryAveragesCard({ industryData, industryName, strings }: In
               </InfoTooltip>
             </span>
           )}
-          value={industryData.avgIntensity}
+          value={formatWithThousands(industryData.avgIntensity, 1)}
           unit="tCO₂e/M$"
         />
         <div className="flex items-center gap-2 rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
