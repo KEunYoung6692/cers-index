@@ -7,7 +7,7 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { HeroScoreCard } from "@/components/dashboard/HeroScoreCard";
 import { IndustryAveragesCard } from "@/components/dashboard/IndustryAveragesCard";
 import { IndustryDistributionChart } from "@/components/dashboard/IndustryDistributionChart";
-import { IntensityTrendChart } from "@/components/dashboard/IntensityTrendChart";
+import { CarbonNeutralRoadmapCard } from "@/components/dashboard/CarbonNeutralRoadmapCard";
 import { TrustBadges } from "@/components/dashboard/TrustBadges";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -254,7 +254,7 @@ function PageContent() {
               strings={strings}
             />
             <IndustryAveragesCard industryData={industry} industryName={industryName} strings={strings} />
-            <IntensityTrendChart emissionsData={emissions} target={target} selectedYear={selectedYear} strings={strings} />
+            <CarbonNeutralRoadmapCard emissionsData={emissions} target={target} selectedYear={selectedYear} strings={strings} />
             <AbsoluteEmissionsCard emissionsData={emissions} selectedYear={selectedYear} strings={strings} />
           </div>
         )}
