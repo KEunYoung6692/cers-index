@@ -3,11 +3,11 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AbsoluteEmissionsCard } from "@/components/dashboard/AbsoluteEmissionsCard";
+import { CarbonNeutralRoadmapCard } from "@/components/dashboard/CarbonNeutralRoadmapCard";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { HeroScoreCard } from "@/components/dashboard/HeroScoreCard";
 import { IndustryAveragesCard } from "@/components/dashboard/IndustryAveragesCard";
 import { IndustryDistributionChart } from "@/components/dashboard/IndustryDistributionChart";
-import { CarbonNeutralRoadmapCard } from "@/components/dashboard/CarbonNeutralRoadmapCard";
 import { TrustBadges } from "@/components/dashboard/TrustBadges";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -248,6 +248,7 @@ function PageContent() {
             </div>
             <IndustryDistributionChart
               industryData={industry}
+              emissionsData={emissions}
               currentScore={scoreRun}
               industryName={industryName}
               companyName={companyName}
