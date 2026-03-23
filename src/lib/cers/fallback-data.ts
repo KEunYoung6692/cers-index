@@ -1,0 +1,567 @@
+import { createDisplayName } from "./public";
+import type {
+  CersCategoryMeta,
+  CersCategoryScore,
+  CersCompanyProfile,
+  CersDashboardData,
+  CersDisclosureSummary,
+  CersDocumentSummary,
+  CersMetricSnapshot,
+  CersTargetFact,
+  CersTargetSummary,
+} from "./types";
+
+const CATEGORY_META: CersCategoryMeta[] = [
+  { id: "cat1", code: "cat1", label: "Actual Reduction Performance", weight: 0.4, displayOrder: 1 },
+  { id: "cat2", code: "cat2", label: "Target Clarity", weight: 0.25, displayOrder: 2 },
+  { id: "cat3", code: "cat3", label: "Execution Readiness", weight: 0.2, displayOrder: 3 },
+  { id: "cat4", code: "cat4", label: "Disclosure Level", weight: 0.15, displayOrder: 4 },
+];
+
+function buildCategories(scores: [number, number, number, number]): CersCategoryScore[] {
+  return CATEGORY_META.map((category, index) => ({
+    ...category,
+    rawScore: scores[index],
+    weightedScore: Number(((scores[index] * category.weight) / 100).toFixed(2)),
+  }));
+}
+
+function buildDocument(input: Partial<CersDocumentSummary>): CersDocumentSummary {
+  return {
+    id: input.id || "doc",
+    title: input.title || "Sustainability Report",
+    documentType: input.documentType || "sustainability_report",
+    sourceType: input.sourceType || "pdf",
+    reportYear: input.reportYear ?? 2025,
+    publishedDate: input.publishedDate ?? "2025-06-15",
+    frameworks: input.frameworks || ["GRI", "TCFD"],
+    assuranceProvider: input.assuranceProvider ?? "KPMG",
+    assuranceType: input.assuranceType ?? "reasonable",
+  };
+}
+
+function buildDisclosure(input: Partial<CersDisclosureSummary>): CersDisclosureSummary {
+  return {
+    scope3DisclosedCategories: input.scope3DisclosedCategories ?? 8,
+    scope3TotalCategories: input.scope3TotalCategories ?? 15,
+    averagePrimaryDataRatio: input.averagePrimaryDataRatio ?? 0.42,
+    assuranceType: input.assuranceType ?? "reasonable",
+    assuranceProvider: input.assuranceProvider ?? "KPMG",
+    frameworks: input.frameworks || ["GRI", "TCFD"],
+    hasThirdPartyAssurance: input.hasThirdPartyAssurance ?? true,
+  };
+}
+
+function buildMetrics(input: Partial<CersMetricSnapshot>): CersMetricSnapshot {
+  return {
+    fiscalYear: input.fiscalYear ?? 2024,
+    scope1Emissions: input.scope1Emissions ?? null,
+    scope2Emissions: input.scope2Emissions ?? null,
+    totalEmissions: input.totalEmissions ?? null,
+    revenue: input.revenue ?? null,
+    greenCapex: input.greenCapex ?? null,
+    totalCapex: input.totalCapex ?? null,
+    ebitda: input.ebitda ?? null,
+  };
+}
+
+function buildTargetSummary(input: Partial<CersTargetSummary>): CersTargetSummary {
+  return {
+    currentYear: input.currentYear ?? 2024,
+    baseYear: input.baseYear ?? 2020,
+    targetYear: input.targetYear ?? 2030,
+    netZeroYear: input.netZeroYear ?? 2050,
+    targetType: input.targetType ?? "mid",
+    targetTypeLabel: input.targetTypeLabel ?? "Absolute Reduction",
+    scopeCode: input.scopeCode ?? "scope1_2",
+    scopeLabel: input.scopeLabel ?? "Scope 1 + 2",
+    reductionPct: input.reductionPct ?? 50,
+    targetEmissions: input.targetEmissions ?? null,
+    sbtiApproved: input.sbtiApproved ?? true,
+    interimTargetLabel: input.interimTargetLabel ?? "Yes",
+  };
+}
+
+function buildTargetFacts(targetSummary: CersTargetSummary): CersTargetFact[] {
+  const targets: CersTargetFact[] = [];
+
+  if (targetSummary.targetYear) {
+    targets.push({
+      id: `target-${targetSummary.targetYear}`,
+      targetType: "mid",
+      metricType: "absolute",
+      baseYear: targetSummary.baseYear,
+      targetYear: targetSummary.targetYear,
+      scopeCode: targetSummary.scopeCode,
+      targetValue: targetSummary.targetEmissions,
+      targetUnit: "tCO2e",
+      targetReductionPct: targetSummary.reductionPct,
+      scenarioAlignmentCode: "1.5C",
+      sbtiApproved: targetSummary.sbtiApproved,
+      residualDefined: null,
+      offsetUsage: false,
+      offsetDependencyRatio: 0,
+      carbonRemovalPlan: null,
+      disclosed: true,
+    });
+  }
+
+  if (targetSummary.netZeroYear) {
+    targets.push({
+      id: `netzero-${targetSummary.netZeroYear}`,
+      targetType: "netzero",
+      metricType: "qualitative",
+      baseYear: targetSummary.baseYear,
+      targetYear: targetSummary.netZeroYear,
+      scopeCode: "scope1_2_3",
+      targetValue: 0,
+      targetUnit: "tCO2e",
+      targetReductionPct: 100,
+      scenarioAlignmentCode: "1.5C",
+      sbtiApproved: targetSummary.sbtiApproved,
+      residualDefined: true,
+      offsetUsage: false,
+      offsetDependencyRatio: 0,
+      carbonRemovalPlan: true,
+      disclosed: true,
+    });
+  }
+
+  return targets;
+}
+
+type CompanySeed = {
+  id: string;
+  name: string;
+  localName?: string | null;
+  stockCode?: string | null;
+  countryCode?: string | null;
+  countryLabel?: string | null;
+  marketCode?: string | null;
+  marketLabel?: string | null;
+  sectorCode?: string | null;
+  sectorLabel?: string | null;
+  industryCode?: string | null;
+  industryLabel?: string | null;
+  overallScore: number;
+  scoreGrade: string;
+  sbase?: number;
+  cef?: number;
+  gv?: number;
+  categoryScores: [number, number, number, number];
+  metrics: Partial<CersMetricSnapshot>;
+  targetSummary: Partial<CersTargetSummary>;
+  disclosure?: Partial<CersDisclosureSummary>;
+  latestDocument?: Partial<CersDocumentSummary>;
+  badges: string[];
+  summary: string;
+  interpretation: string;
+};
+
+function buildCompany(seed: CompanySeed): CersCompanyProfile {
+  const metrics = buildMetrics(seed.metrics);
+  const targetSummary = buildTargetSummary(seed.targetSummary);
+  const disclosure = buildDisclosure(seed.disclosure || {});
+  const latestDocument = buildDocument(seed.latestDocument || {});
+
+  return {
+    id: seed.id,
+    name: seed.name,
+    localName: seed.localName ?? null,
+    displayName: createDisplayName(seed.name, seed.localName ?? null),
+    stockCode: seed.stockCode ?? null,
+    countryCode: seed.countryCode ?? "US",
+    countryLabel: seed.countryLabel ?? "United States",
+    marketCode: seed.marketCode ?? "NASDAQ",
+    marketLabel: seed.marketLabel ?? seed.marketCode ?? "NASDAQ",
+    sectorCode: seed.sectorCode ?? "technology",
+    sectorLabel: seed.sectorLabel ?? "Technology",
+    industryCode: seed.industryCode ?? "technology",
+    industryLabel: seed.industryLabel ?? "Technology",
+    status: "active",
+    fiscalYear: metrics.fiscalYear,
+    methodologyVersion: "CERs v0.1",
+    overallScore: seed.overallScore,
+    scoreGrade: seed.scoreGrade,
+    sbase: seed.sbase ?? seed.overallScore,
+    cef: seed.cef ?? 1,
+    gv: seed.gv ?? 0,
+    categories: buildCategories(seed.categoryScores),
+    metrics,
+    targets: buildTargetFacts(targetSummary),
+    targetSummary,
+    disclosure,
+    latestDocument,
+    badges: seed.badges,
+    summary: seed.summary,
+    interpretation: seed.interpretation,
+  };
+}
+
+const companies: CersCompanyProfile[] = [
+  buildCompany({
+    id: "microsoft",
+    name: "Microsoft Corporation",
+    stockCode: "MSFT",
+    sectorCode: "technology",
+    sectorLabel: "Technology",
+    industryCode: "technology",
+    industryLabel: "Technology",
+    overallScore: 82.5,
+    scoreGrade: "A",
+    categoryScores: [85, 88, 82, 75],
+    metrics: {
+      fiscalYear: 2024,
+      scope1Emissions: 900_000,
+      scope2Emissions: 2_900_000,
+      totalEmissions: 3_800_000,
+      revenue: 245_000_000_000,
+      greenCapex: 6_800_000_000,
+      totalCapex: 12_500_000_000,
+      ebitda: 136_000_000_000,
+    },
+    targetSummary: {
+      baseYear: 2020,
+      targetYear: 2030,
+      netZeroYear: 2030,
+      reductionPct: 100,
+      targetEmissions: 0,
+      interimTargetLabel: "Yes (2025: 50% reduction)",
+      scopeLabel: "Scope 1 + 2 + Partial 3",
+    },
+    disclosure: {
+      scope3DisclosedCategories: 11,
+      scope3TotalCategories: 15,
+      averagePrimaryDataRatio: 0.58,
+      assuranceType: "reasonable",
+      assuranceProvider: "KPMG",
+      frameworks: ["GRI", "TCFD", "SASB"],
+    },
+    latestDocument: {
+      id: "msft-2025",
+      title: "Microsoft Environmental Sustainability Report 2025",
+      reportYear: 2025,
+      publishedDate: "2025-06-24",
+    },
+    badges: ["Target Announced", "Net Zero 2030", "Scope 3 Partially Disclosed", "Reasonable Assurance"],
+    summary: "Leading tech company with a credible route to net zero and strong transition disclosure.",
+    interpretation: "Leading carbon reduction performance with a clear pathway to net zero.",
+  }),
+  buildCompany({
+    id: "apple",
+    name: "Apple Inc.",
+    stockCode: "AAPL",
+    sectorCode: "technology",
+    sectorLabel: "Technology",
+    industryCode: "technology",
+    industryLabel: "Technology",
+    overallScore: 79.8,
+    scoreGrade: "A-",
+    categoryScores: [82, 85, 78, 74],
+    metrics: {
+      fiscalYear: 2024,
+      scope1Emissions: 1_200_000,
+      scope2Emissions: 3_500_000,
+      totalEmissions: 4_700_000,
+      revenue: 391_000_000_000,
+      greenCapex: 5_400_000_000,
+      totalCapex: 10_900_000_000,
+      ebitda: 134_000_000_000,
+    },
+    targetSummary: {
+      baseYear: 2020,
+      targetYear: 2030,
+      netZeroYear: 2030,
+      reductionPct: 100,
+      targetEmissions: 0,
+      scopeLabel: "Scope 1 + 2 + 3",
+    },
+    disclosure: {
+      scope3DisclosedCategories: 12,
+      scope3TotalCategories: 15,
+      averagePrimaryDataRatio: 0.51,
+      assuranceType: "limited",
+      assuranceProvider: "Deloitte",
+      frameworks: ["GRI", "CDP", "TCFD"],
+    },
+    latestDocument: {
+      id: "apple-2025",
+      title: "Apple Environmental Progress Report 2025",
+      reportYear: 2025,
+      publishedDate: "2025-04-17",
+    },
+    badges: ["Net Zero 2030", "Scope 3 Disclosed", "Limited Assurance"],
+    summary: "Strong technology profile with ambitious supply-chain targets and broad disclosure coverage.",
+    interpretation: "Strong transition profile with ambitious targets and broad value-chain coverage.",
+  }),
+  buildCompany({
+    id: "unilever",
+    name: "Unilever",
+    stockCode: "UL",
+    countryCode: "GB",
+    countryLabel: "United Kingdom",
+    marketCode: "LSE",
+    marketLabel: "London Stock Exchange",
+    sectorCode: "consumer_goods",
+    sectorLabel: "Consumer Goods",
+    industryCode: "consumer_goods",
+    industryLabel: "Consumer Goods",
+    overallScore: 76.3,
+    scoreGrade: "B+",
+    categoryScores: [78, 80, 75, 72],
+    metrics: {
+      fiscalYear: 2024,
+      scope1Emissions: 2_100_000,
+      scope2Emissions: 4_800_000,
+      totalEmissions: 6_900_000,
+      revenue: 61_000_000_000,
+      greenCapex: 1_200_000_000,
+      totalCapex: 2_600_000_000,
+      ebitda: 12_000_000_000,
+    },
+    targetSummary: {
+      baseYear: 2019,
+      targetYear: 2030,
+      netZeroYear: 2039,
+      reductionPct: 50,
+      targetEmissions: 3_450_000,
+      interimTargetLabel: "Yes",
+      scopeLabel: "Scope 1 + 2 + key Scope 3",
+    },
+    disclosure: {
+      scope3DisclosedCategories: 10,
+      scope3TotalCategories: 15,
+      averagePrimaryDataRatio: 0.38,
+      assuranceType: "limited",
+      assuranceProvider: "PwC",
+      frameworks: ["GRI", "TCFD"],
+    },
+    latestDocument: {
+      id: "unilever-2025",
+      title: "Unilever Climate Transition Report 2025",
+      reportYear: 2025,
+      publishedDate: "2025-03-28",
+    },
+    badges: ["Target Announced", "Net Zero 2039", "Scope 3 Partially Disclosed"],
+    summary: "Consumer goods leader with a visible transition plan and broad target coverage.",
+    interpretation: "Strong performance with credible targets and improving execution depth.",
+  }),
+  buildCompany({
+    id: "volkswagen",
+    name: "Volkswagen Group",
+    stockCode: "VOW3",
+    countryCode: "DE",
+    countryLabel: "Germany",
+    marketCode: "XETRA",
+    marketLabel: "XETRA",
+    sectorCode: "automotive",
+    sectorLabel: "Automotive",
+    industryCode: "automotive",
+    industryLabel: "Automotive",
+    overallScore: 73.5,
+    scoreGrade: "B",
+    categoryScores: [74, 77, 71, 69],
+    metrics: {
+      fiscalYear: 2024,
+      scope1Emissions: 4_800_000,
+      scope2Emissions: 10_100_000,
+      totalEmissions: 14_900_000,
+      revenue: 327_000_000_000,
+      greenCapex: 9_500_000_000,
+      totalCapex: 19_400_000_000,
+      ebitda: 39_000_000_000,
+    },
+    targetSummary: {
+      baseYear: 2018,
+      targetYear: 2030,
+      netZeroYear: 2050,
+      reductionPct: 30,
+      targetEmissions: 10_430_000,
+      interimTargetLabel: "Yes",
+      scopeLabel: "Scope 1 + 2",
+    },
+    disclosure: {
+      scope3DisclosedCategories: 8,
+      scope3TotalCategories: 15,
+      averagePrimaryDataRatio: 0.31,
+      assuranceType: "limited",
+      assuranceProvider: "EY",
+      frameworks: ["GRI", "SASB", "TCFD"],
+    },
+    latestDocument: {
+      id: "vw-2025",
+      title: "Volkswagen Sustainability Report 2025",
+      reportYear: 2025,
+      publishedDate: "2025-05-09",
+    },
+    badges: ["Target Announced", "Net Zero 2050"],
+    summary: "Clear industrial transition targets backed by visible low-carbon capex commitments.",
+    interpretation: "Solid transition profile with credible targets and visible investment momentum.",
+  }),
+  buildCompany({
+    id: "bmw",
+    name: "BMW Group",
+    stockCode: "BMW",
+    countryCode: "DE",
+    countryLabel: "Germany",
+    marketCode: "XETRA",
+    marketLabel: "XETRA",
+    sectorCode: "automotive",
+    sectorLabel: "Automotive",
+    industryCode: "automotive",
+    industryLabel: "Automotive",
+    overallScore: 72.8,
+    scoreGrade: "B",
+    categoryScores: [73, 76, 70, 68],
+    metrics: {
+      fiscalYear: 2024,
+      scope1Emissions: 3_600_000,
+      scope2Emissions: 7_500_000,
+      totalEmissions: 11_100_000,
+      revenue: 155_000_000_000,
+      greenCapex: 5_100_000_000,
+      totalCapex: 10_200_000_000,
+      ebitda: 24_000_000_000,
+    },
+    targetSummary: {
+      baseYear: 2019,
+      targetYear: 2030,
+      netZeroYear: 2050,
+      reductionPct: 40,
+      targetEmissions: 6_660_000,
+      interimTargetLabel: "Yes",
+      scopeLabel: "Scope 1 + 2",
+    },
+    disclosure: {
+      scope3DisclosedCategories: 8,
+      scope3TotalCategories: 15,
+      averagePrimaryDataRatio: 0.28,
+      assuranceType: "limited",
+      assuranceProvider: "PwC",
+      frameworks: ["GRI", "TCFD"],
+    },
+    latestDocument: {
+      id: "bmw-2025",
+      title: "BMW Group Report on Climate Progress 2025",
+      reportYear: 2025,
+      publishedDate: "2025-03-14",
+    },
+    badges: ["Target Announced", "Net Zero 2050"],
+    summary: "Premium auto manufacturer with visible transition targets and improving execution readiness.",
+    interpretation: "Balanced transition profile with credible targets and improving operating discipline.",
+  }),
+  buildCompany({
+    id: "shell",
+    name: "Shell",
+    stockCode: "SHEL",
+    countryCode: "GB",
+    countryLabel: "United Kingdom",
+    marketCode: "LSE",
+    marketLabel: "London Stock Exchange",
+    sectorCode: "energy",
+    sectorLabel: "Energy",
+    industryCode: "energy",
+    industryLabel: "Energy",
+    overallScore: 68.5,
+    scoreGrade: "B-",
+    categoryScores: [66, 72, 69, 64],
+    metrics: {
+      fiscalYear: 2024,
+      scope1Emissions: 14_500_000,
+      scope2Emissions: 25_300_000,
+      totalEmissions: 39_800_000,
+      revenue: 316_000_000_000,
+      greenCapex: 4_600_000_000,
+      totalCapex: 21_200_000_000,
+      ebitda: 54_000_000_000,
+    },
+    targetSummary: {
+      baseYear: 2016,
+      targetYear: 2035,
+      netZeroYear: 2050,
+      reductionPct: 45,
+      targetEmissions: 21_890_000,
+      interimTargetLabel: "Yes",
+      scopeLabel: "Scope 1 + 2 + selected Scope 3",
+    },
+    disclosure: {
+      scope3DisclosedCategories: 7,
+      scope3TotalCategories: 15,
+      averagePrimaryDataRatio: 0.18,
+      assuranceType: "limited",
+      assuranceProvider: "EY",
+      frameworks: ["GRI", "TCFD"],
+    },
+    latestDocument: {
+      id: "shell-2025",
+      title: "Shell Energy Transition Progress Report 2025",
+      reportYear: 2025,
+      publishedDate: "2025-05-21",
+    },
+    badges: ["Net Zero 2050", "Target Announced"],
+    summary: "Large energy transition story with visible targets, but performance and disclosure remain mixed.",
+    interpretation: "Transitioning profile with ambitious ambition statements but more uneven delivery signals.",
+  }),
+  buildCompany({
+    id: "samsung",
+    name: "Samsung Electronics",
+    localName: "삼성전자",
+    stockCode: "005930",
+    countryCode: "KR",
+    countryLabel: "South Korea",
+    marketCode: "KRX",
+    marketLabel: "Korea Exchange",
+    sectorCode: "technology",
+    sectorLabel: "Technology",
+    industryCode: "technology_hardware",
+    industryLabel: "Technology Hardware",
+    overallScore: 74.6,
+    scoreGrade: "B",
+    categoryScores: [76, 73, 74, 75],
+    metrics: {
+      fiscalYear: 2024,
+      scope1Emissions: 1_850_000,
+      scope2Emissions: 12_500_000,
+      totalEmissions: 14_350_000,
+      revenue: 258_940_000_000,
+      greenCapex: 4_100_000_000,
+      totalCapex: 9_200_000_000,
+      ebitda: 58_000_000_000,
+    },
+    targetSummary: {
+      baseYear: 2019,
+      targetYear: 2030,
+      netZeroYear: 2050,
+      reductionPct: 39,
+      targetEmissions: 8_754_000,
+      interimTargetLabel: "Yes",
+      scopeLabel: "Scope 1 + 2",
+    },
+    disclosure: {
+      scope3DisclosedCategories: 9,
+      scope3TotalCategories: 15,
+      averagePrimaryDataRatio: 0.34,
+      assuranceType: "reasonable",
+      assuranceProvider: "KPMG",
+      frameworks: ["GRI", "ISSB", "TCFD"],
+    },
+    latestDocument: {
+      id: "samsung-2025",
+      title: "Samsung Electronics Sustainability Report 2025",
+      reportYear: 2025,
+      publishedDate: "2025-07-10",
+    },
+    badges: ["Target Announced", "Net Zero 2050", "Reasonable Assurance"],
+    summary: "Large hardware emitter with credible disclosure and a visible reduction pathway.",
+    interpretation: "Strong disclosure profile with meaningful progress and clear interim targets.",
+  }),
+];
+
+export const fallbackDashboardData: CersDashboardData = {
+  source: "fallback",
+  issue: "Showing sample data because the live scoring pipeline is unavailable or incomplete.",
+  generatedAt: new Date().toISOString(),
+  methodologyVersion: "CERs v0.1",
+  categories: CATEGORY_META,
+  companies,
+};
