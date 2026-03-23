@@ -24,7 +24,7 @@ export function CompanyCard({ company, compact = false, locale = "en" }: Company
           <h3 className="mt-2 text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{company.displayName}</h3>
         </div>
         <div className="shrink-0 text-right">
-          <div className="text-4xl font-semibold tracking-tight text-teal-600">{formatScore(company.overallScore)}</div>
+          <div className="text-3xl font-semibold tracking-tight text-teal-600">{formatScore(company.overallScore)}</div>
           <div className="text-xs uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">{t.common.score}</div>
         </div>
       </div>

@@ -25,42 +25,67 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
   const topScorers = getTopScoringCompanies(data, 4);
   const clearTargets = getClearTargetCompanies(data, 3);
   const netZeroCompanies = getNetZeroCompanies(data, 3);
+  const heroStats = [
+    { label: t.home.statCompanies, value: data.companies.length.toLocaleString() },
+    { label: t.home.statIndustries, value: industries.length.toLocaleString() },
+    {
+      label: t.home.statTargets,
+      value: data.companies.filter((company) => company.targetSummary.targetYear || company.targetSummary.reductionPct !== null).length.toLocaleString(),
+    },
+    { label: t.home.statNetZero, value: data.companies.filter((company) => company.targetSummary.netZeroYear).length.toLocaleString() },
+  ];
 
   return (
     <AppShell source={data.source} issue={data.issue} locale={locale}>
       <section className="container pt-10">
         <div className="rounded-[40px] border border-slate-200 bg-white px-8 py-12 shadow-elevated dark:border-slate-800 dark:bg-slate-950/80">
-          <div className="mx-auto max-w-4xl text-center">
-            <p className="text-xs font-medium uppercase tracking-[0.28em] text-teal-700">{t.home.eyebrow}</p>
-            <h1 className="mt-5 text-5xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 md:text-6xl">
-              {t.home.title}
-            </h1>
-            <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-slate-600 dark:text-slate-300">
-              {t.home.description}
-            </p>
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_320px] lg:items-end">
+            <div className="max-w-3xl">
+              <p className="text-xs font-medium uppercase tracking-[0.28em] text-teal-700">{t.home.eyebrow}</p>
+              <h1 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 md:text-4xl">
+                {t.home.title}
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">
+                {t.home.description}
+              </p>
 
-            <form action={localizedPath(locale, "/companies")} className="mx-auto mt-8 max-w-2xl">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-                <input
-                  type="search"
-                  name="q"
-                  placeholder={t.home.searchPlaceholder}
-                  className="h-16 w-full rounded-full border border-slate-200 bg-slate-50 pl-14 pr-6 text-lg text-slate-900 outline-none transition focus:border-teal-400 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-500 dark:focus:bg-slate-950"
-                />
+              <form action={localizedPath(locale, "/companies")} className="mt-7 max-w-xl">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                  <input
+                    type="search"
+                    name="q"
+                    placeholder={t.home.searchPlaceholder}
+                    className="h-14 w-full rounded-full border border-slate-200 bg-slate-50 pl-14 pr-6 text-sm text-slate-900 outline-none transition focus:border-teal-400 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-500 dark:focus:bg-slate-950"
+                  />
+                </div>
+              </form>
+
+              <div className="mt-5 flex flex-wrap gap-2">
+                {industries.slice(0, 6).map((industry) => (
+                  <Link
+                    key={industry.industryCode}
+                    href={`${localizedPath(locale, "/companies")}?industry=${encodeURIComponent(industry.label)}`}
+                    className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-teal-300 hover:bg-teal-50 hover:text-teal-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-teal-950/40 dark:hover:text-teal-200"
+                  >
+                    {industry.label}
+                  </Link>
+                ))}
               </div>
-            </form>
+            </div>
 
-            <div className="mt-6 flex flex-wrap justify-center gap-2">
-              {industries.slice(0, 6).map((industry) => (
-                <Link
-                  key={industry.industryCode}
-                  href={`${localizedPath(locale, "/companies")}?industry=${encodeURIComponent(industry.label)}`}
-                  className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-teal-300 hover:bg-teal-50 hover:text-teal-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-teal-950/40 dark:hover:text-teal-200"
-                >
-                  {industry.label}
-                </Link>
-              ))}
+            <div className="rounded-[32px] border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-900">
+              <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">{t.home.snapshotEyebrow}</p>
+              <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.home.snapshotTitle}</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{t.home.snapshotDescription}</p>
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                {heroStats.map((item) => (
+                  <div key={item.label} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-950/80">
+                    <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">{item.label}</div>
+                    <div className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{item.value}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -70,7 +95,7 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400">{t.home.featuredEyebrow}</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.home.featuredTitle}</h2>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.home.featuredTitle}</h2>
           </div>
           <Link href={localizedPath(locale, "/companies")} className="inline-flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-teal-700 dark:text-slate-200 dark:hover:text-teal-300">
             {t.home.browseAllCompanies}
@@ -87,7 +112,7 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
       <section className="container py-8">
         <div className="mb-6">
           <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400">{t.home.leaderboardEyebrow}</p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.home.leaderboardTitle}</h2>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.home.leaderboardTitle}</h2>
         </div>
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           {topScorers.map((company) => (
@@ -96,7 +121,7 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
               href={localizedPath(locale, `/companies/${company.id}`)}
               className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-elevated dark:border-slate-800 dark:bg-slate-950/80 dark:hover:border-teal-500"
             >
-              <div className="text-4xl font-semibold tracking-tight text-teal-600">{formatScore(company.overallScore)}</div>
+              <div className="text-3xl font-semibold tracking-tight text-teal-600">{formatScore(company.overallScore)}</div>
               <h3 className="mt-3 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">{company.displayName}</h3>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{company.industryLabel}</p>
             </Link>
@@ -144,7 +169,7 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
               >
                 <h3 className="font-semibold text-slate-900 dark:text-slate-100">{company.displayName}</h3>
                 <div className="mt-3 flex items-end gap-2">
-                  <span className="text-3xl font-semibold tracking-tight text-emerald-700">{company.targetSummary.netZeroYear}</span>
+                  <span className="text-2xl font-semibold tracking-tight text-emerald-700">{company.targetSummary.netZeroYear}</span>
                   <span className="pb-1 text-sm text-slate-500 dark:text-slate-400">{t.home.netZeroTarget}</span>
                 </div>
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{company.targetSummary.scopeLabel || t.home.scopeNotSpecified}</p>
@@ -158,7 +183,7 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400">{t.home.industryEyebrow}</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.home.industryTitle}</h2>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.home.industryTitle}</h2>
           </div>
           <Link href={localizedPath(locale, "/industries")} className="inline-flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-teal-700 dark:text-slate-200 dark:hover:text-teal-300">
             {t.home.seeAllIndustries}
@@ -176,8 +201,8 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
         <div className="rounded-[40px] border border-slate-200 bg-white px-8 py-10 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
           <div className="mx-auto max-w-3xl text-center">
             <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400">{t.home.scoreMeaningEyebrow}</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.home.scoreMeaningTitle}</h2>
-            <p className="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-300">
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.home.scoreMeaningTitle}</h2>
+            <p className="mt-4 text-base leading-7 text-slate-600 dark:text-slate-300 md:text-lg">
               {t.home.scoreMeaningDescription}
             </p>
             <Link

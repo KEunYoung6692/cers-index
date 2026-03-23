@@ -87,7 +87,7 @@ export async function renderCompanyDetailPage(
           {company.categories.map((category) => (
             <div key={category.code} className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
               <div className="text-sm font-medium text-slate-500 dark:text-slate-400">{category.label}</div>
-              <div className="mt-3 text-4xl font-semibold tracking-tight text-teal-600">{formatScore(category.rawScore)}</div>
+              <div className="mt-3 text-3xl font-semibold tracking-tight text-teal-600">{formatScore(category.rawScore)}</div>
               <div className="mt-2 text-sm text-slate-600 dark:text-slate-300">
                 {t.common.weightedContribution}: {formatScore(category.weightedScore)}
               </div>
@@ -121,13 +121,13 @@ export async function renderCompanyDetailPage(
             <div className="mt-6 grid gap-5 md:grid-cols-2">
               <div className="rounded-3xl bg-slate-50 p-6 dark:bg-slate-900">
                 <div className="text-sm text-slate-500 dark:text-slate-400">{company.name}</div>
-                <div className="mt-3 h-48 rounded-t-[24px] bg-gradient-to-t from-teal-600 to-teal-400 p-4 text-right text-3xl font-semibold text-white">
+                <div className="mt-3 h-48 rounded-t-[24px] bg-gradient-to-t from-teal-600 to-teal-400 p-4 text-right text-2xl font-semibold text-white">
                   {formatScore(company.overallScore)}
                 </div>
               </div>
               <div className="rounded-3xl bg-slate-50 p-6 dark:bg-slate-900">
                 <div className="text-sm text-slate-500 dark:text-slate-400">{industry?.label || t.companyDetail.industryAverage}</div>
-                <div className="mt-3 h-48 rounded-t-[24px] bg-gradient-to-t from-slate-500 to-slate-300 p-4 text-right text-3xl font-semibold text-white">
+                <div className="mt-3 h-48 rounded-t-[24px] bg-gradient-to-t from-slate-500 to-slate-300 p-4 text-right text-2xl font-semibold text-white">
                   {formatScore(industryAverage)}
                 </div>
               </div>

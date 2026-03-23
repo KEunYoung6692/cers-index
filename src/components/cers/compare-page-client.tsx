@@ -72,7 +72,7 @@ export function ComparePageClient({ companies, categories, locale = "en" }: Comp
               <div key={company.id} className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
                 <div className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">{company.industryLabel}</div>
                 <h3 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{company.displayName}</h3>
-                <div className="mt-6 text-5xl font-semibold tracking-tight text-teal-600">{formatScore(company.overallScore)}</div>
+                <div className="mt-5 text-4xl font-semibold tracking-tight text-teal-600">{formatScore(company.overallScore)}</div>
                 <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{company.interpretation}</p>
                 <Link href={localizedPath(locale, `/companies/${company.id}`)} className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-slate-900 hover:text-teal-700 dark:text-slate-100 dark:hover:text-teal-300">
                   {t.common.viewDetails}

@@ -27,7 +27,7 @@ export function IndustryCard({ industry, locale = "en" }: IndustryCardProps) {
         <TrendingUp className="h-5 w-5 text-emerald-500" />
       </div>
       <div className="mb-4 flex items-end gap-2">
-        <span className="text-4xl font-semibold tracking-tight text-teal-600">
+        <span className="text-3xl font-semibold tracking-tight text-teal-600">
           {formatScore(industry.averageScore)}
         </span>
         <span className="pb-1 text-sm text-slate-500 dark:text-slate-400">{t.common.avgScore}</span>
