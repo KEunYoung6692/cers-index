@@ -19,7 +19,8 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
   const searchParams = useSearchParams();
   const t = getTranslations(locale);
   const [query, setQuery] = useState(searchParams.get("q") || "");
-  const [selectedIndustry, setSelectedIndustry] = useState(searchParams.get("industry") || "all");
+  const [selectedSector, setSelectedSector] = useState(searchParams.get("sector") || searchParams.get("industry") || "all");
+  const [selectedCountry, setSelectedCountry] = useState(searchParams.get("country") || "all");
   const [selectedScoreRange, setSelectedScoreRange] = useState("all");
   const [targetAnnounced, setTargetAnnounced] = useState(false);
   const [netZeroDeclared, setNetZeroDeclared] = useState(false);
@@ -28,10 +29,33 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
 
   useEffect(() => {
     setQuery(searchParams.get("q") || "");
-    setSelectedIndustry(searchParams.get("industry") || "all");
+    setSelectedSector(searchParams.get("sector") || searchParams.get("industry") || "all");
+    setSelectedCountry(searchParams.get("country") || "all");
   }, [searchParams]);
 
-  const availableIndustries = Array.from(new Set(companies.map((company) => company.industryLabel || t.common.notSpecified))).sort();
+  const availableSectors = Array.from(
+    new Map(
+      companies.map((company) => [
+        company.sectorCode || "__none__",
+        {
+          value: company.sectorCode || "__none__",
+          label: company.sectorLabel || t.common.notSpecified,
+        },
+      ]),
+    ).values(),
+  ).sort((a, b) => a.label.localeCompare(b.label, locale, { sensitivity: "base" }));
+
+  const availableCountries = Array.from(
+    new Map(
+      companies.map((company) => [
+        company.countryCode || "__none__",
+        {
+          value: company.countryCode || "__none__",
+          label: company.countryLabel || company.countryCode || t.common.notSpecified,
+        },
+      ]),
+    ).values(),
+  ).sort((a, b) => a.label.localeCompare(b.label, locale, { sensitivity: "base" }));
 
   const filtered = companies
     .filter((company) => {
@@ -39,9 +63,19 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
         deferredQuery.trim() === "" ||
         company.displayName.toLowerCase().includes(deferredQuery.trim().toLowerCase()) ||
         (company.stockCode || "").toLowerCase().includes(deferredQuery.trim().toLowerCase()) ||
-        (company.industryLabel || "").toLowerCase().includes(deferredQuery.trim().toLowerCase());
+        (company.industryLabel || "").toLowerCase().includes(deferredQuery.trim().toLowerCase()) ||
+        (company.sectorLabel || "").toLowerCase().includes(deferredQuery.trim().toLowerCase());
 
-      const matchesIndustry = selectedIndustry === "all" || company.industryLabel === selectedIndustry;
+      const matchesSector =
+        selectedSector === "all" ||
+        (selectedSector === "__none__" && !company.sectorCode) ||
+        company.sectorCode === selectedSector ||
+        company.sectorLabel === selectedSector;
+      const matchesCountry =
+        selectedCountry === "all" ||
+        (selectedCountry === "__none__" && !company.countryCode) ||
+        company.countryCode === selectedCountry ||
+        company.countryLabel === selectedCountry;
       const matchesTarget = !targetAnnounced || Boolean(company.targetSummary.targetYear);
       const matchesNetZero = !netZeroDeclared || Boolean(company.targetSummary.netZeroYear);
 
@@ -53,7 +87,7 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
         (selectedScoreRange === "60-69" && score >= 60 && score < 70) ||
         (selectedScoreRange === "0-59" && score < 60);
 
-      return matchesQuery && matchesIndustry && matchesTarget && matchesNetZero && matchesScoreRange;
+      return matchesQuery && matchesSector && matchesCountry && matchesTarget && matchesNetZero && matchesScoreRange;
     })
     .sort((a, b) => {
       if (sortBy === "name") {
@@ -74,8 +108,8 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
     <div className="container py-8">
       <div className="mb-8 max-w-3xl">
         <p className="text-xs font-medium uppercase tracking-[0.24em] text-teal-700">{t.companies.eyebrow}</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.companies.title}</h1>
-        <p className="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-300">
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.companies.title}</h1>
+        <p className="mt-4 text-base leading-8 text-slate-600 dark:text-slate-300">
           {t.companies.description}
         </p>
       </div>
@@ -91,14 +125,30 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">{t.companies.industry}</span>
               <select
-                value={selectedIndustry}
-                onChange={(event) => setSelectedIndustry(event.target.value)}
+                value={selectedSector}
+                onChange={(event) => setSelectedSector(event.target.value)}
                 className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-500"
               >
                 <option value="all">{t.companies.allIndustries}</option>
-                {availableIndustries.map((industry) => (
-                  <option key={industry} value={industry}>
-                    {industry}
+                {availableSectors.map((sector) => (
+                  <option key={sector.value} value={sector.value}>
+                    {sector.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">{t.companies.country}</span>
+              <select
+                value={selectedCountry}
+                onChange={(event) => setSelectedCountry(event.target.value)}
+                className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-500"
+              >
+                <option value="all">{t.companies.allCountries}</option>
+                {availableCountries.map((country) => (
+                  <option key={country.value} value={country.value}>
+                    {country.label}
                   </option>
                 ))}
               </select>
@@ -184,7 +234,7 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
           ) : (
             <div className="grid gap-5 xl:grid-cols-2">
               {filtered.map((company) => (
-                <CompanyCard key={company.id} company={company} locale={locale} />
+                <CompanyCard key={company.id} company={company} locale={locale} showSectorMeta />
               ))}
             </div>
           )}

@@ -8,10 +8,17 @@ type CompanyCardProps = {
   company: CersCompanyProfile;
   compact?: boolean;
   locale?: SupportedLocale;
+  showSectorMeta?: boolean;
 };
 
-export function CompanyCard({ company, compact = false, locale = "en" }: CompanyCardProps) {
+export function CompanyCard({ company, compact = false, locale = "en", showSectorMeta = false }: CompanyCardProps) {
   const t = getTranslations(locale);
+  const primaryMeta = company.sectorLabel || company.industryLabel;
+  const secondaryMeta =
+    showSectorMeta && company.sectorLabel && company.industryLabel && company.sectorLabel !== company.industryLabel
+      ? company.industryLabel
+      : null;
+  const scoreYear = company.scoreFiscalYear ?? company.fiscalYear;
 
   return (
     <Link
@@ -20,12 +27,14 @@ export function CompanyCard({ company, compact = false, locale = "en" }: Company
     >
       <div className="mb-4 flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">{company.industryLabel}</p>
-          <h3 className="mt-2 text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{company.displayName}</h3>
+          <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">{primaryMeta}</p>
+          {secondaryMeta && <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{secondaryMeta}</p>}
+          <h3 className="mt-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">{company.displayName}</h3>
         </div>
         <div className="shrink-0 text-right">
-          <div className="text-3xl font-semibold tracking-tight text-teal-600">{formatScore(company.overallScore)}</div>
+          <div className="text-2xl font-semibold tracking-tight text-teal-600">{formatScore(company.overallScore)}</div>
           <div className="text-xs uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">{t.common.score}</div>
+          {scoreYear !== null && <div className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">{t.common.fiscalYearLabel(scoreYear)}</div>}
         </div>
       </div>
 

@@ -180,6 +180,7 @@ function buildCompany(seed: CompanySeed): CersCompanyProfile {
     industryLabel: seed.industryLabel ?? "Technology",
     status: "active",
     fiscalYear: metrics.fiscalYear,
+    scoreFiscalYear: metrics.fiscalYear,
     methodologyVersion: "CERs v0.1",
     overallScore: seed.overallScore,
     scoreGrade: seed.scoreGrade,

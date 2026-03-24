@@ -101,6 +101,7 @@ export type CersCompanyProfile = {
   industryLabel: string | null;
   status: string | null;
   fiscalYear: number | null;
+  scoreFiscalYear: number | null;
   methodologyVersion: string | null;
   overallScore: number | null;
   scoreGrade: string | null;
@@ -132,12 +133,41 @@ export type CersIndustryFocusPoint = {
   description: string;
 };
 
+export type CersIndustryStatBlock = {
+  value: number | null;
+  count?: number | null;
+  total?: number | null;
+};
+
 export type CersIndustrySummary = {
   industryCode: string;
   label: string;
   sectorCode: string | null;
   sectorLabel: string | null;
   averageScore: number | null;
+  medianScore: number | null;
+  scoreCoverage: number | null;
+  scoredCompanyCount: number;
+  latestScoreYear: number | null;
+  scoreQuartileLow: number | null;
+  scoreQuartileHigh: number | null;
+  sampleBucket: "robust" | "limited";
+  strongestCategory: string | null;
+  weakestCategory: string | null;
+  categoryAverages: CersCategoryScore[];
+  targetStats: {
+    targetCoverage: CersIndustryStatBlock;
+    netZeroCoverage: CersIndustryStatBlock;
+    sbtiCoverage: CersIndustryStatBlock;
+    interimCoverage: CersIndustryStatBlock;
+    medianTargetYear: number | null;
+  };
+  disclosureStats: {
+    assuranceCoverage: CersIndustryStatBlock;
+    scope3CoverageAverage: number | null;
+    primaryDataRatioAverage: number | null;
+    frameworkCoverage: CersIndustryStatBlock;
+  };
   companyCount: number;
   performanceTag: string;
   companies: CersCompanyProfile[];

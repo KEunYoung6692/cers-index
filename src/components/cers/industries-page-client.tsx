@@ -31,8 +31,8 @@ export function IndustriesPageClient({ industries, locale = "en" }: IndustriesPa
     <div className="container py-8">
       <div className="mb-8 max-w-3xl">
         <p className="text-xs font-medium uppercase tracking-[0.24em] text-teal-700">{t.industries.eyebrow}</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.industries.title}</h1>
-        <p className="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-300">
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.industries.title}</h1>
+        <p className="mt-4 text-base leading-8 text-slate-600 dark:text-slate-300">
           {t.industries.description}
         </p>
       </div>
@@ -51,9 +51,9 @@ export function IndustriesPageClient({ industries, locale = "en" }: IndustriesPa
         <div className="mt-4 flex flex-wrap gap-2">
           {[
             { value: "all", label: t.industries.filterAll },
-            { value: locale === "ko" ? "상위 산업" : locale === "ja" ? "高パフォーマンス" : "high performer", label: t.industries.filterHigh },
-            { value: locale === "ko" ? "중간 수준 산업" : locale === "ja" ? "中程度" : "moderate performer", label: t.industries.filterModerate },
-            { value: locale === "ko" ? "전환 중" : locale === "ja" ? "移行中" : "transitioning", label: t.industries.filterTransitioning },
+            { value: locale === "ko" ? "상위 섹터" : locale === "ja" ? "高パフォーマンス" : "high performer", label: t.industries.filterHigh },
+            { value: locale === "ko" ? "중간 수준 섹터" : locale === "ja" ? "中程度" : "moderate performer", label: t.industries.filterModerate },
+            { value: locale === "ko" ? "전환 중 섹터" : locale === "ja" ? "移行中" : "transitioning", label: t.industries.filterTransitioning },
           ].map((option) => (
             <button
               key={option.value}

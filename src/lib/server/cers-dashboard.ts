@@ -55,6 +55,23 @@ const COUNTRY_LABELS: Record<string, string> = {
   CN: "China",
 };
 
+const SECTOR_CODES = new Set([
+  "PWR",
+  "ENR",
+  "PRM",
+  "EEM",
+  "IMS",
+  "MOV",
+  "MFG",
+  "CST",
+  "AST",
+  "BIO",
+  "CON",
+  "DNS",
+  "HLC",
+  "FNC",
+] as const);
+
 const RELEVANT_METRIC_CODES = [
   "scope1_emissions",
   "scope_1_emissions",
@@ -69,6 +86,16 @@ const RELEVANT_METRIC_CODES = [
   "capex_total",
   "total_capex",
   "ebitda",
+] as const;
+
+const EMISSION_METRIC_CODES = [
+  "scope1_emissions",
+  "scope_1_emissions",
+  "scope2_emissions",
+  "scope_2_emissions",
+  "scope12_emissions",
+  "scope1_2_emissions",
+  "scope_1_2_emissions",
 ] as const;
 
 function toNumber(value: unknown) {
@@ -428,7 +455,7 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
       .map((row) => toNumber(row.document_id))
       .filter((value): value is number => value !== null);
 
-    const [metricsRes, frameworkRes, assuranceRes] = await Promise.all([
+    const [metricsRes, latestEmissionMetricsRes, frameworkRes, assuranceRes] = await Promise.all([
       companyIds.length > 0 && existingTables.has("company_metric_facts") && existingTables.has("reporting_periods")
         ? pool.query<GenericRow>(
             `SELECT mf.company_id,
@@ -444,6 +471,37 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
                AND COALESCE(mf.data_status, 'reported') <> 'missing'
              GROUP BY mf.company_id, rp.fiscal_year, mf.metric_code`,
             yearsNeeded.length > 0 ? [companyIds, RELEVANT_METRIC_CODES, yearsNeeded] : [companyIds, RELEVANT_METRIC_CODES],
+          )
+        : Promise.resolve(getEmptyResult()),
+      companyIds.length > 0 && existingTables.has("company_metric_facts") && existingTables.has("reporting_periods")
+        ? pool.query<GenericRow>(
+            `WITH emission_years AS (
+               SELECT mf.company_id,
+                      rp.fiscal_year,
+                      mf.metric_code,
+                      SUM(mf.metric_value) AS metric_value
+               FROM company_metric_facts mf
+               LEFT JOIN reporting_periods rp ON rp.period_id = mf.period_id
+               WHERE mf.company_id = ANY($1::bigint[])
+                 AND mf.metric_code = ANY($2::text[])
+                 AND COALESCE(mf.data_status, 'reported') <> 'missing'
+                 AND rp.fiscal_year IS NOT NULL
+               GROUP BY mf.company_id, rp.fiscal_year, mf.metric_code
+             ),
+             latest_years AS (
+               SELECT company_id, MAX(fiscal_year) AS fiscal_year
+               FROM emission_years
+               GROUP BY company_id
+             )
+             SELECT ey.company_id,
+                    ey.fiscal_year,
+                    ey.metric_code,
+                    ey.metric_value
+             FROM emission_years ey
+             JOIN latest_years ly
+               ON ly.company_id = ey.company_id
+              AND ly.fiscal_year = ey.fiscal_year`,
+            [companyIds, EMISSION_METRIC_CODES],
           )
         : Promise.resolve(getEmptyResult()),
       documentIds.length > 0 && existingTables.has("document_framework_adoptions")
@@ -576,6 +634,40 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
       metricsByCompanyYear.get(key)![metricCode] = metricValue;
     }
 
+    const latestEmissionMetricsByCompanyId = new Map<
+      string,
+      {
+        fiscalYear: number;
+        scope1: number | null;
+        scope2: number | null;
+        total: number | null;
+      }
+    >();
+
+    for (const row of latestEmissionMetricsRes.rows) {
+      const companyId = toNumber(row.company_id);
+      const fiscalYear = toNumber(row.fiscal_year);
+      const metricCode = metricKey(toText(row.metric_code));
+      const metricValue = toNumber(row.metric_value);
+      if (companyId === null || fiscalYear === null || !metricCode) continue;
+
+      const key = String(companyId);
+      if (!latestEmissionMetricsByCompanyId.has(key)) {
+        latestEmissionMetricsByCompanyId.set(key, {
+          fiscalYear,
+          scope1: null,
+          scope2: null,
+          total: null,
+        });
+      }
+
+      const target = latestEmissionMetricsByCompanyId.get(key)!;
+      target.fiscalYear = fiscalYear;
+      if (metricCode === "scope1") target.scope1 = metricValue;
+      if (metricCode === "scope2") target.scope2 = metricValue;
+      if (metricCode === "total") target.total = metricValue;
+    }
+
     const companies: CersCompanyProfile[] = companiesRes.rows.map((row) => {
       const companyId = String(row.company_id);
       const englishName = toText(row.company_name_en);
@@ -584,27 +676,35 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
       const localName = englishName && koreanName && englishName !== koreanName ? koreanName : null;
       const countryCode = (toText(row.country_code) || "KR").toUpperCase();
       const marketCode = toText(row.market_code);
-      const sectorCode = toText(row.sector_code);
+      const sectorCode = toText(row.sector_code)?.toUpperCase() ?? null;
       const industryCode = toText(row.industry_code);
       const countryLabel =
         lookupCodeLabel(codebooks, ["country_code", "country"], countryCode) || COUNTRY_LABELS[countryCode] || countryCode;
       const marketLabel = lookupCodeLabel(codebooks, ["market_code", "market"], marketCode) || humanizeCode(marketCode);
-      const sectorLabel = lookupCodeLabel(codebooks, ["sector_code", "sector"], sectorCode) || humanizeCode(sectorCode);
-      const industryLabel = lookupCodeLabel(codebooks, ["industry_code", "industry"], industryCode) || humanizeCode(industryCode);
+      const sectorLabel =
+        lookupCodeLabel(codebooks, ["sector_code", "sector"], sectorCode) ||
+        (sectorCode && !SECTOR_CODES.has(sectorCode as (typeof SECTOR_CODES extends Set<infer T> ? T : never)) ? sectorCode : null);
+      const industryLabel =
+        lookupCodeLabel(codebooks, ["industry_code", "industry"], industryCode) ||
+        (industryCode ? humanizeCode(industryCode) : null);
 
       const latestRun = runsByCompanyId.get(companyId);
       const scoringRunId = toNumber(latestRun?.scoring_run_id);
       const fiscalYear = toNumber(latestRun?.fiscal_year);
       const yearMetrics = fiscalYear !== null ? metricsByCompanyYear.get(`${companyId}:${fiscalYear}`) : undefined;
+      const latestEmissionMetrics = latestEmissionMetricsByCompanyId.get(companyId);
       const targets = targetsByCompanyId.get(companyId) || [];
       const primaryTarget = selectPrimaryTarget(targets);
       const netZeroTarget = selectNetZeroTarget(targets);
       const baseYear = primaryTarget?.baseYear ?? netZeroTarget?.baseYear ?? fiscalYear ?? null;
       const baseYearMetrics = baseYear !== null ? metricsByCompanyYear.get(`${companyId}:${baseYear}`) : undefined;
-      const currentScope1 = yearMetrics?.scope1 ?? null;
-      const currentScope2 = yearMetrics?.scope2 ?? null;
+      const currentMetricYear = latestEmissionMetrics?.fiscalYear ?? fiscalYear;
+      const currentScope1 = latestEmissionMetrics?.scope1 ?? yearMetrics?.scope1 ?? null;
+      const currentScope2 = latestEmissionMetrics?.scope2 ?? yearMetrics?.scope2 ?? null;
       const currentTotal =
-        yearMetrics?.total ?? (currentScope1 !== null || currentScope2 !== null ? (currentScope1 || 0) + (currentScope2 || 0) : null);
+        latestEmissionMetrics?.total ??
+        yearMetrics?.total ??
+        (currentScope1 !== null || currentScope2 !== null ? (currentScope1 || 0) + (currentScope2 || 0) : null);
       const reductionPct = primaryTarget?.targetReductionPct ?? null;
       const targetEmissions =
         (primaryTarget?.metricType === "absolute" || primaryTarget?.metricType === null
@@ -629,6 +729,12 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
       const documentRow = documentsByCompanyId.get(companyId);
       const documentId = toNumber(documentRow?.document_id);
       const assuranceRow = documentId !== null ? assuranceByDocumentId.get(String(documentId)) : undefined;
+      const assuranceProvider = toText(assuranceRow?.assurance_provider);
+      const assuranceTypeCode = toText(assuranceRow?.assurance_type_code);
+      const assuranceTypeLabel =
+        lookupCodeLabel(codebooks, ["assurance_type_code", "assurance_type", "assurance"], assuranceTypeCode) ||
+        assuranceTypeCode;
+      const assuranceDisplay = assuranceProvider || assuranceTypeLabel;
       const document = documentId === null
         ? null
         : {
@@ -639,8 +745,8 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
             reportYear: toNumber(documentRow?.report_year),
             publishedDate: toText(documentRow?.published_date),
             frameworks: frameworksByDocumentId.get(String(documentId)) || [],
-            assuranceProvider: toText(assuranceRow?.assurance_provider),
-            assuranceType: toText(assuranceRow?.assurance_type_code),
+            assuranceProvider,
+            assuranceType: assuranceDisplay,
           };
 
       const scope3Row = scope3ByCompanyId.get(companyId);
@@ -648,10 +754,10 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
         scope3DisclosedCategories: toNumber(scope3Row?.disclosed_categories) ?? 0,
         scope3TotalCategories: Math.max(toNumber(scope3Row?.total_categories) ?? 0, 0),
         averagePrimaryDataRatio: normalizePercentValue(toNumber(scope3Row?.average_primary_data_ratio)),
-        assuranceType: toText(assuranceRow?.assurance_type_code),
-        assuranceProvider: toText(assuranceRow?.assurance_provider),
+        assuranceType: assuranceDisplay,
+        assuranceProvider,
         frameworks: document?.frameworks || [],
-        hasThirdPartyAssurance: Boolean(toText(assuranceRow?.assurance_type_code) || toText(assuranceRow?.assurance_provider)),
+        hasThirdPartyAssurance: Boolean(assuranceProvider || assuranceTypeCode),
       };
 
       const company: CersCompanyProfile = {
@@ -669,7 +775,8 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
         industryCode,
         industryLabel,
         status: toText(row.status),
-        fiscalYear,
+        fiscalYear: currentMetricYear,
+        scoreFiscalYear: fiscalYear,
         methodologyVersion: toText(latestRun?.version_name) || methodologyVersion,
         overallScore: normalizeOverallScore(latestRun?.cers_score),
         scoreGrade: toText(latestRun?.score_grade),
@@ -678,7 +785,7 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
         gv: toNumber(latestRun?.gv),
         categories: resolvedCategories,
         metrics: {
-          fiscalYear,
+          fiscalYear: currentMetricYear,
           scope1Emissions: currentScope1,
           scope2Emissions: currentScope2,
           totalEmissions: currentTotal,
@@ -689,7 +796,7 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
         },
         targets,
         targetSummary: {
-          currentYear: fiscalYear,
+          currentYear: currentMetricYear,
           baseYear,
           targetYear: primaryTarget?.targetYear ?? null,
           netZeroYear: netZeroTarget?.targetYear ?? null,
@@ -701,7 +808,10 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
                 ? "Intensity Reduction"
                 : humanizeCode(primaryTarget?.targetType),
           scopeCode: primaryTarget?.scopeCode ?? netZeroTarget?.scopeCode ?? null,
-          scopeLabel: humanizeCode(primaryTarget?.scopeCode ?? netZeroTarget?.scopeCode),
+          scopeLabel:
+            primaryTarget?.scopeCode || netZeroTarget?.scopeCode
+              ? humanizeCode(primaryTarget?.scopeCode ?? netZeroTarget?.scopeCode)
+              : null,
           reductionPct,
           targetEmissions: targetEmissions !== null && Number.isFinite(targetEmissions) ? Number(targetEmissions.toFixed(0)) : null,
           sbtiApproved:

@@ -30,7 +30,7 @@ export async function renderCompanyDetailPage(
   if (!company) notFound();
 
   const industries = getIndustrySummaries(data, locale);
-  const industry = industries.find((item) => item.industryCode === company.industryCode);
+  const industry = industries.find((item) => item.industryCode === (company.sectorCode || company.industryCode));
   const industryAverage = industry?.averageScore ?? null;
   const topPeers = industry?.companies.filter((peer) => peer.id !== company.id).slice(0, 3) || [];
   const emissionsHistory = await getCompanyEmissionHistory(company.id);
@@ -51,6 +51,11 @@ export async function renderCompanyDetailPage(
     (displayTotal !== null && displayTargetEmissions !== null && displayTotal > 0
       ? ((displayTotal - displayTargetEmissions) / displayTotal) * 100
       : null);
+  const companyMetaLabel =
+    company.sectorLabel && company.industryLabel && company.sectorLabel !== company.industryLabel
+      ? `${company.sectorLabel} · ${company.industryLabel}`
+      : company.industryLabel || company.sectorLabel;
+  const scoreYear = company.scoreFiscalYear ?? company.fiscalYear;
 
   return (
     <AppShell source={data.source} issue={data.issue} locale={locale}>
@@ -63,9 +68,9 @@ export async function renderCompanyDetailPage(
         <section className="mt-6 rounded-[36px] border border-slate-200 bg-white p-6 shadow-elevated dark:border-slate-800 dark:bg-slate-950/80">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-3xl">
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">{company.industryLabel}</p>
-              <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 md:text-4xl">{company.displayName}</h1>
-              <p className="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-300">{company.interpretation}</p>
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">{companyMetaLabel}</p>
+              <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 md:text-3xl">{company.displayName}</h1>
+              <p className="mt-4 text-base leading-8 text-slate-600 dark:text-slate-300">{company.interpretation}</p>
               <div className="mt-5 flex flex-wrap gap-2">
                 {company.badges.map((badge) => (
                   <span key={badge} className="rounded-full border border-teal-100 bg-teal-50 px-3 py-1 text-sm font-medium text-teal-800 dark:border-teal-900/60 dark:bg-teal-950/40 dark:text-teal-200">
@@ -76,8 +81,9 @@ export async function renderCompanyDetailPage(
             </div>
 
             <div className="min-w-[180px] rounded-[28px] bg-slate-50 p-5 text-right dark:bg-slate-900">
-              <div className="text-4xl font-semibold tracking-tight text-teal-600 md:text-5xl">{formatScore(company.overallScore)}</div>
+              <div className="text-3xl font-semibold tracking-tight text-teal-600 md:text-4xl">{formatScore(company.overallScore)}</div>
               <div className="mt-2 text-sm uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">{t.companyDetail.cersScore}</div>
+              {scoreYear !== null && <div className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">{t.common.fiscalYearLabel(scoreYear)}</div>}
               <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">{company.summary}</p>
             </div>
           </div>
@@ -87,7 +93,7 @@ export async function renderCompanyDetailPage(
           {company.categories.map((category) => (
             <div key={category.code} className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
               <div className="text-sm font-medium text-slate-500 dark:text-slate-400">{category.label}</div>
-              <div className="mt-3 text-3xl font-semibold tracking-tight text-teal-600">{formatScore(category.rawScore)}</div>
+              <div className="mt-3 text-2xl font-semibold tracking-tight text-teal-600">{formatScore(category.rawScore)}</div>
               <div className="mt-2 text-sm text-slate-600 dark:text-slate-300">
                 {t.common.weightedContribution}: {formatScore(category.weightedScore)}
               </div>
@@ -117,17 +123,17 @@ export async function renderCompanyDetailPage(
 
         <section className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
           <div className="rounded-[36px] border border-slate-200 bg-white p-6 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
-            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.companyDetail.industryComparison}</h2>
+            <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.companyDetail.industryComparison}</h2>
             <div className="mt-6 grid gap-5 md:grid-cols-2">
               <div className="rounded-3xl bg-slate-50 p-6 dark:bg-slate-900">
                 <div className="text-sm text-slate-500 dark:text-slate-400">{company.name}</div>
-                <div className="mt-3 h-48 rounded-t-[24px] bg-gradient-to-t from-teal-600 to-teal-400 p-4 text-right text-2xl font-semibold text-white">
+                <div className="mt-3 h-48 rounded-t-[24px] bg-gradient-to-t from-teal-600 to-teal-400 p-4 text-right text-xl font-semibold text-white">
                   {formatScore(company.overallScore)}
                 </div>
               </div>
               <div className="rounded-3xl bg-slate-50 p-6 dark:bg-slate-900">
                 <div className="text-sm text-slate-500 dark:text-slate-400">{industry?.label || t.companyDetail.industryAverage}</div>
-                <div className="mt-3 h-48 rounded-t-[24px] bg-gradient-to-t from-slate-500 to-slate-300 p-4 text-right text-2xl font-semibold text-white">
+                <div className="mt-3 h-48 rounded-t-[24px] bg-gradient-to-t from-slate-500 to-slate-300 p-4 text-right text-xl font-semibold text-white">
                   {formatScore(industryAverage)}
                 </div>
               </div>
@@ -161,7 +167,7 @@ export async function renderCompanyDetailPage(
           </div>
 
           <div className="rounded-[36px] border border-slate-200 bg-white p-6 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
-            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.companyDetail.targetDetails}</h2>
+            <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.companyDetail.targetDetails}</h2>
             <div className="mt-6 space-y-4">
               {[
                 { label: t.companyDetail.targetRows.baselineYear, value: company.targetSummary.baseYear || "—" },
@@ -181,7 +187,7 @@ export async function renderCompanyDetailPage(
             <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm leading-7 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
               <div>{t.common.latestDisclosure}: {company.latestDocument?.title || t.common.noLinkedDocument}</div>
               <div>{t.common.frameworks}: {company.disclosure.frameworks.join(", ") || "—"}</div>
-              <div>{t.common.assurance}: {company.disclosure.assuranceType || "—"}</div>
+              <div>{t.common.assurance}: {company.disclosure.assuranceType || company.disclosure.assuranceProvider || t.common.noData}</div>
               <div>{t.common.revenue}: {formatCompactNumber(company.metrics.revenue, 1, locale)}</div>
             </div>
           </div>

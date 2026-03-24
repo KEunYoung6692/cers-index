@@ -87,9 +87,61 @@ function getPartialScope3Label(locale: SupportedLocale) {
   return "Scope 1 + 2 + Partial 3";
 }
 
+const SECTOR_LABELS_BY_LOCALE: Record<SupportedLocale, Record<string, string>> = {
+  en: {
+    PWR: "Power & Heat Supply",
+    ENR: "Resources & Refining Energy",
+    PRM: "Process Materials",
+    EEM: "Electrical & Electronics Manufacturing",
+    IMS: "Industrial Machinery & Systems",
+    MOV: "Transport Operations",
+    MFG: "Transport Equipment",
+    CST: "Construction",
+    AST: "Real Estate Operations",
+    BIO: "Agri-Food & Forest Bio",
+    CON: "Consumer Goods & Retail",
+    DNS: "Digital & Network Services",
+    HLC: "Health Care",
+    FNC: "Financial Capital",
+  },
+  ko: {
+    PWR: "전원·열공급",
+    ENR: "자원·정유에너지",
+    PRM: "공정소재",
+    EEM: "전기·전자제조",
+    IMS: "산업기계·시스템",
+    MOV: "운송운영",
+    MFG: "운송기기",
+    CST: "건설시공",
+    AST: "부동산운영",
+    BIO: "농식품·산림바이오",
+    CON: "생활소비재·유통",
+    DNS: "디지털·네트워크",
+    HLC: "헬스·케어",
+    FNC: "금융·자본",
+  },
+  ja: {
+    PWR: "電力・熱供給",
+    ENR: "資源・精製エネルギー",
+    PRM: "工程素材",
+    EEM: "電機・電子製造",
+    IMS: "産業機械・システム",
+    MOV: "輸送運営",
+    MFG: "輸送機器",
+    CST: "建設施工",
+    AST: "不動産運営",
+    BIO: "農食品・森林バイオ",
+    CON: "生活消費財・流通",
+    DNS: "デジタル・ネットワーク",
+    HLC: "ヘルスケア",
+    FNC: "金融・資本",
+  },
+};
+
 function translateAssuranceType(assuranceType: string | null | undefined, locale: SupportedLocale) {
   const normalized = (assuranceType || "").toLowerCase();
   if (!normalized) return null;
+  if (["unknown", "n/a", "na", "none", "null", "not_disclosed", "undisclosed"].includes(normalized)) return null;
 
   if (normalized.includes("reasonable")) {
     if (locale === "ko") return "합리적 수준";
@@ -155,8 +207,12 @@ function buildBadges(
     );
   }
 
-  const assuranceBadge = buildAssuranceBadge(company.disclosure.assuranceType, locale);
-  if (assuranceBadge) badges.push(assuranceBadge);
+  const assuranceBadge = company.disclosure.assuranceProvider
+    ? buildAssuranceBadge(company.disclosure.assuranceType, locale)
+    : null;
+  if (assuranceBadge) {
+    badges.push(assuranceBadge);
+  }
 
   return badges.slice(0, 4);
 }
@@ -167,6 +223,23 @@ export function humanizeCode(value: string | null | undefined) {
   if (!normalized) return "Unknown";
   if (/^[A-Z0-9 ]+$/.test(normalized)) return normalized;
   return titleCase(normalized);
+}
+
+function translateSectorLabel(
+  sectorCode: string | null | undefined,
+  sectorLabel: string | null | undefined,
+  locale: SupportedLocale,
+) {
+  const normalizedCode = (sectorCode || "").trim().toUpperCase();
+  if (normalizedCode && SECTOR_LABELS_BY_LOCALE[locale][normalizedCode]) {
+    return SECTOR_LABELS_BY_LOCALE[locale][normalizedCode];
+  }
+
+  if (!sectorLabel) return null;
+  const normalizedLabel = sectorLabel.trim().toLowerCase();
+  if (!normalizedLabel || normalizedLabel === "unknown") return null;
+
+  return sectorLabel;
 }
 
 export function normalizeScoreValue(value: number | null | undefined) {
@@ -301,6 +374,8 @@ function translateScopeLabel(
   scopeLabel: string | null | undefined,
   locale: SupportedLocale,
 ) {
+  const rawScopeLabel = scopeLabel?.trim();
+  if (rawScopeLabel && rawScopeLabel.toLowerCase() === "unknown") return null;
   const normalized = normalizeScopeCode(scopeCode || scopeLabel);
 
   if (normalized.includes("partial3")) return getPartialScope3Label(locale);
@@ -317,7 +392,8 @@ function translateScopeLabel(
     return getPartialScope3Label(locale);
   }
 
-  return scopeLabel || humanizeCode(scopeCode);
+  if (rawScopeLabel) return rawScopeLabel;
+  return scopeCode ? humanizeCode(scopeCode) : null;
 }
 
 export function buildCompanyInterpretation(
@@ -478,13 +554,72 @@ export function buildScoreDistribution(companies: CersCompanyProfile[]) {
   }));
 }
 
+function roundStat(value: number | null) {
+  if (value === null || !Number.isFinite(value)) return null;
+  return Number(value.toFixed(1));
+}
+
+function getAverage(values: number[]) {
+  if (values.length === 0) return null;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function getQuantile(values: number[], quantile: number) {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const position = (sorted.length - 1) * quantile;
+  const lowerIndex = Math.floor(position);
+  const upperIndex = Math.ceil(position);
+  const lower = sorted[lowerIndex];
+  const upper = sorted[upperIndex] ?? lower;
+  if (lower === undefined) return null;
+  if (lowerIndex === upperIndex) return lower;
+  return lower + (upper - lower) * (position - lowerIndex);
+}
+
+function getPercentage(count: number, total: number) {
+  if (total <= 0) return null;
+  return (count / total) * 100;
+}
+
+function buildIndustrySummaryText(
+  label: string,
+  medianScore: number | null,
+  scoreCoverage: number | null,
+  strongestCategory: string | null,
+  weakestCategory: string | null,
+  locale: SupportedLocale,
+) {
+  if (medianScore === null) {
+    if (locale === "ko") return `${label} 섹터는 현재 평가 가능한 점수 데이터가 제한적입니다.`;
+    if (locale === "ja") return `${label} セクターは現在、評価可能なスコアデータが限定的です。`;
+    return `${label} currently has limited scored coverage in the dataset.`;
+  }
+
+  const coverageText = scoreCoverage === null ? "—" : `${scoreCoverage.toFixed(0)}%`;
+
+  if (strongestCategory && weakestCategory) {
+    if (locale === "ko") {
+      return `${label} 섹터는 점수 보유율 ${coverageText}, 중앙값 ${medianScore.toFixed(1)}점이며 ${strongestCategory}가 상대적으로 강하고 ${weakestCategory}는 보완 여지가 큽니다.`;
+    }
+    if (locale === "ja") {
+      return `${label} セクターはスコア保有率 ${coverageText}、中央値 ${medianScore.toFixed(1)} で、${strongestCategory} が相対的に強く、${weakestCategory} は補強余地があります。`;
+    }
+    return `${label} shows ${coverageText} score coverage with a median score of ${medianScore.toFixed(1)}. ${strongestCategory} is relatively stronger, while ${weakestCategory} has more room to improve.`;
+  }
+
+  if (locale === "ko") return `${label} 섹터는 점수 보유율 ${coverageText}, 중앙값 ${medianScore.toFixed(1)}점을 기록하고 있습니다.`;
+  if (locale === "ja") return `${label} セクターはスコア保有率 ${coverageText}、中央値 ${medianScore.toFixed(1)} を記録しています。`;
+  return `${label} shows ${coverageText} score coverage with a median score of ${medianScore.toFixed(1)}.`;
+}
+
 function getPerformanceTag(averageScore: number | null, locale: SupportedLocale) {
   if (averageScore === null) return locale === "ko" ? "데이터 부족" : locale === "ja" ? "データ不足" : "Insufficient Data";
-  if (averageScore >= 75) return locale === "ko" ? "상위 산업" : locale === "ja" ? "高パフォーマンス" : "High Performer";
+  if (averageScore >= 75) return locale === "ko" ? "상위 섹터" : locale === "ja" ? "高パフォーマンス" : "High Performer";
   if (averageScore >= 68) {
-    return locale === "ko" ? "중간 수준 산업" : locale === "ja" ? "中程度" : "Moderate Performer";
+    return locale === "ko" ? "중간 수준 섹터" : locale === "ja" ? "中程度" : "Moderate Performer";
   }
-  return locale === "ko" ? "전환 중" : locale === "ja" ? "移行中" : "Transitioning";
+  return locale === "ko" ? "전환 중 섹터" : locale === "ja" ? "移行中" : "Transitioning";
 }
 
 function getIndustryFocusPoints(
@@ -492,9 +627,9 @@ function getIndustryFocusPoints(
   industryLabel: string,
   locale: SupportedLocale,
 ): CersIndustryFocusPoint[] {
-  const normalized = industryCode.toLowerCase();
+  const normalized = industryCode.trim().toUpperCase();
 
-  if (normalized.includes("tech")) {
+  if (["DNS", "EEM", "IMS"].includes(normalized)) {
     if (locale === "ko") {
       return [
         {
@@ -546,18 +681,12 @@ function getIndustryFocusPoints(
     ];
   }
 
-  if (
-    normalized.includes("energy") ||
-    normalized.includes("steel") ||
-    normalized.includes("metal") ||
-    normalized.includes("chemical") ||
-    normalized.includes("cement")
-  ) {
+  if (["PWR", "ENR", "PRM"].includes(normalized)) {
     if (locale === "ko") {
       return [
         {
           title: "공정 배출",
-          description: "감축이 어려운 업종은 실제 생산 조건에서 배출 집약도가 개선되는지를 중심으로 평가됩니다.",
+          description: "감축이 어려운 섹터는 실제 생산 조건에서 배출 집약도가 개선되는지를 중심으로 평가됩니다.",
         },
         {
           title: "전환 CAPEX",
@@ -565,7 +694,7 @@ function getIndustryFocusPoints(
         },
         {
           title: "검증 품질",
-          description: "규제와 탄소비용이 기업가치에 크게 영향을 주는 업종일수록 검증과 공시 품질이 더 중요합니다.",
+          description: "규제와 탄소비용이 기업가치에 크게 영향을 주는 섹터일수록 검증과 공시 품질이 더 중요합니다.",
         },
       ];
     }
@@ -573,7 +702,7 @@ function getIndustryFocusPoints(
       return [
         {
           title: "工程排出",
-          description: "削減が難しい業種では、実際の生産条件のもとで排出原単位が改善しているかが重要です。",
+          description: "削減が難しいセクターでは、実際の生産条件のもとで排出原単位が改善しているかが重要です。",
         },
         {
           title: "移行 CAPEX",
@@ -581,7 +710,7 @@ function getIndustryFocusPoints(
         },
         {
           title: "保証品質",
-          description: "規制や炭素コストが企業価値を左右しやすい業種ほど、保証と開示の品質が重要になります。",
+          description: "規制や炭素コストが企業価値を左右しやすいセクターほど、保証と開示の品質が重要になります。",
         },
       ];
     }
@@ -604,7 +733,7 @@ function getIndustryFocusPoints(
     ];
   }
 
-  if (normalized.includes("auto") || normalized.includes("transport")) {
+  if (["MOV", "MFG"].includes(normalized)) {
     if (locale === "ko") {
       return [
         {
@@ -710,7 +839,7 @@ export function getIndustrySummaries(data: CersDashboardData, locale: SupportedL
   const grouped = new Map<string, CersCompanyProfile[]>();
 
   for (const company of data.companies) {
-    const key = company.industryCode || "unknown";
+    const key = company.sectorCode || company.industryCode || "unknown";
     if (!grouped.has(key)) grouped.set(key, []);
     grouped.get(key)!.push(company);
   }
@@ -718,33 +847,130 @@ export function getIndustrySummaries(data: CersDashboardData, locale: SupportedL
   return Array.from(grouped.entries())
     .map(([industryCode, companies]) => {
       const scoredCompanies = companies.filter((company) => company.overallScore !== null);
-      const averageScore =
-        scoredCompanies.length > 0
-          ? scoredCompanies.reduce((sum, company) => sum + (company.overallScore || 0), 0) / scoredCompanies.length
-          : null;
+      const scoredValues = scoredCompanies
+        .map((company) => company.overallScore)
+        .filter((value): value is number => value !== null && Number.isFinite(value));
+      const averageScore = getAverage(scoredValues);
+      const medianScore = getQuantile(scoredValues, 0.5);
+      const scoreQuartileLow = getQuantile(scoredValues, 0.25);
+      const scoreQuartileHigh = getQuantile(scoredValues, 0.75);
+      const scoreCoverage = getPercentage(scoredCompanies.length, companies.length);
+      const latestScoreYear = companies.reduce<number | null>((latest, company) => {
+        const year = company.scoreFiscalYear ?? company.fiscalYear;
+        if (year === null || year === undefined) return latest;
+        if (latest === null) return year;
+        return year > latest ? year : latest;
+      }, null);
       const lead = companies[0];
-      const label = lead?.industryLabel || humanizeCode(industryCode);
-      const performanceTag = getPerformanceTag(averageScore, locale);
+      const label = lead?.sectorLabel || lead?.industryLabel || humanizeCode(industryCode);
+      const categoryAverages = data.categories.map((category) => {
+        const rawValues = companies
+          .map((company) => company.categories.find((item) => item.code === category.code)?.rawScore ?? null)
+          .filter((value): value is number => value !== null && Number.isFinite(value));
+        const weightedValues = companies
+          .map((company) => company.categories.find((item) => item.code === category.code)?.weightedScore ?? null)
+          .filter((value): value is number => value !== null && Number.isFinite(value));
 
-      const summary =
-        averageScore === null
-          ? locale === "ko"
-            ? `${label} 업종은 현재 평가 가능한 점수 데이터가 제한적입니다.`
-            : locale === "ja"
-              ? `${label} 業種は現在、評価可能なスコアデータが限定的です。`
-              : `${label} currently has limited scored coverage in the dataset.`
-          : locale === "ko"
-            ? `${label}의 평균 점수는 ${averageScore.toFixed(1)}점으로, 상대적으로 ${performanceTag}에 해당합니다.`
-            : locale === "ja"
-              ? `${label} の平均スコアは ${averageScore.toFixed(1)} で、相対的には ${performanceTag} に当たります。`
-              : `${label} shows an average score of ${averageScore.toFixed(1)}, indicating a ${performanceTag.toLowerCase()} relative transition profile.`;
+        return {
+          ...category,
+          rawScore: roundStat(getAverage(rawValues)),
+          weightedScore: roundStat(getAverage(weightedValues)),
+        };
+      });
+      const rankedCategories = categoryAverages
+        .filter((category) => category.rawScore !== null)
+        .sort((a, b) => (b.rawScore || 0) - (a.rawScore || 0));
+      const strongestCategory = rankedCategories[0]?.label ?? null;
+      const weakestCategory = rankedCategories[rankedCategories.length - 1]?.label ?? null;
+      const performanceTag = getPerformanceTag(medianScore ?? averageScore, locale);
+
+      const targetCompanies = companies.filter((company) => company.targetSummary.targetYear !== null);
+      const netZeroCompanies = companies.filter((company) => company.targetSummary.netZeroYear !== null);
+      const sbtiCompanies = companies.filter((company) => company.targetSummary.sbtiApproved === true);
+      const interimCompanies = companies.filter((company) => {
+        const milestoneTargets = company.targets.filter(
+          (target) =>
+            target.disclosed !== false &&
+            target.targetType !== "netzero" &&
+            target.targetType !== "residual_neutralization" &&
+            target.targetYear !== null,
+        );
+        return milestoneTargets.length > 1;
+      });
+      const targetYears = targetCompanies
+        .map((company) => company.targetSummary.targetYear)
+        .filter((value): value is number => value !== null && Number.isFinite(value));
+
+      const assuredCompanies = companies.filter((company) => company.disclosure.hasThirdPartyAssurance);
+      const frameworkCompanies = companies.filter((company) => company.disclosure.frameworks.length > 0);
+      const primaryDataRatios = companies
+        .map((company) => company.disclosure.averagePrimaryDataRatio)
+        .filter((value): value is number => value !== null && Number.isFinite(value));
+      const scope3DisclosedTotal = companies.reduce((sum, company) => sum + company.disclosure.scope3DisclosedCategories, 0);
+      const scope3CategoryTotal = companies.reduce((sum, company) => sum + company.disclosure.scope3TotalCategories, 0);
+
+      const summary = buildIndustrySummaryText(
+        label,
+        roundStat(medianScore),
+        roundStat(scoreCoverage),
+        strongestCategory,
+        weakestCategory,
+        locale,
+      );
 
       return {
         industryCode,
         label,
         sectorCode: lead?.sectorCode || null,
         sectorLabel: lead?.sectorLabel || null,
-        averageScore: averageScore === null ? null : Number(averageScore.toFixed(1)),
+        averageScore: roundStat(averageScore),
+        medianScore: roundStat(medianScore),
+        scoreCoverage: roundStat(scoreCoverage),
+        scoredCompanyCount: scoredCompanies.length,
+        latestScoreYear,
+        scoreQuartileLow: roundStat(scoreQuartileLow),
+        scoreQuartileHigh: roundStat(scoreQuartileHigh),
+        sampleBucket: companies.length >= 30 ? ("robust" as const) : ("limited" as const),
+        strongestCategory,
+        weakestCategory,
+        categoryAverages,
+        targetStats: {
+          targetCoverage: {
+            value: roundStat(getPercentage(targetCompanies.length, companies.length)),
+            count: targetCompanies.length,
+            total: companies.length,
+          },
+          netZeroCoverage: {
+            value: roundStat(getPercentage(netZeroCompanies.length, companies.length)),
+            count: netZeroCompanies.length,
+            total: companies.length,
+          },
+          sbtiCoverage: {
+            value: roundStat(getPercentage(sbtiCompanies.length, companies.length)),
+            count: sbtiCompanies.length,
+            total: companies.length,
+          },
+          interimCoverage: {
+            value: roundStat(getPercentage(interimCompanies.length, companies.length)),
+            count: interimCompanies.length,
+            total: companies.length,
+          },
+          medianTargetYear: targetYears.length > 0 ? Math.round(getQuantile(targetYears, 0.5) || 0) : null,
+        },
+        disclosureStats: {
+          assuranceCoverage: {
+            value: roundStat(getPercentage(assuredCompanies.length, companies.length)),
+            count: assuredCompanies.length,
+            total: companies.length,
+          },
+          scope3CoverageAverage: roundStat(getPercentage(scope3DisclosedTotal, scope3CategoryTotal)),
+          primaryDataRatioAverage: roundStat(getAverage(primaryDataRatios)),
+          frameworkCoverage: {
+            value: roundStat(getPercentage(frameworkCompanies.length, companies.length)),
+            count: frameworkCompanies.length,
+            total: companies.length,
+          },
+        },
         companyCount: companies.length,
         performanceTag,
         companies: [...companies].sort(companyScoreSort),
@@ -757,7 +983,7 @@ export function getIndustrySummaries(data: CersDashboardData, locale: SupportedL
       const scoreA = a.averageScore ?? -1;
       const scoreB = b.averageScore ?? -1;
       if (scoreA !== scoreB) return scoreB - scoreA;
-      return a.label.localeCompare(b.label, "en", { sensitivity: "base" });
+      return a.label.localeCompare(b.label, locale, { sensitivity: "base" });
     });
 }
 
@@ -856,6 +1082,7 @@ export function localizeDashboardData(data: CersDashboardData, locale: Supported
     const localizedCompany: CersCompanyProfile = {
       ...company,
       displayName: createDisplayName(company.name, company.localName, locale),
+      sectorLabel: translateSectorLabel(company.sectorCode, company.sectorLabel, locale),
       categories: localizedCategories,
       targetSummary: localizedTargetSummary,
       disclosure: localizedDisclosure,
