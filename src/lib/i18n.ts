@@ -103,7 +103,7 @@ const I18N_STRINGS = {
     },
     table: {
       title: "CERs Score List",
-      viewTable: "View Full Table",
+      viewTable: "View CERs Score List",
       logicWidget: "Logic",
       back: "Back to Dashboard",
       noData: "No table data available",
@@ -221,7 +221,7 @@ const I18N_STRINGS = {
     },
     table: {
       title: "CERs 점수 리스트",
-      viewTable: "전체 테이블 보기",
+      viewTable: "CERs 점수 리스트 보기",
       logicWidget: "로직",
       back: "대시보드로 돌아가기",
       noData: "표시할 데이터가 없습니다",
@@ -339,7 +339,7 @@ const I18N_STRINGS = {
     },
     table: {
       title: "CERsスコア一覧",
-      viewTable: "全体テーブルを見る",
+      viewTable: "CERsスコア一覧を見る",
       logicWidget: "ロジック",
       back: "ダッシュボードへ戻る",
       noData: "表示できるデータがありません",
