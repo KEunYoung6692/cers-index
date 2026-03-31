@@ -131,7 +131,7 @@ function TablePageContent() {
   const [selectedCountry, setSelectedCountry] = useState("all");
   const [selectedIndustry, setSelectedIndustry] = useState("all");
   const [selectedSort, setSelectedSort] = useState<SortOption>("rank_asc");
-  const [pageSize, setPageSize] = useState<number>(20);
+  const [pageSize, setPageSize] = useState<number>(100);
   const [currentPage, setCurrentPage] = useState(1);
   const scoreFractionDigits = 2;
   const formatScore = (value: number | null) =>
