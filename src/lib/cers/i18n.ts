@@ -86,11 +86,26 @@ const ENGLISH_COPY = {
     title: "Browse corporate carbon reduction profiles",
     description:
       "Search and compare companies using the latest CERs score, reduction targets, and disclosure signals.",
+    scoreListCta: "View CERs Score List",
+    scoreListTitle: "CERs Score List",
+    scoreListDescription: "A score-sorted table of all companies currently available in the CERs dashboard.",
+    scoreListCount: (count: number) => `${count} companies in score order`,
+    scoreListColumns: {
+      rank: "Rank",
+      company: "Company",
+      sector: "Sector",
+      country: "Country",
+      basisYear: "Basis year",
+      score: "Score",
+      band: "Band",
+    },
     filters: "Filters",
     industry: "Sector",
     country: "Country",
+    year: "Year",
     allIndustries: "All sectors",
     allCountries: "All countries",
+    allYears: "All years",
     scoreRange: "Score range",
     allScores: "All scores",
     below60: "Below 60",
@@ -241,66 +256,66 @@ const ENGLISH_COPY = {
     eyebrow: "About the Score",
     title: "How the score works",
     description:
-      "This page explains what goes into the public score, what each score area looks for, and how to read the result without opening the full technical methodology.",
+      "This page summarizes the revised CERs methodology at a high level. It shows how ten variables roll into four weighted categories, how the base score is formed, and why the final score can change after risk adjustments.",
     logicCta: "View detailed logic",
     logicCtaHint: "Open the technical reference with formulas, weights, and scoring rules.",
     backToOverview: "Back to score overview",
     meaningTitle: "What this score is for",
     meaningDescription:
-      "CERs Index is a public-facing summary of transition quality. It does not replace full diligence, but it helps users see whether emissions performance, target quality, execution, and evidence are moving in the same direction.",
+      "CERs Index is a public summary of transition quality. It organizes reported emissions, targets, governance, investment, and assurance evidence into one comparable view, but it should still be read with sector context.",
     meaningPoints: [
-      "Uses reported emissions, targets, and supporting disclosure",
-      "Designed to compare companies on a common public view",
-      "Best read within industry before broad cross-sector ranking",
+      "Builds ten variables from reported emissions, targets, capex, governance, assurance, and decision-use evidence",
+      "Keeps fixed top-level category weights while adapting variable weights to data validity and sector context",
+      "Applies final credibility adjustments for CBAM exposure and divergence between apparent and real performance",
     ],
-    logicTitle: "How the score is built",
+    logicTitle: "How the revised score is built",
     logicDescription:
-      "The public score follows a simple logic flow. It starts with reported company data, groups that information into four decision-useful areas, then checks whether the overall story remains credible when industry context and final adjustments are considered.",
+      "The revised logic starts by scoring V1-V10, then combines them through fixed category weights and dynamic within-category weighting rules before external adjustments are applied.",
     logicSteps: [
       {
-        title: "Start with reported company data",
+        title: "Score ten variables from public evidence",
         description:
-          "Use the latest comparable emissions, target facts, and linked disclosure evidence available in the current company profile.",
+          "V1-V10 cover actual decarbonization, target pathway alignment, capital allocation, governance linkage, assurance quality, and embedded decision tools.",
       },
       {
-        title: "Read four score areas separately",
+        title: "Combine them into four fixed categories",
         description:
-          "Look at actual reduction performance, target clarity, execution readiness, and disclosure quality as distinct parts of the story.",
+          "The top-level methodology keeps category weights at 0.40, 0.25, 0.20, and 0.15 so real decarbonization remains the anchor.",
       },
       {
-        title: "Keep industry context in view",
+        title: "Rebalance weights inside each category",
         description:
-          "Compare companies against peers facing similar transition conditions, carbon intensity, and capital requirements.",
+          "Variable weights are filtered for missingness, informed by entropy, protected with shrinkage, adjusted for sector materiality, and smoothed over time.",
       },
       {
-        title: "Apply final credibility checks",
+        title: "Apply final credibility adjustments",
         description:
-          "A strong public narrative alone does not guarantee a high result. Scores can be held back when delivery lags ambition or when transition exposure still matters.",
+          "The weighted base score becomes the final score only after CBAM exposure and greenwashing divergence checks are applied.",
       },
     ],
-    dimensionsTitle: "What the four score areas look at",
+    dimensionsTitle: "What the four weighted areas look at",
     dimensionsDescription:
-      "The public labels are simplified, but each area still reflects a specific set of questions drawn from the underlying logic.",
+      "These are the public-facing labels for four methodology buckets. Each one maps to specific variables and fixed category weights.",
     roadmapTitle: "How to read the roadmap",
     industryTitle: "Why industry comparison matters",
     industryDescription:
-      "Transition conditions differ across sectors. Industry comparison is the fairest first read because carbon intensity, capital requirements, and disclosure patterns are not uniform.",
+      "Sector context matters twice: it shapes peer comparison, and it also affects material Scope 3 categories, bounded Cat 1 reweighting, and small-sample protection in the underlying method.",
     readingTitle: "How to interpret the result",
     readingCards: [
       {
-        title: "Read the roadmap with the score",
+        title: "Read the base score separately",
         description:
-          "The score is stronger when current emissions, the next target point, and the long-term milestone tell a coherent story together.",
+          "A strong S_base can still move after CBAM exposure and greenwashing divergence adjustments are applied.",
       },
       {
-        title: "Compare within industry first",
+        title: "Read target pathways, not only target presence",
         description:
-          "A raw rank across all sectors is less informative than a peer comparison within similar operating and carbon conditions.",
+          "Short-, mid-, and long-term alignment and net-zero validity matter more than a single target announcement.",
       },
       {
-        title: "Treat it as a starting point",
+        title: "Compare within sector first",
         description:
-          "The score summarizes public evidence. It helps users narrow attention, but it should not replace full diligence or company-specific review.",
+          "The method still depends on sector context, especially for material Scope 3 categories and relative transition conditions.",
       },
     ],
     faqTitle: "FAQ",
@@ -308,41 +323,45 @@ const ENGLISH_COPY = {
       {
         title: "Actual Reduction Performance",
         description:
-          "This is the anchor of the score. It asks whether emissions are improving in real operating terms rather than only in narrative terms.",
+          "This anchor category combines intensity improvement with absolute-emissions checks, then adds Scope 3 transparency in material value-chain categories.",
+        weight: "40%",
         bullets: [
-          "Recent Scope 1 and Scope 2 performance",
-          "Change relative to business activity or intensity",
-          "Scope 3 transparency in material areas where relevant",
+          "V1 intensity improvement with absolute bonus and penalty",
+          "V2 Scope 3 data quality, material categories, and primary-data use",
+          "Bounded reweighting inside Cat 1 based on sector carbon intensity",
         ],
       },
       {
         title: "Target Clarity",
         description:
-          "Targets are read as a pathway, not just as an announcement. Clear time horizons and usable milestones matter.",
+          "Targets are treated as a pathway. Near-, mid-, and long-term alignment and the validity of the net-zero claim are scored separately.",
+        weight: "25%",
         bullets: [
-          "Near-, mid-, and long-term target structure",
-          "Coverage across relevant scopes",
-          "How well reported progress lines up with the stated path",
+          "V3-V5 short-, mid-, and long-term target alignment",
+          "Penalty strength increases when near-term delivery misses the path",
+          "V6 net-zero validity and residual-neutralization credibility",
         ],
       },
       {
         title: "Execution Readiness",
         description:
-          "Plans matter more when they appear connected to real resource allocation and operating decisions.",
+          "Execution looks for capital and incentive evidence. The score checks whether transition ambition is backed by funding and management linkage.",
+        weight: "20%",
         bullets: [
-          "Green capex direction",
-          "Governance or management follow-through",
-          "Decision tools such as internal carbon pricing or transition planning",
+          "V7 green capex share with brown-capex penalty",
+          "V8 executive compensation linkage to climate KPI delivery",
+          "Resource allocation matters more than narrative alone",
         ],
       },
       {
         title: "Disclosure Level",
         description:
-          "Disclosure is not only about volume. It reflects how much confidence users can place in the reported story.",
+          "This category is about evidence quality and decision-use integrity, not only disclosure volume.",
+        weight: "15%",
         bullets: [
-          "Third-party assurance and verification depth",
-          "Traceability and scope of supporting evidence",
-          "Breadth and clarity of disclosed climate data",
+          "V9 assurance quality across standard, level, provider, and evidence depth",
+          "V10 embedded decision tools such as ICP, MACC, and climate-linked investment review",
+          "Reported climate processes need to show operational use, not only mention",
         ],
       },
     ],
@@ -365,24 +384,24 @@ const ENGLISH_COPY = {
     ],
     faqs: [
       {
-        question: "Does the score only reward target announcements?",
+        question: "Why can a strong base score still end lower than expected?",
         answer:
-          "No. Public targets matter, but the score also looks for real emissions progress, delivery signals, and evidence quality behind the story.",
+          "Because the final score applies external adjustments after the weighted base score is formed. CBAM exposure and greenwashing divergence can both reduce the headline result.",
       },
       {
-        question: "Why can a company with strong messaging still score lower than expected?",
+        question: "What happens when data is missing?",
         answer:
-          "Because the final view is not driven by narrative alone. If observed delivery is weak relative to stated ambition, or if risk exposure remains material, the public score can stay constrained.",
+          "Variables with more than 30% missingness can be excluded from sector-level weighting. Lower missingness can be median-filled, and Scope 3 uses a glide-path penalty rather than a flat replacement.",
       },
       {
-        question: "Why does industry context matter so much?",
+        question: "Why is Scope 3 included in performance instead of disclosure only?",
         answer:
-          "Transition conditions are not the same across sectors. Industry context helps avoid reading every score as if capital needs, carbon intensity, and disclosure challenges were identical.",
+          "Because the revised method treats material value-chain transparency as part of actual decarbonization quality. In some sectors, real transition credibility is incomplete without it.",
       },
       {
-        question: "What should I use the roadmap for?",
+        question: "Does the score only reward narrative and commitments?",
         answer:
-          "Use it to see whether current emissions, the next disclosed target point, and the long-term net zero milestone form a coherent pathway.",
+          "No. The score still anchors on V1 and V2, then checks whether targets, capex, governance, assurance, and decision tools are supported by evidence and actual pathway delivery.",
       },
     ],
   },
@@ -485,11 +504,26 @@ const KOREAN_COPY: Translation = {
     eyebrow: "기업",
     title: "기업별 탄소감축 프로필 둘러보기",
     description: "최신 CERs 점수, 감축 목표, 공시 신호를 기준으로 기업을 검색하고 비교하세요.",
+    scoreListCta: "View CERs Score List",
+    scoreListTitle: "CERs Score List",
+    scoreListDescription: "현재 CERs 대시보드에 포함된 전체 기업을 점수순 표로 보여줍니다.",
+    scoreListCount: (count: number) => `점수순 ${count}개 기업`,
+    scoreListColumns: {
+      rank: "순위",
+      company: "기업",
+      sector: "섹터",
+      country: "국가",
+      basisYear: "기준연도",
+      score: "점수",
+      band: "등급대",
+    },
     filters: "필터",
     industry: "섹터",
     country: "국가",
+    year: "연도",
     allIndustries: "전체 섹터",
     allCountries: "모든 국가",
+    allYears: "전체 연도",
     scoreRange: "점수 구간",
     allScores: "전체 점수",
     below60: "60 미만",
@@ -638,89 +672,109 @@ const KOREAN_COPY: Translation = {
     eyebrow: "점수 소개",
     title: "점수는 어떻게 만들어지나",
     description:
-      "이 페이지는 공개 점수에 어떤 정보가 들어가고, 각 점수 차원이 무엇을 보는지, 결과를 어떻게 읽어야 하는지를 수식 없이 설명합니다.",
+      "이 페이지는 개정된 CERs 방법론을 요약해서 보여줍니다. 10개 변수, 4개 고정 가중 카테고리, 기초점수 형성, 그리고 최종 위험 보정까지를 수식 없이 설명합니다.",
     logicCta: "로직 상세보기",
     logicCtaHint: "수식, 가중치, 세부 산정 규칙이 담긴 기술 참고 페이지를 엽니다.",
     backToOverview: "점수 소개로 돌아가기",
     meaningTitle: "이 점수의 용도",
     meaningDescription:
-      "CERs Index는 전환 품질을 빠르게 읽기 위한 공개 요약 점수입니다. 정밀 실사를 대체하지는 않지만, 배출 성과, 목표의 질, 실행 근거, 공시 신뢰가 같은 방향을 가리키는지 확인하는 출발점이 됩니다.",
+      "CERs Index는 기업의 전환 품질을 공개 정보 기준으로 비교하기 위한 요약 점수입니다. 보고된 배출량, 목표, 거버넌스, 투자, 검증 근거를 하나의 화면으로 모으지만, 해석은 여전히 섹터 맥락과 함께 이뤄져야 합니다.",
     meaningPoints: [
-      "보고된 배출량, 목표, 근거 공시를 함께 사용",
-      "여러 기업을 같은 공개 기준에서 비교하도록 설계",
-      "업종 내 비교를 먼저 보고, 업종 간 비교는 그다음에 해석",
+      "보고된 배출량, 목표, CAPEX, 거버넌스, 보증, 의사결정 도구 근거로 10개 변수를 만듭니다",
+      "상위 카테고리 가중치는 고정하되, 하위 변수 가중치는 데이터 유효성과 섹터 맥락에 따라 달라집니다",
+      "기초점수 이후에도 CBAM 노출과 그린워싱 괴리 보정이 최종 점수에 반영됩니다",
     ],
-    logicTitle: "점수는 이렇게 만들어집니다",
+    logicTitle: "개정된 점수는 이렇게 만들어집니다",
     logicDescription:
-      "공개 점수는 단순한 흐름으로 읽을 수 있습니다. 먼저 최신 공시 데이터를 가져오고, 이를 네 개의 판단 축으로 나눈 뒤, 산업 맥락과 최종 보정까지 고려해 결과를 보여줍니다.",
+      "개정 로직은 먼저 V1-V10을 산정한 뒤, 고정된 대분류 가중치와 동적 하위 가중치 규칙으로 기초점수를 만들고, 마지막에 외생 조정항을 적용합니다.",
     logicSteps: [
       {
-        title: "보고된 회사 데이터를 먼저 봅니다",
+        title: "공개 근거에서 10개 변수를 산정합니다",
         description:
-          "현재 회사 프로필에 연결된 최신 비교 가능 배출량, 목표 정보, 공시 근거를 사용합니다.",
+          "V1-V10은 실제 탈탄소 성과, 목표 경로 정렬, 자본 배분, 경영 연계, 검증 품질, 의사결정 도구 내재화를 함께 봅니다.",
       },
       {
-        title: "네 개의 점수 축을 따로 읽습니다",
+        title: "네 개 대분류로 묶고 고정 가중치를 적용합니다",
         description:
-          "실질 감축 성과, 목표 명확성, 실행 준비도, 공시 수준을 각각 분리해 봅니다.",
+          "상위 카테고리 가중치는 0.40, 0.25, 0.20, 0.15로 고정해 실질 탈탄소 성과를 가장 크게 둡니다.",
       },
       {
-        title: "산업 맥락을 함께 봅니다",
+        title: "카테고리 내부 가중치를 다시 조정합니다",
         description:
-          "비슷한 전환 조건, 탄소집약도, 자본지출 구조를 가진 동종사와 비교합니다.",
+          "결측률, 엔트로피, 베이지안 축소, 산업 중대성, 시계열 평활화를 반영해 실제 적용 가중치를 확정합니다.",
       },
       {
-        title: "마지막으로 신뢰도 보정을 거칩니다",
+        title: "최종 신뢰도 보정을 적용합니다",
         description:
-          "좋은 서술만으로 높은 점수가 나오지 않습니다. 실제 이행이 목표보다 약하거나 전환 노출이 크면 최종 점수는 제한될 수 있습니다.",
+          "기초점수 이후에도 CBAM 노출 계수와 그린워싱 괴리 패널티가 작동해 최종 점수가 달라질 수 있습니다.",
       },
     ],
-    dimensionsTitle: "네 개의 점수 차원은 무엇을 보나",
+    dimensionsTitle: "네 개 가중 카테고리는 무엇을 보나",
     dimensionsDescription:
-      "공개 화면의 이름은 단순하지만, 각 차원은 실제로는 아래와 같은 질문을 담고 있습니다.",
+      "공개 화면의 라벨은 단순하지만, 실제 방법론에서는 아래 변수들과 고정 가중치에 연결됩니다.",
     roadmapTitle: "로드맵 읽는 법",
     industryTitle: "왜 산업 비교가 중요한가",
     industryDescription:
-      "전환 조건은 업종마다 다릅니다. 탄소집약도, 필요한 자본, 공시 관행이 같지 않기 때문에 업종 내 비교가 가장 공정한 첫 해석입니다.",
+      "섹터 맥락은 단순 비교를 넘어서 실제 점수 구조에도 들어갑니다. 중대 Scope 3 카테고리, Cat1 내부 재가중, 소표본 보호 규칙이 모두 섹터 조건의 영향을 받습니다.",
     readingTitle: "결과는 이렇게 읽는 것이 좋습니다",
     readingCards: [
       {
-        title: "점수와 로드맵을 함께 보세요",
+        title: "기초점수와 최종점수를 구분해 보세요",
         description:
-          "현재 배출량, 다음 목표 지점, 장기 마일스톤이 함께 일관된 스토리를 만드는지 확인하는 것이 좋습니다.",
+          "S_base가 높아도 CBAM 노출이나 그린워싱 괴리 보정 이후 최종 점수는 낮아질 수 있습니다.",
       },
       {
-        title: "업종 내 비교를 먼저 보세요",
+        title: "목표 존재보다 목표 경로를 보세요",
         description:
-          "모든 업종을 한 줄로 세운 순위보다, 비슷한 운영 조건의 동종사 비교가 더 의미 있습니다.",
+          "단기·중기·장기 목표 정렬과 넷제로 타당성이 함께 좋아야 Cat2가 강하게 나옵니다.",
       },
       {
-        title: "출발점으로 사용하세요",
+        title: "섹터 내 비교를 먼저 보세요",
         description:
-          "이 점수는 공개 근거를 요약한 것입니다. 관심 대상을 좁히는 데는 유용하지만, 개별 기업 실사를 대신하지는 않습니다.",
+          "특히 Scope 3 중대성, 탄소집약도, 전환 난이도는 섹터별로 다르기 때문에 같은 섹터 안에서 보는 해석이 우선입니다.",
       },
     ],
     faqTitle: "자주 묻는 질문",
     dimensions: [
       {
         title: "실질 감축 성과",
-        description: "이 축이 점수의 중심입니다. 선언보다 실제 운영 기준에서 배출이 개선되는지를 봅니다.",
-        bullets: ["최근 스코프 1·2 배출 성과", "사업 활동 대비 변화나 집약도 개선", "필요한 경우 중대 영역의 스코프 3 투명성"],
+        description: "점수의 중심 축입니다. 집약도 개선과 절대배출 검증을 함께 보고, 중대 가치사슬 영역의 Scope 3 투명성까지 포함합니다.",
+        weight: "40%",
+        bullets: [
+          "V1 집약도 개선 + 절대배출 보너스/패널티",
+          "V2 Scope 3 데이터 품질, 중대 카테고리, 1차 데이터 비율",
+          "섹터 탄소집약도에 따라 Cat1 내부 가중치가 제한적으로 재배분됩니다",
+        ],
       },
       {
         title: "목표 명확성",
-        description: "목표는 문구가 아니라 경로로 읽습니다. 시점과 마일스톤이 분명해야 합니다.",
-        bullets: ["단기·중기·장기 목표 구조", "관련 스코프를 충분히 포함하는지", "공개된 진척이 목표 경로와 얼마나 맞는지"],
+        description: "목표는 선언이 아니라 경로로 읽습니다. 단기·중기·장기 목표 정렬과 넷제로 타당성을 따로 점수화합니다.",
+        weight: "25%",
+        bullets: [
+          "V3-V5 단기·중기·장기 목표 경로 준수도",
+          "가까운 시점 목표를 놓칠수록 더 큰 페널티가 적용됩니다",
+          "V6 넷제로 타당성과 잔여배출 중립화 계획의 신뢰성",
+        ],
       },
       {
         title: "실행 준비도",
-        description: "계획은 실제 자원 배분과 운영 의사결정으로 이어질 때 의미가 커집니다.",
-        bullets: ["그린 CAPEX 방향", "거버넌스와 경영진의 이행 흔적", "내부탄소가격이나 전환계획 같은 의사결정 도구"],
+        description: "실행은 실제 돈과 인센티브에서 드러납니다. 전환 자본 배분과 경영진 보상 연계를 함께 봅니다.",
+        weight: "20%",
+        bullets: [
+          "V7 Green CapEx 비중과 Brown CapEx 패널티",
+          "V8 기후 KPI와 경영진 보상 연계율",
+          "서술보다 자원 배분과 경영 연결 근거를 더 중시합니다",
+        ],
       },
       {
         title: "공시 수준",
-        description: "공시는 양보다 신뢰가 중요합니다. 보고된 스토리를 어느 정도 믿을 수 있는지를 봅니다.",
-        bullets: ["제3자 검증과 보증의 깊이", "근거 자료의 추적 가능성과 범위", "기후 데이터 공개의 폭과 명확성"],
+        description: "이 카테고리는 단순 공시량보다 증거 신뢰도와 의사결정 내재화 수준을 봅니다.",
+        weight: "15%",
+        bullets: [
+          "V9 검증 기준, 보증 수준, 기관 신뢰도, 증거 깊이",
+          "V10 ICP, MACC, 경제성 평가, 투자 의사결정 내재화",
+          "기후 관련 프로세스가 실제 운영에 쓰이는지가 중요합니다",
+        ],
       },
     ],
     roadmapCards: [
@@ -742,23 +796,23 @@ const KOREAN_COPY: Translation = {
     ],
     faqs: [
       {
-        question: "이 점수는 목표 선언만 높게 평가하나요?",
-        answer: "아닙니다. 공개 목표는 중요하지만, 실제 배출 성과, 실행 신호, 근거의 질도 함께 봅니다.",
+        question: "기초점수가 높은데 최종점수가 더 낮을 수 있나요?",
+        answer: "그럴 수 있습니다. 기초점수 형성 뒤에도 CBAM 노출 계수와 그린워싱 괴리 패널티가 적용되기 때문입니다.",
       },
       {
-        question: "왜 메시지가 강한데도 기대보다 점수가 낮을 수 있나요?",
+        question: "데이터가 비어 있으면 어떻게 처리되나요?",
         answer:
-          "최종 평가는 서술만으로 결정되지 않기 때문입니다. 관측된 이행이 목표보다 약하거나 위험 노출이 크면 공개 점수는 제한될 수 있습니다.",
+          "결측률이 30%를 넘는 변수는 섹터 내 가중치 산정에서 제외될 수 있습니다. 그보다 낮은 결측은 중앙값 대체가 가능하고, Scope 3는 별도 연착륙 페널티를 사용합니다.",
       },
       {
-        question: "왜 산업 맥락이 그렇게 중요한가요?",
+        question: "왜 Scope 3가 공시가 아니라 성과 쪽에 들어가나요?",
         answer:
-          "전환 조건은 업종마다 다릅니다. 자본 구조, 탄소집약도, 공시 난이도가 같지 않기 때문에 모든 점수를 같은 기준으로 읽으면 왜곡될 수 있습니다.",
+          "개정 로직은 중대한 가치사슬 투명성을 실제 탈탄소 역량의 일부로 봅니다. 일부 섹터에서는 Scope 3를 빼면 전환 품질을 제대로 읽기 어렵기 때문입니다.",
       },
       {
-        question: "로드맵은 무엇을 보려고 쓰나요?",
+        question: "이 점수는 서술과 선언만 잘하면 올라가나요?",
         answer:
-          "현재 배출량, 다음 공개 목표 지점, 장기 넷제로 시점이 서로 이어지는 경로인지 확인하는 데 쓰면 됩니다.",
+          "아닙니다. V1과 V2가 점수의 중심을 잡고, 그 위에 목표, 자본 배분, 보증, 의사결정 도구가 실제 근거와 함께 있는지를 봅니다.",
       },
     ],
   },
@@ -859,11 +913,26 @@ const JAPANESE_COPY: Translation = {
     eyebrow: "企業",
     title: "企業の炭素削減プロフィールを閲覧",
     description: "最新の CERs スコア、削減目標、開示シグナルを使って企業を検索・比較できます。",
+    scoreListCta: "View CERs Score List",
+    scoreListTitle: "CERs Score List",
+    scoreListDescription: "現在の CERs ダッシュボードに含まれる全企業をスコア順の表で表示します。",
+    scoreListCount: (count: number) => `スコア順で ${count}社`,
+    scoreListColumns: {
+      rank: "順位",
+      company: "企業",
+      sector: "セクター",
+      country: "国",
+      basisYear: "基準年",
+      score: "スコア",
+      band: "帯域",
+    },
     filters: "フィルター",
     industry: "セクター",
     country: "国",
+    year: "年",
     allIndustries: "すべてのセクター",
     allCountries: "すべての国",
+    allYears: "すべての年",
     scoreRange: "スコア帯",
     allScores: "すべてのスコア",
     below60: "60未満",
@@ -1012,89 +1081,109 @@ const JAPANESE_COPY: Translation = {
     eyebrow: "スコアについて",
     title: "スコアはどう作られるのか",
     description:
-      "このページでは、公開スコアに何が入っているのか、各スコア軸が何を見るのか、結果をどう読めばよいのかを数式なしで説明します。",
+      "このページでは、改訂された CERs 方法論を高いレベルで要約します。10の変数、4つの固定ウェイト区分、基礎スコアの形成、最終的なリスク補正までを数式なしで説明します。",
     logicCta: "ロジック詳細を見る",
     logicCtaHint: "数式、重み、採点ルールをまとめた技術リファレンスを開きます。",
     backToOverview: "スコア概要へ戻る",
     meaningTitle: "このスコアの目的",
     meaningDescription:
-      "CERs Index は移行品質を素早く読むための公開サマリーです。完全なデューデリジェンスの代替ではありませんが、排出実績、目標の質、実行の裏付け、開示の信頼性が同じ方向を向いているかを見る出発点になります。",
+      "CERs Index は企業の移行品質を公開情報ベースで比較するための要約スコアです。報告排出量、目標、ガバナンス、投資、保証根拠を一つの見方にまとめますが、解釈は依然としてセクター文脈と併せて行う必要があります。",
     meaningPoints: [
-      "報告された排出量、目標、裏付け開示をまとめて使用",
-      "企業を同じ公開基準で比較するために設計",
-      "まず業種内比較を見て、その後に業種横断比較を読む",
+      "報告排出量、目標、CAPEX、ガバナンス、保証、意思決定ツールの根拠から 10 変数を構成します",
+      "上位カテゴリの重みは固定しつつ、下位変数の重みはデータ有効性とセクター文脈に応じて変わります",
+      "基礎スコアの後にも CBAM 露出とグリーンウォッシング乖離の補正が最終スコアに反映されます",
     ],
-    logicTitle: "スコアはこの流れで作られます",
+    logicTitle: "改訂後のスコアはこの流れで作られます",
     logicDescription:
-      "公開スコアはシンプルな流れで読めます。まず最新の開示データを集め、それを4つの判断軸に分け、最後に業種文脈と信頼性の補正を踏まえて結果を示します。",
+      "改訂ロジックでは、まず V1-V10 を採点し、その後に固定カテゴリ重みと動的な下位重みルールで基礎スコアを作り、最後に外生的調整項を適用します。",
     logicSteps: [
       {
-        title: "まず報告された企業データを見る",
+        title: "公開根拠から 10 変数を採点する",
         description:
-          "現在の企業プロフィールに結び付く、最新で比較可能な排出量、目標情報、開示根拠を使います。",
+          "V1-V10 は実質的な脱炭素実績、目標経路の整合性、資本配分、経営連動、保証品質、意思決定ツールの内在化を見ます。",
       },
       {
-        title: "4つのスコア軸を分けて読む",
+        title: "4つの固定カテゴリにまとめる",
         description:
-          "実際の削減実績、目標の明確さ、実行準備度、開示水準を別々の観点として見ます。",
+          "上位カテゴリの重みは 0.40、0.25、0.20、0.15 に固定され、実質的な脱炭素実績を最も重く置きます。",
       },
       {
-        title: "業種文脈を一緒に見る",
+        title: "カテゴリ内部の重みを再調整する",
         description:
-          "似た移行条件、炭素集約度、資本支出構造を持つ同業他社との比較で解釈します。",
+          "欠損率、エントロピー、ベイズ縮小、産業重要度、時系列平滑化を反映して最終適用ウェイトを決めます。",
       },
       {
-        title: "最後に信頼性の確認をかける",
+        title: "最終的な信頼性補正を適用する",
         description:
-          "強いメッセージだけで高い結果にはなりません。実行が目標に届かない場合や、移行リスクがなお大きい場合は、最終スコアが抑えられることがあります。",
+          "基礎スコアの後にも、CBAM 露出係数とグリーンウォッシング乖離ペナルティによって最終結果が変わることがあります。",
       },
     ],
-    dimensionsTitle: "4つのスコア軸は何を見るか",
+    dimensionsTitle: "4つの加重カテゴリは何を見るか",
     dimensionsDescription:
-      "公開画面のラベルは簡潔ですが、各軸は実際には次のような問いを含んでいます。",
+      "公開画面のラベルは簡潔ですが、実際の方法論では以下の変数群と固定重みに結び付いています。",
     roadmapTitle: "ロードマップの見方",
     industryTitle: "なぜ業種比較が重要か",
     industryDescription:
-      "移行条件は業種ごとに異なります。炭素集約度、必要資本、開示慣行が同じではないため、業種内比較が最も公平な第一の読み方です。",
+      "セクター文脈は比較だけでなく、実際のスコア構造にも入っています。重要 Scope 3 カテゴリ、Cat 1 内部の再配分、小標本保護ルールはいずれもセクター条件の影響を受けます。",
     readingTitle: "結果はこう読むのが有効です",
     readingCards: [
       {
-        title: "スコアとロードマップを一緒に見る",
+        title: "基礎スコアと最終スコアを分けて見る",
         description:
-          "現在の排出量、次の目標ポイント、長期マイルストーンが一貫したストーリーを作っているかを確認すると読みやすくなります。",
+          "S_base が強くても、CBAM 露出やグリーンウォッシング乖離補正の後で最終スコアが下がることがあります。",
       },
       {
-        title: "まず業種内比較を見る",
+        title: "目標の有無より目標経路を見る",
         description:
-          "すべての業種を一列に並べた順位より、似た運営条件の同業比較のほうが意味があります。",
+          "短期・中期・長期の整合性とネットゼロ妥当性が揃って初めて Cat2 は強くなります。",
       },
       {
-        title: "出発点として使う",
+        title: "まずセクター内比較を見る",
         description:
-          "このスコアは公開根拠の要約です。注目先を絞るには有用ですが、個社の詳細なデューデリジェンスの代わりにはなりません。",
+          "特に Scope 3 の重要性、炭素集約度、移行難易度はセクターごとに異なるため、同一セクター内の比較が優先されます。",
       },
     ],
     faqTitle: "FAQ",
     dimensions: [
       {
         title: "実際の削減実績",
-        description: "この軸がスコアの中心です。宣言よりも、実際の運営基準で排出が改善しているかを見ます。",
-        bullets: ["最近のスコープ1・2排出実績", "事業活動に対する変化や原単位改善", "必要に応じた重要領域でのスコープ3透明性"],
+        description: "スコアの中心軸です。原単位改善と絶対排出の検証を組み合わせ、重要なバリューチェーン領域の Scope 3 透明性まで含めます。",
+        weight: "40%",
+        bullets: [
+          "V1 原単位改善 + 絶対排出ボーナス/ペナルティ",
+          "V2 Scope 3 データ品質、重要カテゴリ、一次データ比率",
+          "セクター炭素集約度に応じて Cat1 内部ウェイトが限定的に再配分されます",
+        ],
       },
       {
         title: "目標の明確さ",
-        description: "目標は文言ではなく経路として読みます。時点とマイルストーンの明確さが重要です。",
-        bullets: ["短期・中期・長期の目標構造", "関連スコープを十分に含むか", "公表された進捗が目標経路にどこまで沿うか"],
+        description: "目標は宣言ではなく経路として読みます。短期・中期・長期の整合性とネットゼロ妥当性を別々に採点します。",
+        weight: "25%",
+        bullets: [
+          "V3-V5 短期・中期・長期の目標経路順守",
+          "近い時点の目標を外すほど強いペナルティがかかります",
+          "V6 ネットゼロ妥当性と残余排出中和計画の信頼性",
+        ],
       },
       {
         title: "実行準備度",
-        description: "計画は、実際の資源配分や運営意思決定につながっているときに意味が強まります。",
-        bullets: ["グリーン CAPEX の方向性", "ガバナンスや経営の実行痕跡", "内部炭素価格や移行計画などの意思決定ツール"],
+        description: "実行は実際のお金とインセンティブに表れます。移行投資と経営報酬の連動を見ます。",
+        weight: "20%",
+        bullets: [
+          "V7 Green CapEx 比率と Brown CapEx ペナルティ",
+          "V8 気候 KPI と経営報酬の連動率",
+          "物語よりも資源配分と経営連動の根拠を重視します",
+        ],
       },
       {
         title: "開示水準",
-        description: "開示は量だけではありません。報告されたストーリーをどこまで信頼できるかを見ます。",
-        bullets: ["第三者保証と検証の深さ", "裏付け証拠の追跡可能性と範囲", "気候データ開示の広さと明確さ"],
+        description: "このカテゴリは単なる開示量ではなく、証拠の信頼性と意思決定への内在化を見ます。",
+        weight: "15%",
+        bullets: [
+          "V9 検証基準、保証水準、機関信頼性、証拠の深さ",
+          "V10 ICP、MACC、経済性評価、投資意思決定への内在化",
+          "気候関連プロセスが実際の運営で使われているかが重要です",
+        ],
       },
     ],
     roadmapCards: [
@@ -1116,24 +1205,24 @@ const JAPANESE_COPY: Translation = {
     ],
     faqs: [
       {
-        question: "このスコアは目標公表だけを評価するのですか？",
+        question: "基礎スコアが高くても最終スコアが下がることはありますか？",
         answer:
-          "いいえ。公開目標は重要ですが、実際の排出実績、実行シグナル、裏付けの質も合わせて見ます。",
+          "あります。基礎スコア形成後にも、CBAM 露出係数とグリーンウォッシング乖離ペナルティが適用されるためです。",
       },
       {
-        question: "メッセージが強いのに、なぜ期待より低く見えることがあるのですか？",
+        question: "データが欠けている場合はどう処理されますか？",
         answer:
-          "最終評価は物語だけで決まりません。観測された実行が目標に弱かったり、リスク露出が依然大きい場合、公開スコアは抑えられることがあります。",
+          "欠損率が 30% を超える変数は、セクター内ウェイト算定から除外されることがあります。より低い欠損は中央値補完の対象になり、Scope 3 には別途グライドパス型ペナルティが使われます。",
       },
       {
-        question: "なぜ業種文脈がそんなに重要なのですか？",
+        question: "なぜ Scope 3 は開示だけでなく実績側に入るのですか？",
         answer:
-          "移行条件は業種ごとに異なります。資本構造、炭素集約度、開示の難しさが同じではないため、すべてのスコアを同一基準で読むと歪みが生じます。",
+          "改訂ロジックでは、重要なバリューチェーン透明性を実質的な脱炭素品質の一部と見なします。一部セクターでは Scope 3 を外すと移行品質を十分に読めません。",
       },
       {
-        question: "ロードマップは何のために使えばよいですか？",
+        question: "このスコアは物語や宣言だけで上がるのですか？",
         answer:
-          "現在の排出量、次の公開目標ポイント、長期ネットゼロ時点がつながる経路になっているかを見るために使うのが有効です。",
+          "いいえ。V1 と V2 がスコアの中心を取り、その上で目標、資本配分、保証、意思決定ツールが実証的な根拠と一緒にあるかを見ます。",
       },
     ],
   },

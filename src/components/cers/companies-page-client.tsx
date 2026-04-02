@@ -1,11 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useDeferredValue, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { CompanyCard } from "./company-card";
 import { formatScore } from "@/lib/cers/public";
-import { getTranslations, type SupportedLocale } from "@/lib/cers/i18n";
+import { getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
 import type { CersCompanyProfile } from "@/lib/cers/types";
 
 type CompaniesPageClientProps = {
@@ -115,81 +116,90 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="h-fit rounded-[28px] border border-slate-200 bg-white p-6 shadow-card lg:sticky lg:top-24 dark:border-slate-800 dark:bg-slate-950/80">
-          <div className="mb-6 flex items-center gap-2">
-            <SlidersHorizontal className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-            <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">{t.companies.filters}</h2>
-          </div>
+        <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+          <Link
+            href={localizedPath(locale, "/companies/score-list")}
+            className="flex min-h-12 w-full items-center justify-center rounded-[24px] border border-teal-200 bg-teal-50 px-5 py-3 text-sm font-semibold text-teal-700 transition hover:border-teal-300 hover:bg-teal-100 dark:border-teal-900/70 dark:bg-teal-950/50 dark:text-teal-200 dark:hover:border-teal-800 dark:hover:bg-teal-950/70"
+          >
+            {t.companies.scoreListCta}
+          </Link>
 
-          <div className="space-y-5">
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">{t.companies.industry}</span>
-              <select
-                value={selectedSector}
-                onChange={(event) => setSelectedSector(event.target.value)}
-                className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-500"
-              >
-                <option value="all">{t.companies.allIndustries}</option>
-                {availableSectors.map((sector) => (
-                  <option key={sector.value} value={sector.value}>
-                    {sector.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+          <aside className="h-fit rounded-[28px] border border-slate-200 bg-white p-6 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
+            <div className="mb-6 flex items-center gap-2">
+              <SlidersHorizontal className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+              <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">{t.companies.filters}</h2>
+            </div>
 
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">{t.companies.country}</span>
-              <select
-                value={selectedCountry}
-                onChange={(event) => setSelectedCountry(event.target.value)}
-                className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-500"
-              >
-                <option value="all">{t.companies.allCountries}</option>
-                {availableCountries.map((country) => (
-                  <option key={country.value} value={country.value}>
-                    {country.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="space-y-5">
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">{t.companies.industry}</span>
+                <select
+                  value={selectedSector}
+                  onChange={(event) => setSelectedSector(event.target.value)}
+                  className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-500"
+                >
+                  <option value="all">{t.companies.allIndustries}</option>
+                  {availableSectors.map((sector) => (
+                    <option key={sector.value} value={sector.value}>
+                      {sector.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">{t.companies.scoreRange}</span>
-              <select
-                value={selectedScoreRange}
-                onChange={(event) => setSelectedScoreRange(event.target.value)}
-                className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-500"
-              >
-                <option value="all">{t.companies.allScores}</option>
-                <option value="80-100">80 - 100</option>
-                <option value="70-79">70 - 79</option>
-                <option value="60-69">60 - 69</option>
-                <option value="0-59">{t.companies.below60}</option>
-              </select>
-            </label>
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">{t.companies.country}</span>
+                <select
+                  value={selectedCountry}
+                  onChange={(event) => setSelectedCountry(event.target.value)}
+                  className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-500"
+                >
+                  <option value="all">{t.companies.allCountries}</option>
+                  {availableCountries.map((country) => (
+                    <option key={country.value} value={country.value}>
+                      {country.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-            <label className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 dark:border-slate-700 dark:text-slate-200">
-              <input
-                type="checkbox"
-                checked={targetAnnounced}
-                onChange={(event) => setTargetAnnounced(event.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-teal-600"
-              />
-              {t.companies.targetAnnounced}
-            </label>
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">{t.companies.scoreRange}</span>
+                <select
+                  value={selectedScoreRange}
+                  onChange={(event) => setSelectedScoreRange(event.target.value)}
+                  className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-500"
+                >
+                  <option value="all">{t.companies.allScores}</option>
+                  <option value="80-100">80 - 100</option>
+                  <option value="70-79">70 - 79</option>
+                  <option value="60-69">60 - 69</option>
+                  <option value="0-59">{t.companies.below60}</option>
+                </select>
+              </label>
 
-            <label className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 dark:border-slate-700 dark:text-slate-200">
-              <input
-                type="checkbox"
-                checked={netZeroDeclared}
-                onChange={(event) => setNetZeroDeclared(event.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-teal-600"
-              />
-              {t.companies.netZeroDeclared}
-            </label>
-          </div>
-        </aside>
+              <label className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 dark:border-slate-700 dark:text-slate-200">
+                <input
+                  type="checkbox"
+                  checked={targetAnnounced}
+                  onChange={(event) => setTargetAnnounced(event.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-teal-600"
+                />
+                {t.companies.targetAnnounced}
+              </label>
+
+              <label className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 dark:border-slate-700 dark:text-slate-200">
+                <input
+                  type="checkbox"
+                  checked={netZeroDeclared}
+                  onChange={(event) => setNetZeroDeclared(event.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-teal-600"
+                />
+                {t.companies.netZeroDeclared}
+              </label>
+            </div>
+          </aside>
+        </div>
 
         <div>
           <div className="mb-6 flex flex-col gap-4 rounded-[28px] border border-slate-200 bg-white p-4 shadow-card md:flex-row md:items-center md:justify-between dark:border-slate-800 dark:bg-slate-950/80">

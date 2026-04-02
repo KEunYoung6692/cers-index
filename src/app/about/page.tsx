@@ -63,13 +63,34 @@ export async function renderAboutPage(locale: SupportedLocale = "en") {
           </div>
         </section>
 
-        <section className="mt-6 grid gap-5 xl:grid-cols-4">
-          {t.about.dimensions.map((dimension) => (
-            <div key={dimension.title} className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
-              <h2 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">{dimension.title}</h2>
-              <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">{dimension.description}</p>
-            </div>
-          ))}
+        <section className="mt-6">
+          <div className="mb-4 rounded-[32px] border border-slate-200 bg-white px-6 py-5 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
+            <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.about.dimensionsTitle}</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300">{t.about.dimensionsDescription}</p>
+          </div>
+
+          <div className="grid gap-5 xl:grid-cols-4">
+            {t.about.dimensions.map((dimension) => (
+              <div key={dimension.title} className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
+                <div className="flex items-start justify-between gap-3">
+                  <h2 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">{dimension.title}</h2>
+                  {"weight" in dimension && dimension.weight ? (
+                    <span className="rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700 dark:bg-teal-950/50 dark:text-teal-200">
+                      {dimension.weight}
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">{dimension.description}</p>
+                <div className="mt-4 space-y-2">
+                  {dimension.bullets.map((bullet) => (
+                    <div key={bullet} className="rounded-2xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                      {bullet}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
 
         <section className="mt-6 rounded-[36px] border border-slate-200 bg-white p-6 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
