@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { ArrowRight, Search, Target, TrendingDown } from "lucide-react";
+import { ArrowRight, Target, TrendingDown } from "lucide-react";
 import { AppShell } from "@/components/cers/app-shell";
 import { CompanyCard } from "@/components/cers/company-card";
+import { HomeScoreLeaderboard } from "@/components/cers/home-score-leaderboard";
 import { IndustryCard } from "@/components/cers/industry-card";
 import { getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
 import {
@@ -25,68 +26,13 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
   const topScorers = getTopScoringCompanies(data, 4);
   const clearTargets = getClearTargetCompanies(data, 3);
   const netZeroCompanies = getNetZeroCompanies(data, 3);
-  const heroStats = [
-    { label: t.home.statCompanies, value: data.companies.length.toLocaleString() },
-    { label: t.home.statIndustries, value: industries.length.toLocaleString() },
-    {
-      label: t.home.statTargets,
-      value: data.companies.filter((company) => company.targetSummary.targetYear || company.targetSummary.reductionPct !== null).length.toLocaleString(),
-    },
-    { label: t.home.statNetZero, value: data.companies.filter((company) => company.targetSummary.netZeroYear).length.toLocaleString() },
-  ];
 
   return (
     <AppShell source={data.source} issue={data.issue} locale={locale}>
       <section className="container pt-10">
         <div className="rounded-[40px] border border-slate-200 bg-white px-8 py-12 shadow-elevated dark:border-slate-800 dark:bg-slate-950/80">
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_320px] lg:items-end">
-            <div className="max-w-3xl">
-              <p className="text-xs font-medium uppercase tracking-[0.28em] text-teal-700">{t.home.eyebrow}</p>
-              <h1 className="mt-4 max-w-2xl text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 md:text-3xl">
-                {t.home.title}
-              </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">
-                {t.home.description}
-              </p>
-
-              <form action={localizedPath(locale, "/companies")} className="mt-7 max-w-xl">
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-                  <input
-                    type="search"
-                    name="q"
-                    placeholder={t.home.searchPlaceholder}
-                    className="h-14 w-full rounded-full border border-slate-200 bg-slate-50 pl-14 pr-6 text-sm text-slate-900 outline-none transition focus:border-teal-400 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-500 dark:focus:bg-slate-950"
-                  />
-                </div>
-              </form>
-
-              <div className="mt-5 flex flex-wrap gap-2">
-                {industries.slice(0, 6).map((industry) => (
-                  <Link
-                    key={industry.industryCode}
-                    href={`${localizedPath(locale, "/companies")}?sector=${encodeURIComponent(industry.industryCode)}`}
-                    className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-teal-300 hover:bg-teal-50 hover:text-teal-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-teal-950/40 dark:hover:text-teal-200"
-                  >
-                    {industry.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-[32px] border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-900">
-              <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">{t.home.snapshotEyebrow}</p>
-              <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.home.snapshotTitle}</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{t.home.snapshotDescription}</p>
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                {heroStats.map((item) => (
-                  <div key={item.label} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-950/80">
-                    <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">{item.label}</div>
-                    <div className="mt-2 text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{item.value}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div>
+            <HomeScoreLeaderboard companies={data.companies} categories={data.categories} locale={locale} />
           </div>
         </div>
       </section>
