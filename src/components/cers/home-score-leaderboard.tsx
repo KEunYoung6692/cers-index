@@ -8,7 +8,6 @@ import type { CersCategoryMeta, CersCompanyProfile } from "@/lib/cers/types";
 
 const ROWS_PER_PAGE = 7;
 const ROTATION_DELAY_MS = 5200;
-const TRANSITION_DURATION_MS = 260;
 
 type HomeScoreLeaderboardProps = {
   companies: CersCompanyProfile[];
@@ -40,7 +39,6 @@ export function HomeScoreLeaderboard({ companies, categories, locale = "en" }: H
   const t = getTranslations(locale);
   const [pageIndex, setPageIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   const sortedCategories = [...categories].sort((a, b) => a.displayOrder - b.displayOrder).slice(0, 4);
@@ -80,25 +78,14 @@ export function HomeScoreLeaderboard({ companies, categories, locale = "en" }: H
   }, [pageCount, pageIndex]);
 
   useEffect(() => {
-    if (pageCount <= 1 || isPaused || prefersReducedMotion || isTransitioning) return undefined;
+    if (pageCount <= 1 || isPaused || prefersReducedMotion) return undefined;
 
     const rotationTimer = window.setTimeout(() => {
-      setIsTransitioning(true);
+      setPageIndex((currentPage) => (currentPage + 1) % pageCount);
     }, ROTATION_DELAY_MS);
 
     return () => window.clearTimeout(rotationTimer);
-  }, [isPaused, isTransitioning, pageCount, pageIndex, prefersReducedMotion]);
-
-  useEffect(() => {
-    if (!isTransitioning || pageCount <= 1) return undefined;
-
-    const transitionTimer = window.setTimeout(() => {
-      setPageIndex((currentPage) => (currentPage + 1) % pageCount);
-      setIsTransitioning(false);
-    }, TRANSITION_DURATION_MS);
-
-    return () => window.clearTimeout(transitionTimer);
-  }, [isTransitioning, pageCount]);
+  }, [isPaused, pageCount, pageIndex, prefersReducedMotion]);
 
   if (rankedCompanies.length === 0) {
     return (
@@ -142,11 +129,7 @@ export function HomeScoreLeaderboard({ companies, categories, locale = "en" }: H
 
       <div className="mt-6 overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-card dark:border-slate-800 dark:bg-slate-950/80">
         <div className="overflow-x-auto">
-          <div
-            className={`transition-all duration-300 motion-reduce:transition-none ${
-              isTransitioning ? "translate-y-3 opacity-0" : "translate-y-0 opacity-100"
-            }`}
-          >
+          <div>
             <table className="min-w-[980px] w-full border-collapse">
               <thead className="bg-slate-50 dark:bg-slate-900/80">
                 <tr className="border-b border-slate-200 dark:border-slate-800">
@@ -282,7 +265,6 @@ export function HomeScoreLeaderboard({ companies, categories, locale = "en" }: H
                     type="button"
                     onClick={() => {
                       setPageIndex(index);
-                      setIsTransitioning(false);
                     }}
                     className={`h-2.5 rounded-full transition-all ${
                       index === pageIndex
