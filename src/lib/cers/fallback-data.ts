@@ -181,6 +181,7 @@ function buildCompany(seed: CompanySeed): CersCompanyProfile {
     status: "active",
     fiscalYear: metrics.fiscalYear,
     scoreFiscalYear: metrics.fiscalYear,
+    scorePeriodId: null,
     methodologyVersion: "CERs v0.1",
     overallScore: seed.overallScore,
     scoreGrade: seed.scoreGrade,

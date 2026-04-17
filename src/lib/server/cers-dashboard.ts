@@ -26,24 +26,62 @@ import { getExistingTableNames, getPool } from "./db";
 
 type GenericRow = Record<string, unknown>;
 
-const REQUIRED_TABLES = [
+type DashboardSchema = {
+  periodTable: string | null;
+  methodologyTable: string | null;
+  methodologyVersionIdColumn: string;
+  scoringRunMethodologyVersionIdColumn: string;
+  metricTable: string | null;
+  metricValueColumn: string;
+  metricUnitColumn: string;
+  targetTable: string | null;
+  targetIdColumn: string;
+  targetMetricTypeColumn: string;
+  targetScopeCodeColumn: string;
+  targetValueColumn: string;
+  targetUnitColumn: string;
+  targetReductionPctColumn: string;
+  scenarioAlignmentCodeColumn: string;
+  sbtiApprovedColumn: string;
+  residualDefinedColumn: string;
+  offsetUsageColumn: string;
+  offsetDependencyRatioColumn: string;
+  carbonRemovalPlanColumn: string;
+  scope3Table: string | null;
+  scope3PrimaryRatioColumn: string;
+  frameworkTable: string | null;
+  frameworkCodeColumn: string;
+  frameworkLabelColumn: string;
+  assuranceTable: string | null;
+  assuranceProviderColumn: string;
+  assuranceTypeColumn: string;
+};
+
+const DASHBOARD_TABLES = [
   "companies",
-  "reporting_periods",
   "documents",
-  "company_metric_facts",
-  "company_target_facts",
-  "company_scope3_facts",
   "codebooks",
-  "methodology_versions",
   "score_categories",
   "scoring_runs",
   "category_scores",
   "cers_score",
+  "reporting_periods",
+  "rpt_period",
+  "company_metric_facts",
+  "co_metric",
+  "company_target_facts",
+  "co_target",
+  "company_scope3_facts",
+  "co_scope3",
+  "methodology_versions",
+  "method_ver",
   "document_framework_adoptions",
+  "doc_fw_adopt",
   "document_assurance_statements",
+  "doc_assur_stmt",
 ] as const;
 
-const HISTORY_TABLES = ["company_metric_facts", "reporting_periods"] as const;
+const HISTORY_TABLES = ["company_metric_facts", "co_metric", "reporting_periods", "rpt_period"] as const;
 
 const COUNTRY_LABELS: Record<string, string> = {
   KR: "South Korea",
@@ -171,6 +209,51 @@ function buildCodebookLookup(rows: GenericRow[]) {
   return lookup;
 }
 
+function pickExistingTable(existingTables: Set<string>, candidates: readonly string[]) {
+  return candidates.find((candidate) => existingTables.has(candidate)) ?? null;
+}
+
+function resolveDashboardSchema(existingTables: Set<string>): DashboardSchema {
+  const periodTable = pickExistingTable(existingTables, ["rpt_period", "reporting_periods"]);
+  const methodologyTable = pickExistingTable(existingTables, ["method_ver", "methodology_versions"]);
+  const metricTable = pickExistingTable(existingTables, ["co_metric", "company_metric_facts"]);
+  const targetTable = pickExistingTable(existingTables, ["co_target", "company_target_facts"]);
+  const scope3Table = pickExistingTable(existingTables, ["co_scope3", "company_scope3_facts"]);
+  const frameworkTable = pickExistingTable(existingTables, ["doc_fw_adopt", "document_framework_adoptions"]);
+  const assuranceTable = pickExistingTable(existingTables, ["doc_assur_stmt", "document_assurance_statements"]);
+
+  return {
+    periodTable,
+    methodologyTable,
+    methodologyVersionIdColumn: methodologyTable === "method_ver" ? "method_ver_id" : "methodology_version_id",
+    scoringRunMethodologyVersionIdColumn: methodologyTable === "method_ver" ? "method_ver_id" : "methodology_version_id",
+    metricTable,
+    metricValueColumn: metricTable === "co_metric" ? "metric_val" : "metric_value",
+    metricUnitColumn: metricTable === "co_metric" ? "unit" : "metric_unit",
+    targetTable,
+    targetIdColumn: targetTable === "co_target" ? "co_target_id" : "company_target_fact_id",
+    targetMetricTypeColumn: targetTable === "co_target" ? "metric_type" : "target_metric_type",
+    targetScopeCodeColumn: targetTable === "co_target" ? "target_scope" : "target_scope_code",
+    targetValueColumn: targetTable === "co_target" ? "target_val" : "target_value",
+    targetUnitColumn: "target_unit",
+    targetReductionPctColumn: targetTable === "co_target" ? "target_red_pct" : "target_reduction_pct",
+    scenarioAlignmentCodeColumn: targetTable === "co_target" ? "scen_align_cd" : "scenario_alignment_code",
+    sbtiApprovedColumn: targetTable === "co_target" ? "sbti_ok" : "sbti_approval_flag",
+    residualDefinedColumn: targetTable === "co_target" ? "residual_def" : "residual_defined_flag",
+    offsetUsageColumn: targetTable === "co_target" ? "offset_use" : "offset_usage_flag",
+    offsetDependencyRatioColumn: targetTable === "co_target" ? "offset_dep_ratio" : "offset_dependency_ratio",
+    carbonRemovalPlanColumn: targetTable === "co_target" ? "removal_plan" : "carbon_removal_plan_flag",
+    scope3Table,
+    scope3PrimaryRatioColumn: scope3Table === "co_scope3" ? "primary_ratio" : "primary_data_ratio",
+    frameworkTable,
+    frameworkCodeColumn: frameworkTable === "doc_fw_adopt" ? "fw_cd" : "framework_code",
+    frameworkLabelColumn: frameworkTable === "doc_fw_adopt" ? "fw_label" : "framework_label",
+    assuranceTable,
+    assuranceProviderColumn: assuranceTable === "doc_assur_stmt" ? "assur_provider" : "assurance_provider",
+    assuranceTypeColumn: assuranceTable === "doc_assur_stmt" ? "assur_type_cd" : "assurance_type_code",
+  };
+}
+
 function lookupCodeLabel(
   codebooks: Map<string, Map<string, string>>,
   groupCandidates: string[],
@@ -269,7 +352,8 @@ function makeIssueMessage(message: string, locale: SupportedLocale) {
 
 export const getCersDashboardData = cache(async (locale: SupportedLocale = "en"): Promise<CersDashboardData> => {
   try {
-    const existingTables = await getExistingTableNames([...REQUIRED_TABLES]);
+    const existingTables = await getExistingTableNames([...DASHBOARD_TABLES]);
+    const schema = resolveDashboardSchema(existingTables);
     if (!existingTables.has("companies")) {
       return localizeDashboardData(
         { ...fallbackDashboardData, issue: makeIssueMessage("The companies table is not available.", locale) },
@@ -278,6 +362,13 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
     }
 
     const pool = getPool();
+    const methodologySelect =
+      schema.methodologyTable !== null ? "mv.version_name" : "NULL::text AS version_name";
+    const methodologyJoin =
+      schema.methodologyTable !== null
+        ? `LEFT JOIN ${schema.methodologyTable} mv
+               ON mv.${schema.methodologyVersionIdColumn} = sr.${schema.scoringRunMethodologyVersionIdColumn}`
+        : "";
 
     const [companiesRes, methodologyRes, latestRunsRes, categoriesRes, codebooksRes] = await Promise.all([
       pool.query<GenericRow>(
@@ -285,25 +376,24 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
          FROM companies
          WHERE COALESCE(status, 'active') <> 'inactive'`,
       ),
-      existingTables.has("methodology_versions")
+      schema.methodologyTable
         ? pool.query<GenericRow>(
-            `SELECT methodology_version_id, version_name
-             FROM methodology_versions
+            `SELECT ${schema.methodologyVersionIdColumn} AS methodology_version_id, version_name
+             FROM ${schema.methodologyTable}
              ORDER BY is_active DESC, effective_from DESC NULLS LAST, methodology_version_id DESC
              LIMIT 1`,
           )
         : Promise.resolve(getEmptyResult()),
-      existingTables.has("scoring_runs") && existingTables.has("reporting_periods") && existingTables.has("cers_score")
+      existingTables.has("scoring_runs") && schema.periodTable && existingTables.has("cers_score")
         ? pool.query<GenericRow>(
             `WITH ranked_runs AS (
                SELECT sr.scoring_run_id,
                       sr.company_id,
                       sr.period_id,
-                      sr.methodology_version_id,
                       sr.run_status,
                       sr.finished_at,
                       rp.fiscal_year,
-                      mv.version_name,
+                      ${methodologySelect},
                       cs.sbase,
                       cs.cef,
                       cs.gv,
@@ -321,8 +411,8 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
                           sr.scoring_run_id DESC
                       ) AS rn
                FROM scoring_runs sr
-               LEFT JOIN reporting_periods rp ON rp.period_id = sr.period_id
-               LEFT JOIN methodology_versions mv ON mv.methodology_version_id = sr.methodology_version_id
+               LEFT JOIN ${schema.periodTable} rp ON rp.period_id = sr.period_id
+               ${methodologyJoin}
                LEFT JOIN cers_score cs ON cs.scoring_run_id = sr.scoring_run_id
              )
              SELECT *
@@ -380,37 +470,37 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
             [latestRunIds],
           )
         : Promise.resolve(getEmptyResult()),
-      companyIds.length > 0 && existingTables.has("company_target_facts")
+      companyIds.length > 0 && schema.targetTable
         ? pool.query<GenericRow>(
-            `SELECT company_target_fact_id,
+            `SELECT ${schema.targetIdColumn} AS company_target_fact_id,
                     company_id,
                     target_type,
-                    target_metric_type,
+                    ${schema.targetMetricTypeColumn} AS target_metric_type,
                     base_year,
                     target_year,
-                    target_scope_code,
-                    target_value,
-                    target_unit,
-                    target_reduction_pct,
-                    scenario_alignment_code,
-                    sbti_approval_flag,
-                    residual_defined_flag,
-                    offset_usage_flag,
-                    offset_dependency_ratio,
-                    carbon_removal_plan_flag,
+                    ${schema.targetScopeCodeColumn} AS target_scope_code,
+                    ${schema.targetValueColumn} AS target_value,
+                    ${schema.targetUnitColumn} AS target_unit,
+                    ${schema.targetReductionPctColumn} AS target_reduction_pct,
+                    ${schema.scenarioAlignmentCodeColumn} AS scenario_alignment_code,
+                    ${schema.sbtiApprovedColumn} AS sbti_approval_flag,
+                    ${schema.residualDefinedColumn} AS residual_defined_flag,
+                    ${schema.offsetUsageColumn} AS offset_usage_flag,
+                    ${schema.offsetDependencyRatioColumn} AS offset_dependency_ratio,
+                    ${schema.carbonRemovalPlanColumn} AS carbon_removal_plan_flag,
                     disclosed_flag
-             FROM company_target_facts
+             FROM ${schema.targetTable}
              WHERE company_id = ANY($1::bigint[])`,
             [companyIds],
           )
         : Promise.resolve(getEmptyResult()),
-      companyIds.length > 0 && existingTables.has("company_scope3_facts")
+      companyIds.length > 0 && schema.scope3Table
         ? pool.query<GenericRow>(
             `SELECT company_id,
                     COUNT(*) FILTER (WHERE COALESCE(disclosed_flag, FALSE)) AS disclosed_categories,
                     COUNT(*) AS total_categories,
-                    AVG(primary_data_ratio) AS average_primary_data_ratio
-             FROM company_scope3_facts
+                    AVG(${schema.scope3PrimaryRatioColumn}) AS average_primary_data_ratio
+             FROM ${schema.scope3Table}
              WHERE company_id = ANY($1::bigint[])
              ${latestPeriodIds.length > 0 ? "AND period_id = ANY($2::bigint[])" : ""}
              GROUP BY company_id`,
@@ -456,15 +546,15 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
       .filter((value): value is number => value !== null);
 
     const [metricsRes, latestEmissionMetricsRes, frameworkRes, assuranceRes] = await Promise.all([
-      companyIds.length > 0 && existingTables.has("company_metric_facts") && existingTables.has("reporting_periods")
+      companyIds.length > 0 && schema.metricTable && schema.periodTable
         ? pool.query<GenericRow>(
             `SELECT mf.company_id,
                     rp.fiscal_year,
                     mf.metric_code,
-                    SUM(mf.metric_value) AS metric_value,
-                    MAX(mf.metric_unit) AS metric_unit
-             FROM company_metric_facts mf
-             LEFT JOIN reporting_periods rp ON rp.period_id = mf.period_id
+                    SUM(mf.${schema.metricValueColumn}) AS metric_value,
+                    MAX(mf.${schema.metricUnitColumn}) AS metric_unit
+             FROM ${schema.metricTable} mf
+             LEFT JOIN ${schema.periodTable} rp ON rp.period_id = mf.period_id
              WHERE mf.company_id = ANY($1::bigint[])
                AND mf.metric_code = ANY($2::text[])
                ${yearsNeeded.length > 0 ? "AND rp.fiscal_year = ANY($3::int[])" : ""}
@@ -473,15 +563,15 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
             yearsNeeded.length > 0 ? [companyIds, RELEVANT_METRIC_CODES, yearsNeeded] : [companyIds, RELEVANT_METRIC_CODES],
           )
         : Promise.resolve(getEmptyResult()),
-      companyIds.length > 0 && existingTables.has("company_metric_facts") && existingTables.has("reporting_periods")
+      companyIds.length > 0 && schema.metricTable && schema.periodTable
         ? pool.query<GenericRow>(
             `WITH emission_years AS (
                SELECT mf.company_id,
                       rp.fiscal_year,
                       mf.metric_code,
-                      SUM(mf.metric_value) AS metric_value
-               FROM company_metric_facts mf
-               LEFT JOIN reporting_periods rp ON rp.period_id = mf.period_id
+                      SUM(mf.${schema.metricValueColumn}) AS metric_value
+               FROM ${schema.metricTable} mf
+               LEFT JOIN ${schema.periodTable} rp ON rp.period_id = mf.period_id
                WHERE mf.company_id = ANY($1::bigint[])
                  AND mf.metric_code = ANY($2::text[])
                  AND COALESCE(mf.data_status, 'reported') <> 'missing'
@@ -504,18 +594,22 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
             [companyIds, EMISSION_METRIC_CODES],
           )
         : Promise.resolve(getEmptyResult()),
-      documentIds.length > 0 && existingTables.has("document_framework_adoptions")
+      documentIds.length > 0 && schema.frameworkTable
         ? pool.query<GenericRow>(
-            `SELECT document_id, framework_code, framework_label
-             FROM document_framework_adoptions
+            `SELECT document_id,
+                    ${schema.frameworkCodeColumn} AS framework_code,
+                    ${schema.frameworkLabelColumn} AS framework_label
+             FROM ${schema.frameworkTable}
              WHERE document_id = ANY($1::bigint[])`,
             [documentIds],
           )
         : Promise.resolve(getEmptyResult()),
-      documentIds.length > 0 && existingTables.has("document_assurance_statements")
+      documentIds.length > 0 && schema.assuranceTable
         ? pool.query<GenericRow>(
-            `SELECT document_id, assurance_provider, assurance_type_code
-             FROM document_assurance_statements
+            `SELECT document_id,
+                    ${schema.assuranceProviderColumn} AS assurance_provider,
+                    ${schema.assuranceTypeColumn} AS assurance_type_code
+             FROM ${schema.assuranceTable}
              WHERE document_id = ANY($1::bigint[])`,
             [documentIds],
           )
@@ -777,6 +871,7 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
         status: toText(row.status),
         fiscalYear: currentMetricYear,
         scoreFiscalYear: fiscalYear,
+        scorePeriodId: toNumber(latestRun?.period_id),
         methodologyVersion: toText(latestRun?.version_name) || methodologyVersion,
         overallScore: normalizeOverallScore(latestRun?.cers_score),
         scoreGrade: toText(latestRun?.score_grade),
@@ -869,7 +964,8 @@ export const getCompanyEmissionHistory = cache(async (companyId: string): Promis
 
   try {
     const existingTables = await getExistingTableNames([...HISTORY_TABLES]);
-    if (!existingTables.has("company_metric_facts") || !existingTables.has("reporting_periods")) {
+    const schema = resolveDashboardSchema(existingTables);
+    if (!schema.metricTable || !schema.periodTable) {
       return [];
     }
 
@@ -877,9 +973,9 @@ export const getCompanyEmissionHistory = cache(async (companyId: string): Promis
     const result = await pool.query<GenericRow>(
       `SELECT rp.fiscal_year,
               mf.metric_code,
-              SUM(mf.metric_value) AS metric_value
-       FROM company_metric_facts mf
-       LEFT JOIN reporting_periods rp ON rp.period_id = mf.period_id
+              SUM(mf.${schema.metricValueColumn}) AS metric_value
+       FROM ${schema.metricTable} mf
+       LEFT JOIN ${schema.periodTable} rp ON rp.period_id = mf.period_id
        WHERE mf.company_id = $1
          AND mf.metric_code = ANY($2::text[])
          AND COALESCE(mf.data_status, 'reported') <> 'missing'

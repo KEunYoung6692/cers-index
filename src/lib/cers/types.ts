@@ -102,6 +102,7 @@ export type CersCompanyProfile = {
   status: string | null;
   fiscalYear: number | null;
   scoreFiscalYear: number | null;
+  scorePeriodId: number | null;
   methodologyVersion: string | null;
   overallScore: number | null;
   scoreGrade: string | null;
