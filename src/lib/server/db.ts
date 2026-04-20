@@ -57,7 +57,7 @@ export function getPool() {
   return pool;
 }
 
-export async function getExistingTableNames(expectedTableNames: string[]) {
+export async function getExistingTableNames(expectedTableNames: string[]): Promise<Set<string>> {
   const pool = getPool();
   if (expectedTableNames.length === 0) return new Set<string>();
 
@@ -69,5 +69,5 @@ export async function getExistingTableNames(expectedTableNames: string[]) {
     [expectedTableNames],
   );
 
-  return new Set(result.rows.map((row) => row.table_name));
+  return new Set<string>(result.rows.map((row) => row.table_name));
 }
