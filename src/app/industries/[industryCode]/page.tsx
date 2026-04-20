@@ -114,7 +114,7 @@ export async function renderIndustryDetailPage(
         <section className="mt-6 rounded-[36px] border border-slate-200 bg-white p-6 shadow-elevated dark:border-slate-800 dark:bg-slate-950/80">
           <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
             <div className="max-w-3xl">
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-teal-700">{t.industryDetail.eyebrow}</p>
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-teal-600 dark:text-teal-300">{t.industryDetail.eyebrow}</p>
               <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 md:text-4xl">{industry.label}</h1>
               <p className="mt-5 text-base leading-8 text-slate-600 dark:text-slate-300">{industry.summary}</p>
               <div className="mt-4 flex flex-wrap gap-2 text-sm text-slate-500 dark:text-slate-400">

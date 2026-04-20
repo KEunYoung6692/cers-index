@@ -104,7 +104,7 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
           </div>
         </div>
 
-        <div className="rounded-[32px] border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-card dark:border-emerald-900/70 dark:from-emerald-950/50 dark:to-slate-950 dark:bg-gradient-to-br">
+        <div className="rounded-[32px] border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-card dark:border-emerald-700/40 dark:from-slate-950 dark:to-slate-900 dark:bg-gradient-to-br">
           <div className="flex items-center gap-3">
             <TrendingDown className="h-6 w-6 text-emerald-600" />
             <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.home.netZeroTitle}</h2>
@@ -114,11 +114,11 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
               <Link
                 key={company.id}
                 href={localizedPath(locale, `/companies/${company.id}`)}
-                className="rounded-3xl border border-emerald-200 bg-white/80 px-5 py-4 transition hover:-translate-y-0.5 hover:bg-white dark:border-emerald-900/60 dark:bg-slate-950/80 dark:hover:bg-slate-950"
+                className="rounded-3xl border border-emerald-200 bg-white/80 px-5 py-4 transition hover:-translate-y-0.5 hover:bg-white dark:border-emerald-700/30 dark:bg-slate-900/90 dark:hover:bg-slate-900"
               >
                 <h3 className="font-semibold text-slate-900 dark:text-slate-100">{company.displayName}</h3>
                 <div className="mt-3 flex items-end gap-2">
-                  <span className="text-xl font-semibold tracking-tight text-emerald-700">{company.targetSummary.netZeroYear}</span>
+                  <span className="text-xl font-semibold tracking-tight text-emerald-700 dark:text-emerald-300">{company.targetSummary.netZeroYear}</span>
                   <span className="pb-1 text-sm text-slate-500 dark:text-slate-400">{t.home.netZeroTarget}</span>
                 </div>
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{company.targetSummary.scopeLabel || t.home.scopeNotSpecified}</p>

@@ -73,7 +73,7 @@ export async function renderCompanyDetailPage(
               <p className="mt-4 text-base leading-8 text-slate-600 dark:text-slate-300">{company.interpretation}</p>
               <div className="mt-5 flex flex-wrap gap-2">
                 {company.badges.map((badge) => (
-                  <span key={badge} className="rounded-full border border-teal-100 bg-teal-50 px-3 py-1 text-sm font-medium text-teal-800 dark:border-teal-900/60 dark:bg-teal-950/40 dark:text-teal-200">
+                  <span key={badge} className="rounded-full border border-teal-100 bg-teal-50 px-3 py-1 text-sm font-medium text-teal-800 dark:border-teal-500/35 dark:bg-slate-900 dark:text-teal-300">
                     {badge}
                   </span>
                 ))}
@@ -82,7 +82,7 @@ export async function renderCompanyDetailPage(
 
             <div className="min-w-[180px] rounded-[28px] bg-slate-50 p-5 text-right dark:bg-slate-900">
               <div className="text-3xl font-semibold tracking-tight text-teal-600 md:text-4xl">{formatScore(company.overallScore)}</div>
-              <div className="mt-2 text-sm uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">{t.companyDetail.cersScore}</div>
+              <div className="mt-2 text-sm tracking-[0.2em] text-slate-400 dark:text-slate-500">{t.companyDetail.cersScore}</div>
               {scoreYear !== null && <div className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">{t.common.fiscalYearLabel(scoreYear)}</div>}
               <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">{company.summary}</p>
             </div>

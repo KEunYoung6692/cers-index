@@ -970,7 +970,7 @@ export default function ScoreLogic({ locale = "en" }: ScoreLogicProps) {
             <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
               {copy.calibrations.map((item) => (
                 <div key={item.name} className="rounded-xl border border-slate-200 bg-white p-4">
-                  <div className="text-sm font-semibold uppercase tracking-[0.18em] text-teal-700">{item.name}</div>
+                  <div className="text-sm font-semibold uppercase tracking-[0.18em] text-teal-600 dark:text-teal-300">{item.name}</div>
                   <div className="mt-2 text-lg font-semibold text-slate-900">{item.value}</div>
                   <p className="mt-2 text-sm leading-6 text-slate-600">{item.description}</p>
                 </div>

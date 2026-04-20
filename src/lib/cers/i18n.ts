@@ -85,9 +85,9 @@ const ENGLISH_COPY = {
     eyebrow: "Companies",
     title: "Browse corporate carbon reduction profiles",
     description:
-      "Search and compare companies using the latest CERs score, reduction targets, and disclosure signals.",
-    scoreListCta: "CERs Score List 보기",
-    scoreListTitle: "CERs Score List",
+      "Search and compare companies using the latest CERs Index, reduction targets, and disclosure signals.",
+    scoreListCta: "CERs Index List 보기",
+    scoreListTitle: "CERs Index List",
     scoreListDescription: "A score-sorted table of all companies currently available in the CERs dashboard.",
     scoreListCount: (count: number) => `${count} companies in score order`,
     scoreListColumns: {
@@ -96,7 +96,7 @@ const ENGLISH_COPY = {
       sector: "Sector",
       country: "Country",
       basisYear: "Basis year",
-      score: "Score",
+      score: "CERs Index",
       band: "Band",
     },
     filters: "Filters",
@@ -190,7 +190,7 @@ const ENGLISH_COPY = {
     whatMatters: (label: string) => `What matters in ${label}`,
   },
   companyDetail: {
-    cersScore: "CERs score",
+    cersScore: "CERs Index",
     roadmapTitle: "Carbon Reduction Roadmap",
     roadmapDescription:
       "Current values use the latest reported company data. Target and net zero milestones use public targets and scenario assumptions from the latest available disclosure.",
@@ -503,9 +503,9 @@ const KOREAN_COPY: Translation = {
   companies: {
     eyebrow: "기업",
     title: "기업별 탄소감축 프로필 둘러보기",
-    description: "최신 CERs 점수, 감축 목표, 공시 신호를 기준으로 기업을 검색하고 비교하세요.",
-    scoreListCta: "CERs Score List 보기",
-    scoreListTitle: "CERs Score List",
+    description: "최신 CERs Index, 감축 목표, 공시 신호를 기준으로 기업을 검색하고 비교하세요.",
+    scoreListCta: "CERs Index List 보기",
+    scoreListTitle: "CERs Index List",
     scoreListDescription: "현재 CERs 대시보드에 포함된 전체 기업을 점수순 표로 보여줍니다.",
     scoreListCount: (count: number) => `점수순 ${count}개 기업`,
     scoreListColumns: {
@@ -514,7 +514,7 @@ const KOREAN_COPY: Translation = {
       sector: "섹터",
       country: "국가",
       basisYear: "기준연도",
-      score: "점수",
+      score: "CERs Index",
       band: "등급대",
     },
     filters: "필터",
@@ -606,7 +606,7 @@ const KOREAN_COPY: Translation = {
     whatMatters: (label: string) => `${label}에서 중요한 포인트`,
   },
   companyDetail: {
-    cersScore: "CERs 점수",
+    cersScore: "CERs Index",
     roadmapTitle: "탄소감축 로드맵",
     roadmapDescription:
       "현재 값은 최신 공시 기준 회사 데이터를 사용합니다. 목표와 넷제로 시점은 최신 공시에 공개된 목표와 가정에 기반합니다.",
@@ -912,9 +912,9 @@ const JAPANESE_COPY: Translation = {
   companies: {
     eyebrow: "企業",
     title: "企業の炭素削減プロフィールを閲覧",
-    description: "最新の CERs スコア、削減目標、開示シグナルを使って企業を検索・比較できます。",
-    scoreListCta: "CERs Score Listを見る",
-    scoreListTitle: "CERs Score List",
+    description: "最新の CERs Index、削減目標、開示シグナルを使って企業を検索・比較できます。",
+    scoreListCta: "CERs Index Listを見る",
+    scoreListTitle: "CERs Index List",
     scoreListDescription: "現在の CERs ダッシュボードに含まれる全企業をスコア順の表で表示します。",
     scoreListCount: (count: number) => `スコア順で ${count}社`,
     scoreListColumns: {
@@ -923,7 +923,7 @@ const JAPANESE_COPY: Translation = {
       sector: "セクター",
       country: "国",
       basisYear: "基準年",
-      score: "スコア",
+      score: "CERs Index",
       band: "帯域",
     },
     filters: "フィルター",
@@ -1015,7 +1015,7 @@ const JAPANESE_COPY: Translation = {
     whatMatters: (label: string) => `${label} で重要なポイント`,
   },
   companyDetail: {
-    cersScore: "CERs スコア",
+    cersScore: "CERs Index",
     roadmapTitle: "炭素削減ロードマップ",
     roadmapDescription:
       "現在値は最新の開示に基づく会社データを使用しています。目標年とネットゼロ時点は、最新開示の公開目標と前提に基づいています。",

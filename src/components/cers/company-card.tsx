@@ -57,7 +57,7 @@ export function CompanyCard({ company, compact = false, locale = "en", showSecto
         {company.badges.slice(0, compact ? 2 : 4).map((badge) => (
           <span
             key={badge}
-            className="rounded-full border border-teal-100 bg-teal-50 px-3 py-1 text-xs font-medium text-teal-800 dark:border-teal-900/60 dark:bg-teal-950/40 dark:text-teal-200"
+            className="rounded-full border border-teal-100 bg-teal-50 px-3 py-1 text-xs font-medium text-teal-800 dark:border-teal-500/35 dark:bg-slate-900 dark:text-teal-300"
           >
             {badge}
           </span>

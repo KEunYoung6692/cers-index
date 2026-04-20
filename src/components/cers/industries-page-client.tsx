@@ -30,7 +30,7 @@ export function IndustriesPageClient({ industries, locale = "en" }: IndustriesPa
   return (
     <div className="container py-8">
       <div className="mb-8 max-w-3xl">
-        <p className="text-xs font-medium uppercase tracking-[0.24em] text-teal-700">{t.industries.eyebrow}</p>
+        <p className="text-xs font-medium uppercase tracking-[0.24em] text-teal-600 dark:text-teal-300">{t.industries.eyebrow}</p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.industries.title}</h1>
         <p className="mt-4 text-base leading-8 text-slate-600 dark:text-slate-300">
           {t.industries.description}

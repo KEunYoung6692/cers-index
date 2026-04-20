@@ -5,6 +5,7 @@ import { useDeferredValue, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { CompanyCard } from "./company-card";
+import { MultiSelectDropdown, type MultiSelectOption } from "./multi-select-dropdown";
 import { formatScore } from "@/lib/cers/public";
 import { getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
 import type { CersCompanyProfile } from "@/lib/cers/types";
@@ -16,13 +17,21 @@ type CompaniesPageClientProps = {
 
 type SortOption = "score" | "name" | "target";
 
+function getInitialSelectedValues(value: string | null) {
+  if (!value || value === "all") {
+    return [];
+  }
+
+  return [value];
+}
+
 export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageClientProps) {
   const searchParams = useSearchParams();
   const t = getTranslations(locale);
   const [query, setQuery] = useState(searchParams.get("q") || "");
-  const [selectedSector, setSelectedSector] = useState(searchParams.get("sector") || searchParams.get("industry") || "all");
-  const [selectedCountry, setSelectedCountry] = useState(searchParams.get("country") || "all");
-  const [selectedScoreRange, setSelectedScoreRange] = useState("all");
+  const [selectedSectors, setSelectedSectors] = useState<string[]>(getInitialSelectedValues(searchParams.get("sector") || searchParams.get("industry")));
+  const [selectedCountries, setSelectedCountries] = useState<string[]>(getInitialSelectedValues(searchParams.get("country")));
+  const [selectedScoreRanges, setSelectedScoreRanges] = useState<string[]>([]);
   const [targetAnnounced, setTargetAnnounced] = useState(false);
   const [netZeroDeclared, setNetZeroDeclared] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>("score");
@@ -30,11 +39,11 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
 
   useEffect(() => {
     setQuery(searchParams.get("q") || "");
-    setSelectedSector(searchParams.get("sector") || searchParams.get("industry") || "all");
-    setSelectedCountry(searchParams.get("country") || "all");
+    setSelectedSectors(getInitialSelectedValues(searchParams.get("sector") || searchParams.get("industry")));
+    setSelectedCountries(getInitialSelectedValues(searchParams.get("country")));
   }, [searchParams]);
 
-  const availableSectors = Array.from(
+  const availableSectors: MultiSelectOption[] = Array.from(
     new Map(
       companies.map((company) => [
         company.sectorCode || "__none__",
@@ -46,7 +55,7 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
     ).values(),
   ).sort((a, b) => a.label.localeCompare(b.label, locale, { sensitivity: "base" }));
 
-  const availableCountries = Array.from(
+  const availableCountries: MultiSelectOption[] = Array.from(
     new Map(
       companies.map((company) => [
         company.countryCode || "__none__",
@@ -58,6 +67,13 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
     ).values(),
   ).sort((a, b) => a.label.localeCompare(b.label, locale, { sensitivity: "base" }));
 
+  const scoreRangeOptions: MultiSelectOption[] = [
+    { value: "80-100", label: "80 - 100" },
+    { value: "70-79", label: "70 - 79" },
+    { value: "60-69", label: "60 - 69" },
+    { value: "0-59", label: t.companies.below60 },
+  ];
+
   const filtered = companies
     .filter((company) => {
       const matchesQuery =
@@ -68,25 +84,34 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
         (company.sectorLabel || "").toLowerCase().includes(deferredQuery.trim().toLowerCase());
 
       const matchesSector =
-        selectedSector === "all" ||
-        (selectedSector === "__none__" && !company.sectorCode) ||
-        company.sectorCode === selectedSector ||
-        company.sectorLabel === selectedSector;
+        selectedSectors.length === 0 ||
+        selectedSectors.some(
+          (selectedSector) =>
+            (selectedSector === "__none__" && !company.sectorCode) ||
+            company.sectorCode === selectedSector ||
+            company.sectorLabel === selectedSector,
+        );
       const matchesCountry =
-        selectedCountry === "all" ||
-        (selectedCountry === "__none__" && !company.countryCode) ||
-        company.countryCode === selectedCountry ||
-        company.countryLabel === selectedCountry;
+        selectedCountries.length === 0 ||
+        selectedCountries.some(
+          (selectedCountry) =>
+            (selectedCountry === "__none__" && !company.countryCode) ||
+            company.countryCode === selectedCountry ||
+            company.countryLabel === selectedCountry,
+        );
       const matchesTarget = !targetAnnounced || Boolean(company.targetSummary.targetYear);
       const matchesNetZero = !netZeroDeclared || Boolean(company.targetSummary.netZeroYear);
 
       const score = company.overallScore ?? -1;
       const matchesScoreRange =
-        selectedScoreRange === "all" ||
-        (selectedScoreRange === "80-100" && score >= 80) ||
-        (selectedScoreRange === "70-79" && score >= 70 && score < 80) ||
-        (selectedScoreRange === "60-69" && score >= 60 && score < 70) ||
-        (selectedScoreRange === "0-59" && score < 60);
+        selectedScoreRanges.length === 0 ||
+        selectedScoreRanges.some(
+          (selectedScoreRange) =>
+            (selectedScoreRange === "80-100" && score >= 80) ||
+            (selectedScoreRange === "70-79" && score >= 70 && score < 80) ||
+            (selectedScoreRange === "60-69" && score >= 60 && score < 70) ||
+            (selectedScoreRange === "0-59" && score < 60),
+        );
 
       return matchesQuery && matchesSector && matchesCountry && matchesTarget && matchesNetZero && matchesScoreRange;
     })
@@ -108,7 +133,7 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
   return (
     <div className="container py-8">
       <div className="mb-8 max-w-3xl">
-        <p className="text-xs font-medium uppercase tracking-[0.24em] text-teal-700">{t.companies.eyebrow}</p>
+        <p className="text-xs font-medium uppercase tracking-[0.24em] text-teal-600 dark:text-teal-300">{t.companies.eyebrow}</p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.companies.title}</h1>
         <p className="mt-4 text-base leading-8 text-slate-600 dark:text-slate-300">
           {t.companies.description}
@@ -119,7 +144,7 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
         <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
           <Link
             href={localizedPath(locale, "/companies/score-list")}
-            className="flex min-h-12 w-full items-center justify-center rounded-[24px] border border-teal-200 bg-teal-50 px-5 py-3 text-sm font-semibold text-teal-700 transition hover:border-teal-300 hover:bg-teal-100 dark:border-teal-900/70 dark:bg-teal-950/50 dark:text-teal-200 dark:hover:border-teal-800 dark:hover:bg-teal-950/70"
+            className="flex min-h-12 w-full items-center justify-center rounded-[24px] border border-teal-200 bg-teal-50 px-5 py-3 text-sm font-semibold text-teal-700 transition hover:border-teal-300 hover:bg-teal-100 dark:border-teal-500/35 dark:bg-slate-900 dark:text-teal-300 dark:hover:border-teal-400 dark:hover:bg-slate-800"
           >
             {t.companies.scoreListCta}
           </Link>
@@ -131,52 +156,35 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
             </div>
 
             <div className="space-y-5">
-              <label className="block">
+              <div className="block">
                 <span className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">{t.companies.industry}</span>
-                <select
-                  value={selectedSector}
-                  onChange={(event) => setSelectedSector(event.target.value)}
-                  className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-500"
-                >
-                  <option value="all">{t.companies.allIndustries}</option>
-                  {availableSectors.map((sector) => (
-                    <option key={sector.value} value={sector.value}>
-                      {sector.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                <MultiSelectDropdown
+                  allLabel={t.companies.allIndustries}
+                  options={availableSectors}
+                  selectedValues={selectedSectors}
+                  onChange={setSelectedSectors}
+                />
+              </div>
 
-              <label className="block">
-                <span className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">{t.companies.country}</span>
-                <select
-                  value={selectedCountry}
-                  onChange={(event) => setSelectedCountry(event.target.value)}
-                  className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-500"
-                >
-                  <option value="all">{t.companies.allCountries}</option>
-                  {availableCountries.map((country) => (
-                    <option key={country.value} value={country.value}>
-                      {country.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div className="block">
+                <MultiSelectDropdown
+                  allLabel={t.companies.allCountries}
+                  options={availableCountries}
+                  selectedValues={selectedCountries}
+                  ariaLabel={t.companies.country}
+                  onChange={setSelectedCountries}
+                />
+              </div>
 
-              <label className="block">
+              <div className="block">
                 <span className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">{t.companies.scoreRange}</span>
-                <select
-                  value={selectedScoreRange}
-                  onChange={(event) => setSelectedScoreRange(event.target.value)}
-                  className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-500"
-                >
-                  <option value="all">{t.companies.allScores}</option>
-                  <option value="80-100">80 - 100</option>
-                  <option value="70-79">70 - 79</option>
-                  <option value="60-69">60 - 69</option>
-                  <option value="0-59">{t.companies.below60}</option>
-                </select>
-              </label>
+                <MultiSelectDropdown
+                  allLabel={t.companies.allScores}
+                  options={scoreRangeOptions}
+                  selectedValues={selectedScoreRanges}
+                  onChange={setSelectedScoreRanges}
+                />
+              </div>
 
               <label className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 dark:border-slate-700 dark:text-slate-200">
                 <input

@@ -102,7 +102,7 @@ const I18N_STRINGS = {
       scope2: "Scope 2",
     },
     table: {
-      title: "CERs Score List",
+      title: "CERs Index List",
       viewTable: "View Full Table",
       logicWidget: "Logic",
       back: "Back to Dashboard",
@@ -220,7 +220,7 @@ const I18N_STRINGS = {
       scope2: "Scope 2",
     },
     table: {
-      title: "CERs 점수 리스트",
+      title: "CERs Index List",
       viewTable: "전체 테이블 보기",
       logicWidget: "로직",
       back: "대시보드로 돌아가기",
