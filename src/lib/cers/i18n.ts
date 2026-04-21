@@ -217,6 +217,14 @@ const ENGLISH_COPY = {
       "This company is near or below the current sector average. This view is designed to show relative transition quality within a comparable operating context.",
     peerSnapshot: "Peer snapshot",
     targetDetails: "Target details",
+    backToCompany: "Back to company profile",
+    viewReport: "Open report",
+    reportViewerTitle: "Report Viewer",
+    reportViewerDescription:
+      "Review the linked report in an inline viewer without exposing a public file URL on the company page.",
+    reportProtectionBadge: "View-only mode",
+    reportRestrictionNote:
+      "This viewer hides the direct file path and removes default download controls where the browser allows it. Copy and capture prevention remains best-effort at browser level.",
     targetRows: {
       baselineYear: "Baseline year",
       targetType: "Target type",
@@ -633,6 +641,14 @@ const KOREAN_COPY: Translation = {
       "이 기업은 현재 섹터 평균 수준이거나 그보다 낮습니다. 이 뷰는 비슷한 운영 환경 안에서 상대적인 전환 품질을 보여주기 위한 것입니다.",
     peerSnapshot: "동종사 스냅샷",
     targetDetails: "목표 상세",
+    backToCompany: "기업 상세로 돌아가기",
+    viewReport: "보고서 보러가기",
+    reportViewerTitle: "보고서 뷰어",
+    reportViewerDescription:
+      "기업 상세 페이지에서는 원본 파일 경로를 드러내지 않고, 연결된 보고서를 인라인 뷰어로 확인할 수 있습니다.",
+    reportProtectionBadge: "열람 전용 모드",
+    reportRestrictionNote:
+      "이 뷰어는 직접 파일 경로를 숨기고 브라우저가 허용하는 범위에서 기본 다운로드 UI를 제거합니다. 복사와 캡처 방지는 브라우저 한계상 최선 수준으로만 적용됩니다.",
     targetRows: {
       baselineYear: "기준연도",
       targetType: "목표 유형",
@@ -1042,6 +1058,14 @@ const JAPANESE_COPY: Translation = {
       "この企業は現在のセクター平均付近、またはそれ以下です。このビューは、近い事業条件の中で相対的な移行品質を示すためのものです。",
     peerSnapshot: "同業他社スナップショット",
     targetDetails: "目標詳細",
+    backToCompany: "企業詳細へ戻る",
+    viewReport: "報告書を見る",
+    reportViewerTitle: "報告書ビューア",
+    reportViewerDescription:
+      "会社詳細ページでは元ファイルの公開 URL を出さずに、関連報告書をインラインビューアで確認できます。",
+    reportProtectionBadge: "閲覧専用モード",
+    reportRestrictionNote:
+      "このビューアは直接ファイルパスを隠し、ブラウザが許す範囲で既定のダウンロード UI を外します。コピーやキャプチャ防止はブラウザ上ではベストエフォートです。",
     targetRows: {
       baselineYear: "基準年",
       targetType: "目標タイプ",

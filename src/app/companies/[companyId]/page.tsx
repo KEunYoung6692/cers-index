@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileText } from "lucide-react";
 import { AppShell } from "@/components/cers/app-shell";
 import { CarbonNeutralRoadmapCard } from "@/components/cers/carbon-neutral-roadmap-card";
+import { Button } from "@/components/ui/button";
 import { getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
 import {
   formatCompactNumber,
@@ -189,6 +190,15 @@ export async function renderCompanyDetailPage(
               <div>{t.common.frameworks}: {company.disclosure.frameworks.join(", ") || "—"}</div>
               <div>{t.common.assurance}: {company.disclosure.assuranceType || company.disclosure.assuranceProvider || t.common.noData}</div>
               <div>{t.common.revenue}: {formatCompactNumber(company.metrics.revenue, 1, locale)}</div>
+
+              <div className="mt-5">
+                <Button asChild className="rounded-full bg-teal-600 text-white hover:bg-teal-500">
+                  <Link href={localizedPath(locale, `/companies/${company.id}/report`)}>
+                    <FileText className="h-4 w-4" />
+                    {t.companyDetail.viewReport}
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
         </section>
