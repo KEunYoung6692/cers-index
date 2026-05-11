@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { CompanyCard } from "./company-card";
 import { MultiSelectDropdown, type MultiSelectOption } from "./multi-select-dropdown";
-import { formatScore } from "@/lib/cers/public";
+import { deriveCalculationStatus, formatScore } from "@/lib/cers/public";
 import { getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
 import type { CersCompanyProfile } from "@/lib/cers/types";
 
@@ -34,6 +34,7 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
   const [selectedScoreRanges, setSelectedScoreRanges] = useState<string[]>([]);
   const [targetAnnounced, setTargetAnnounced] = useState(false);
   const [netZeroDeclared, setNetZeroDeclared] = useState(false);
+  const [fullIndexOnly, setFullIndexOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>("score");
   const deferredQuery = useDeferredValue(query);
 
@@ -101,6 +102,7 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
         );
       const matchesTarget = !targetAnnounced || Boolean(company.targetSummary.targetYear);
       const matchesNetZero = !netZeroDeclared || Boolean(company.targetSummary.netZeroYear);
+      const matchesFullIndex = !fullIndexOnly || deriveCalculationStatus(company) === "full";
 
       const score = company.overallScore ?? -1;
       const matchesScoreRange =
@@ -113,7 +115,7 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
             (selectedScoreRange === "0-59" && score < 60),
         );
 
-      return matchesQuery && matchesSector && matchesCountry && matchesTarget && matchesNetZero && matchesScoreRange;
+      return matchesQuery && matchesSector && matchesCountry && matchesTarget && matchesNetZero && matchesScoreRange && matchesFullIndex;
     })
     .sort((a, b) => {
       if (sortBy === "name") {
@@ -204,6 +206,16 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
                   className="h-4 w-4 rounded border-slate-300 text-teal-600"
                 />
                 {t.companies.netZeroDeclared}
+              </label>
+
+              <label className="flex items-center gap-3 rounded-2xl border border-teal-200 bg-teal-50/50 px-4 py-3 text-sm text-slate-700 dark:border-teal-800/50 dark:bg-teal-950/20 dark:text-slate-200">
+                <input
+                  type="checkbox"
+                  checked={fullIndexOnly}
+                  onChange={(event) => setFullIndexOnly(event.target.checked)}
+                  className="h-4 w-4 rounded border-teal-300 text-teal-600"
+                />
+                {locale === "ko" ? "Full Index 기업만" : "Full Index only"}
               </label>
             </div>
           </aside>

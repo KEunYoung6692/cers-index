@@ -185,6 +185,7 @@ function buildCompany(seed: CompanySeed): CersCompanyProfile {
     methodologyVersion: "CERs v0.1",
     overallScore: seed.overallScore,
     scoreGrade: seed.scoreGrade,
+    indexStatus: null,
     sbase: seed.sbase ?? seed.overallScore,
     cef: seed.cef ?? 1,
     gv: seed.gv ?? 0,

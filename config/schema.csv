@@ -1,5 +1,5 @@
 ﻿Domain,Table_Name,Column_Order,Column_Name,Data_Type,Nullable,Key_Type,Description
-Master,companies,1,company_id,serial,N,PK,기업 식별자
+Master,companies,1,company_id,BIGINT,N,PK,기업 식별자
 Master,,2,company_name_kr,VARCHAR(200),Y,,기업 한글명
 Master,,3,company_name_en,VARCHAR(200),N,,기업 영문명
 Master,,4,company_name_jp,VARCHAR(200),Y,,기업 일본어명
@@ -15,7 +15,7 @@ Master,,13,registrar,VARCHAR(100),N,,등록 주체
 Master,,14,update_date,TIMESTAMP,Y,,최종 수정 일시
 Master,,15,updater,VARCHAR(100),Y,,최종 수정 주체
 Master,,16,note,TEXT,Y,,추가 메모
-Master,company_status_history,1,company_status_history_id,serial,N,PK,회사 상태 이력 식별자
+Master,co_status_hist,1,co_status_hist_id,BIGINT,N,PK,회사 상태 이력 식별자
 Master,,2,company_id,BIGINT,N,FK,대상 회사
 Master,,3,status,VARCHAR(20),N,,해당 시점 회사 상태
 Master,,4,event_type,VARCHAR(100),Y,,상태 변경 상세 사건 유형
@@ -28,254 +28,170 @@ Master,,10,registrar,VARCHAR(100),N,,등록 주체
 Master,,11,update_date,TIMESTAMP,Y,,최종 수정 일시
 Master,,12,updater,VARCHAR(100),Y,,최종 수정 주체
 Master,,13,note,TEXT,Y,,추가 메모
-Master,reporting_periods,1,period_id,BIGINT,N,PK,평가 기간 식별자
-Master,,2,fiscal_year,INTEGER,N,,회계연도
-Master,,3,period_label,VARCHAR(100),Y,,표시 라벨(FY2025 등)
-Master,,4,period_start,DATE,Y,,기간 시작일
-Master,,5,period_end,DATE,Y,,기간 종료일
-Master,,6,assessment_date,DATE,Y,,평가 기준일
-Master,,7,currency_code,CHAR(3),Y,,기준 통화
-Master,,8,reg_date,TIMESTAMP,N,,레코드 등록 일시
-Master,,9,registrar,VARCHAR(100),N,,등록 주체
-Master,,10,update_date,TIMESTAMP,Y,,최종 수정 일시
-Master,,11,updater,VARCHAR(100),Y,,최종 수정 주체
-Master,,12,note,TEXT,Y,,추가 메모
-Master,reporting_entities,1,entity_id,BIGINT,N,PK,보고 단위 엔티티 식별자
-Master,,2,company_id,BIGINT,N,FK,평가 대상 회사
-Master,,3,parent_entity_id,BIGINT,Y,FK,상위 엔티티
-Master,,4,entity_type,VARCHAR(50),N,,"엔티티 유형(company, subsidiary, facility, business_unit, region, reporting_group)"
-Master,,5,entity_name_kr,VARCHAR(200),N,,엔티티 한글명
-Master,,6,entity_name_en,VARCHAR(200),Y,,엔티티 영문명
-Master,,7,country_code,CHAR(2),Y,,국가 코드
-Master,,8,legal_entity_flag,BOOLEAN,Y,,법인 여부
-Master,,9,source_origin,VARCHAR(30),N,,"엔티티 출처(master, report, manual)"
-Master,,10,status,VARCHAR(20),N,,"현재 엔티티 상태(active, inactive)"
-Master,,11,reg_date,TIMESTAMP,N,,레코드 등록 일시
-Master,,12,registrar,VARCHAR(100),N,,등록 주체
-Master,,13,update_date,TIMESTAMP,Y,,최종 수정 일시
-Master,,14,updater,VARCHAR(100),Y,,최종 수정 주체
-Master,,15,note,TEXT,Y,,추가 메모
-Master,reporting_entity_aliases,1,entity_alias_id,BIGINT,N,PK,엔티티 별칭 식별자
-Master,,2,entity_id,BIGINT,N,FK,대상 엔티티
-Master,,3,alias_name,VARCHAR(200),N,,보고서 또는 운영상 별칭
-Master,,4,language_code,VARCHAR(10),Y,,별칭 언어 코드
-Master,,5,alias_type,VARCHAR(50),Y,,"별칭 유형(report_label, legal_name, site_name 등)"
-Master,,6,is_preferred,BOOLEAN,N,,대표 별칭 여부
-Master,,7,reg_date,TIMESTAMP,N,,레코드 등록 일시
-Master,,8,registrar,VARCHAR(100),N,,등록 주체
-Master,,9,update_date,TIMESTAMP,Y,,최종 수정 일시
-Master,,10,updater,VARCHAR(100),Y,,최종 수정 주체
-Master,,11,note,TEXT,Y,,추가 메모
-Evidence,documents,1,document_id,BIGINT,N,PK,문서 식별자
-Evidence,,2,company_id,BIGINT,Y,FK,관련 회사
-Evidence,,3,document_type,VARCHAR(100),N,,문서 유형
-Evidence,,4,source_type,VARCHAR(50),N,,"원천 유형(pdf, web, dashboard 등)"
-Evidence,,5,source_name,VARCHAR(200),Y,,출처명
-Evidence,,6,title,VARCHAR(500),N,,문서 제목
-Evidence,,7,report_year,INTEGER,Y,,문서 기준 연도
-Evidence,,8,published_date,DATE,Y,,발행/공시일
-Evidence,,9,file_name,VARCHAR(255),Y,,파일명
-Evidence,,10,file_path,TEXT,Y,,저장 경로
-Evidence,,11,file_hash,VARCHAR(128),Y,,파일 해시
-Evidence,,12,language_code,VARCHAR(10),Y,,문서 언어 코드
-Evidence,,13,reg_date,TIMESTAMP,N,,레코드 등록 일시
-Evidence,,14,registrar,VARCHAR(100),N,,등록 주체
-Evidence,,15,update_date,TIMESTAMP,Y,,최종 수정 일시
-Evidence,,16,updater,VARCHAR(100),Y,,최종 수정 주체
-Evidence,,17,note,TEXT,Y,,추가 메모
-Evidence,extracted_evidence,1,evidence_id,BIGINT,N,PK,근거 블록 식별자
-Evidence,,2,document_id,BIGINT,N,FK,원문 문서
-Evidence,,3,page_no,INTEGER,Y,,문서 페이지 번호
-Evidence,,4,section_name,VARCHAR(200),Y,,문서 섹션명
-Evidence,,5,block_type,VARCHAR(50),Y,,"블록 유형(text, table, note 등)"
-Evidence,,6,raw_snippet,TEXT,N,,원문 스니펫
-Evidence,,7,normalized_snippet,TEXT,Y,,정규화 스니펫
-Evidence,,8,table_json,JSONB,Y,,표 구조 JSON
-Evidence,,9,confidence_score,"NUMERIC(5,4)",Y,,추출 신뢰도
-Evidence,,10,locator_json,JSONB,Y,,좌표/위치 정보
-Evidence,,11,reg_date,TIMESTAMP,N,,레코드 등록 일시
-Evidence,,12,registrar,VARCHAR(100),N,,등록 주체
-Evidence,,13,update_date,TIMESTAMP,Y,,최종 수정 일시
-Evidence,,14,updater,VARCHAR(100),Y,,최종 수정 주체
-Evidence,,15,note,TEXT,Y,,추가 메모
-Evidence,document_entity_coverage,1,document_entity_coverage_id,BIGINT,N,PK,문서-엔티티 커버리지 식별자
-Evidence,,2,document_id,BIGINT,N,FK,대상 문서
-Evidence,,3,entity_id,BIGINT,N,FK,포함 또는 참조된 엔티티
-Evidence,,4,coverage_type,VARCHAR(50),N,,"커버리지 유형(consolidated, grouped, partial, referenced, excluded)"
-Evidence,,5,included_flag,BOOLEAN,N,,실제 포함 여부
-Evidence,,6,coverage_note,TEXT,Y,,커버리지 설명
-Evidence,,7,reg_date,TIMESTAMP,N,,레코드 등록 일시
-Evidence,,8,registrar,VARCHAR(100),N,,등록 주체
-Evidence,,9,update_date,TIMESTAMP,Y,,최종 수정 일시
-Evidence,,10,updater,VARCHAR(100),Y,,최종 수정 주체
-Evidence,,11,note,TEXT,Y,,추가 메모
-Evidence,docs_table,1,doc_table_id,BIGINT,N,PK,문서 표 식별자
-Evidence,,2,document_id,BIGINT,N,FK,대상 문서
-Evidence,,3,page_no,INTEGER,Y,,문서 페이지 번호
-Evidence,,4,sec_name,VARCHAR(200),Y,,문서 섹션명
-Evidence,,5,tbl_title,VARCHAR(500),Y,,표 제목 또는 캡션
-Evidence,,6,tbl_kind,VARCHAR(50),Y,,표 유형(kpi, index, appendix, list 등)
-Evidence,,7,bbox_json,JSONB,Y,,표 위치 bbox JSON
-Evidence,,8,matrix_json,JSONB,N,,표 원본 행렬 JSON
-Evidence,,9,header_json,JSONB,Y,,표 헤더 구조 JSON
-Evidence,,10,row_cnt,INTEGER,Y,,행 수
-Evidence,,11,col_cnt,INTEGER,Y,,열 수
-Evidence,,12,evidence_id,BIGINT,Y,FK,대표 근거 블록
-Evidence,,13,reg_date,TIMESTAMP,N,,레코드 등록 일시
-Evidence,,14,registrar,VARCHAR(100),N,,등록 주체
-Evidence,,15,update_date,TIMESTAMP,Y,,최종 수정 일시
-Evidence,,16,updater,VARCHAR(100),Y,,최종 수정 주체
-Evidence,,17,note,TEXT,Y,,추가 메모
-Evidence,docs_cell,1,doc_cell_id,BIGINT,N,PK,문서 표 셀 식별자
-Evidence,,2,doc_table_id,BIGINT,N,FK,대상 문서 표
-Evidence,,3,row_no,INTEGER,N,,행 번호
-Evidence,,4,col_no,INTEGER,N,,열 번호
-Evidence,,5,cell_txt,TEXT,N,,원본 셀 텍스트
-Evidence,,6,norm_txt,TEXT,Y,,정규화 셀 텍스트
-Evidence,,7,is_hdr,BOOLEAN,N,,헤더 셀 여부
-Evidence,,8,row_span,INTEGER,Y,,행 병합 수
-Evidence,,9,col_span,INTEGER,Y,,열 병합 수
-Evidence,,10,reg_date,TIMESTAMP,N,,레코드 등록 일시
-Evidence,,11,registrar,VARCHAR(100),N,,등록 주체
-Evidence,,12,update_date,TIMESTAMP,Y,,최종 수정 일시
-Evidence,,13,updater,VARCHAR(100),Y,,최종 수정 주체
-Evidence,,14,note,TEXT,Y,,추가 메모
-Raw Fact,company_metric_facts,1,company_metric_fact_id,BIGINT,N,PK,정량 지표 fact 식별자
+Document,rpt_period,1,period_id,BIGINT,N,PK,보고 기간 식별자
+Document,,2,fiscal_year,INTEGER,N,,회계연도
+Document,,3,period_label,VARCHAR(100),Y,,기간 라벨(FY2024 등)
+Document,,4,period_start,DATE,Y,,기간 시작일
+Document,,5,period_end,DATE,Y,,기간 종료일
+Document,,6,assessment_date,DATE,Y,,평가 기준일
+Document,,7,currency_code,CHAR(3),Y,,통화 코드
+Document,,8,reg_date,TIMESTAMP,N,,레코드 등록 일시
+Document,,9,registrar,VARCHAR(100),N,,등록 주체
+Document,,10,update_date,TIMESTAMP,Y,,최종 수정 일시
+Document,,11,updater,VARCHAR(100),Y,,최종 수정 주체
+Document,,12,note,TEXT,Y,,추가 메모
+Document,documents,1,document_id,BIGINT,N,PK,문서 식별자
+Document,,2,company_id,BIGINT,N,FK,대상 회사
+Document,,3,document_type,VARCHAR(50),Y,,문서 유형
+Document,,4,source_type,VARCHAR(50),Y,,소스 유형
+Document,,5,source_name,VARCHAR(200),Y,,소스명
+Document,,6,title,VARCHAR(500),Y,,문서 제목
+Document,,7,report_year,INTEGER,Y,,보고 연도
+Document,,8,published_date,DATE,Y,,발간일
+Document,,9,file_name,VARCHAR(500),Y,,파일명
+Document,,10,file_path,VARCHAR(1000),Y,,파일 경로
+Document,,11,file_hash,VARCHAR(200),Y,,파일 해시
+Document,,12,language_code,VARCHAR(10),Y,,언어 코드
+Document,,13,reg_date,TIMESTAMP,N,,레코드 등록 일시
+Document,,14,registrar,VARCHAR(100),N,,등록 주체
+Document,,15,update_date,TIMESTAMP,Y,,최종 수정 일시
+Document,,16,updater,VARCHAR(100),Y,,최종 수정 주체
+Document,,17,note,TEXT,Y,,추가 메모
+Document,doc_evidence,1,evidence_id,BIGINT,N,PK,증거 블록 식별자
+Document,,2,document_id,BIGINT,N,FK,대상 문서
+Document,,3,page_number,INTEGER,Y,,페이지 번호
+Document,,4,block_type,VARCHAR(50),Y,,블록 유형
+Document,,5,content_text,TEXT,Y,,본문 텍스트
+Document,,6,content_lang,VARCHAR(10),Y,,언어 코드
+Document,,7,reg_date,TIMESTAMP,N,,레코드 등록 일시
+Document,,8,registrar,VARCHAR(100),N,,등록 주체
+Document,,9,update_date,TIMESTAMP,Y,,최종 수정 일시
+Document,,10,updater,VARCHAR(100),Y,,최종 수정 주체
+Document,,11,note,TEXT,Y,,추가 메모
+Document,rpt_entity,1,entity_id,BIGINT,N,PK,보고 단위 엔티티 식별자
+Document,,2,company_id,BIGINT,N,FK,연결 회사
+Document,,3,parent_entity_id,BIGINT,Y,FK,상위 엔티티
+Document,,4,entity_type,VARCHAR(30),N,,"엔티티 유형(legal, segment, facility 등)"
+Document,,5,entity_name_kr,VARCHAR(200),Y,,한글 엔티티명
+Document,,6,entity_name_en,VARCHAR(200),Y,,영문 엔티티명
+Document,,7,country_code,CHAR(2),Y,,소재 국가 코드
+Document,,8,source_origin,VARCHAR(20),N,,엔티티 발견 출처
+Document,,9,status,VARCHAR(20),N,,엔티티 상태
+Document,,10,reg_date,TIMESTAMP,N,,레코드 등록 일시
+Document,,11,registrar,VARCHAR(100),N,,등록 주체
+Document,,12,update_date,TIMESTAMP,Y,,최종 수정 일시
+Document,,13,updater,VARCHAR(100),Y,,최종 수정 주체
+Document,,14,note,TEXT,Y,,추가 메모
+Document,rpt_entity_alias,1,entity_alias_id,BIGINT,N,PK,엔티티 별칭 식별자
+Document,,2,entity_id,BIGINT,N,FK,대상 엔티티
+Document,,3,alias_name,VARCHAR(300),N,,별칭
+Document,,4,language_code,VARCHAR(10),Y,,언어 코드
+Document,,5,alias_type,VARCHAR(50),Y,,"별칭 유형(official, abbreviation, trade_name 등)"
+Document,,6,reg_date,TIMESTAMP,N,,레코드 등록 일시
+Document,,7,registrar,VARCHAR(100),N,,등록 주체
+Document,,8,update_date,TIMESTAMP,Y,,최종 수정 일시
+Document,,9,updater,VARCHAR(100),Y,,최종 수정 주체
+Document,,10,note,TEXT,Y,,추가 메모
+Document,doc_entity_cov,1,doc_entity_cov_id,BIGINT,N,PK,문서-엔티티 커버리지 식별자
+Document,,2,document_id,BIGINT,N,FK,대상 문서
+Document,,3,entity_id,BIGINT,N,FK,대상 엔티티
+Document,,4,coverage_type,VARCHAR(50),Y,,커버리지 유형
+Document,,5,reg_date,TIMESTAMP,N,,레코드 등록 일시
+Document,,6,registrar,VARCHAR(100),N,,등록 주체
+Document,,7,update_date,TIMESTAMP,Y,,최종 수정 일시
+Document,,8,updater,VARCHAR(100),Y,,최종 수정 주체
+Document,,9,note,TEXT,Y,,추가 메모
+Raw Fact,co_metric,1,co_metric_id,BIGINT,N,PK,측정 지표 식별자
 Raw Fact,,2,company_id,BIGINT,N,FK,대상 회사
 Raw Fact,,3,period_id,BIGINT,N,FK,평가 기간
-Raw Fact,,4,entity_id,BIGINT,Y,FK,실제 보고 단위 엔티티(자회사/사업장/그룹 등)
-Raw Fact,,5,metric_code,VARCHAR(100),N,,"지표 코드(scope1_emissions, revenue, capex_total 등)"
-Raw Fact,,6,metric_value,"NUMERIC(24,6)",Y,,지표 값
-Raw Fact,,7,metric_unit,VARCHAR(50),Y,,지표 단위
-Raw Fact,,8,dimension_1_code,VARCHAR(50),Y,,"추가 차원 코드(scope, product, region 등)"
-Raw Fact,,9,dimension_1_value,VARCHAR(100),Y,,추가 차원 값
-Raw Fact,,10,dimension_2_code,VARCHAR(50),Y,,보조 차원 코드
-Raw Fact,,11,dimension_2_value,VARCHAR(100),Y,,보조 차원 값
-Raw Fact,,12,verification_status,VARCHAR(50),Y,,검증 상태
-Raw Fact,,13,data_status,VARCHAR(30),N,,"reported, estimated, missing 등"
-Raw Fact,,14,source_document_id,BIGINT,Y,FK,근거 문서
-Raw Fact,,15,evidence_id,BIGINT,Y,FK,근거 블록
-Raw Fact,,16,reg_date,TIMESTAMP,N,,레코드 등록 일시
-Raw Fact,,17,registrar,VARCHAR(100),N,,등록 주체
-Raw Fact,,18,update_date,TIMESTAMP,Y,,최종 수정 일시
-Raw Fact,,19,updater,VARCHAR(100),Y,,최종 수정 주체
-Raw Fact,,20,note,TEXT,Y,,추가 메모
-Raw Fact,company_target_facts,1,company_target_fact_id,BIGINT,N,PK,목표 fact 식별자
+Raw Fact,,4,entity_id,BIGINT,Y,FK,실제 보고 단위 엔티티
+Raw Fact,,5,metric_code,VARCHAR(100),N,,"지표 코드(scope1_tco2e, scope2_market_tco2e 등)"
+Raw Fact,,6,metric_val,"NUMERIC(24,6)",Y,,지표값
+Raw Fact,,7,unit,VARCHAR(50),Y,,단위
+Raw Fact,,8,dim1_cd,VARCHAR(50),Y,,차원1 코드
+Raw Fact,,9,dim1_val,VARCHAR(100),Y,,차원1 값
+Raw Fact,,10,dim2_cd,VARCHAR(50),Y,,차원2 코드
+Raw Fact,,11,dim2_val,VARCHAR(100),Y,,차원2 값
+Raw Fact,,12,boundary_basis_code,VARCHAR(30),Y,,"경계 기준 코드(operational, equity, financial 등)"
+Raw Fact,,13,aggregation_level_code,VARCHAR(30),Y,,"집계 수준 코드(consolidated, subsidiary 등)"
+Raw Fact,,14,verif_status,VARCHAR(50),Y,,"검증 상태(verified, limited, not_verified 등)"
+Raw Fact,,15,data_status,VARCHAR(30),N,,"데이터 상태(actual, estimated, restated 등)"
+Raw Fact,,16,src_doc_id,BIGINT,Y,FK,근거 문서
+Raw Fact,,17,evidence_id,BIGINT,Y,FK,근거 블록
+Raw Fact,,18,reg_date,TIMESTAMP,N,,레코드 등록 일시
+Raw Fact,,19,registrar,VARCHAR(100),N,,등록 주체
+Raw Fact,,20,update_date,TIMESTAMP,Y,,최종 수정 일시
+Raw Fact,,21,updater,VARCHAR(100),Y,,최종 수정 주체
+Raw Fact,,22,note,TEXT,Y,,추가 메모
+Raw Fact,co_scope3,1,co_scope3_id,BIGINT,N,PK,Scope 3 카테고리 식별자
 Raw Fact,,2,company_id,BIGINT,N,FK,대상 회사
 Raw Fact,,3,period_id,BIGINT,N,FK,평가 기간
-Raw Fact,,4,entity_id,BIGINT,Y,FK,실제 보고 단위 엔티티(자회사/사업장/그룹 등)
-Raw Fact,,5,target_type,VARCHAR(50),N,,"목표 유형(short, mid, long, netzero, residual_neutralization)"
-Raw Fact,,6,target_metric_type,VARCHAR(30),Y,,"absolute, intensity, qualitative"
-Raw Fact,,7,base_year,INTEGER,Y,,기준연도
-Raw Fact,,8,target_year,INTEGER,Y,,목표연도
-Raw Fact,,9,target_scope_code,VARCHAR(50),Y,,목표 범위 코드
-Raw Fact,,10,target_value,"NUMERIC(24,6)",Y,,목표값
-Raw Fact,,11,target_unit,VARCHAR(50),Y,,목표 단위
-Raw Fact,,12,target_reduction_pct,"NUMERIC(8,5)",Y,,감축 비율
-Raw Fact,,13,scenario_alignment_code,VARCHAR(50),Y,,시나리오 정렬 코드
-Raw Fact,,14,sbti_approval_flag,BOOLEAN,Y,,SBTi 승인 여부
-Raw Fact,,15,residual_defined_flag,BOOLEAN,Y,,residual 배출 정의 여부
-Raw Fact,,16,offset_usage_flag,BOOLEAN,Y,,상쇄 사용 여부
-Raw Fact,,17,offset_dependency_ratio,"NUMERIC(8,5)",Y,,상쇄 의존 비율
-Raw Fact,,18,carbon_removal_plan_flag,BOOLEAN,Y,,영구 제거 계획 여부
-Raw Fact,,19,disclosed_flag,BOOLEAN,Y,,공시 여부
-Raw Fact,,20,source_document_id,BIGINT,Y,FK,근거 문서
-Raw Fact,,21,evidence_id,BIGINT,Y,FK,근거 블록
-Raw Fact,,22,reg_date,TIMESTAMP,N,,레코드 등록 일시
-Raw Fact,,23,registrar,VARCHAR(100),N,,등록 주체
-Raw Fact,,24,update_date,TIMESTAMP,Y,,최종 수정 일시
-Raw Fact,,25,updater,VARCHAR(100),Y,,최종 수정 주체
-Raw Fact,,26,note,TEXT,Y,,추가 메모
-Raw Fact,company_scope3_facts,1,company_scope3_fact_id,BIGINT,N,PK,Scope 3 fact 식별자
-Raw Fact,,2,company_id,BIGINT,N,FK,대상 회사
-Raw Fact,,3,period_id,BIGINT,N,FK,평가 기간
-Raw Fact,,4,entity_id,BIGINT,Y,FK,실제 보고 단위 엔티티(자회사/사업장/그룹 등)
-Raw Fact,,5,scope3_category_code,VARCHAR(50),N,,Scope 3 카테고리 코드
-Raw Fact,,6,emission_value,"NUMERIC(24,6)",Y,,배출량
-Raw Fact,,7,emission_unit,VARCHAR(50),Y,,배출량 단위
+Raw Fact,,4,entity_id,BIGINT,Y,FK,실제 보고 단위 엔티티
+Raw Fact,,5,scope3_cat_cd,VARCHAR(50),N,,Scope 3 카테고리 코드
+Raw Fact,,6,emis_val,"NUMERIC(24,6)",Y,,배출량 값
+Raw Fact,,7,emis_unit,VARCHAR(50),Y,,배출량 단위
 Raw Fact,,8,disclosed_flag,BOOLEAN,Y,,공시 여부
-Raw Fact,,9,primary_data_ratio,"NUMERIC(8,5)",Y,,1차 데이터 사용 비율
-Raw Fact,,10,data_quality_code,VARCHAR(20),Y,,DQS 코드
-Raw Fact,,11,estimation_method_code,VARCHAR(50),Y,,산정 방식 코드
-Raw Fact,,12,verification_status,VARCHAR(50),Y,,검증 상태
-Raw Fact,,13,source_document_id,BIGINT,Y,FK,근거 문서
+Raw Fact,,9,primary_ratio,"NUMERIC(8,5)",Y,,1차 데이터 비율
+Raw Fact,,10,dqs_cd,VARCHAR(20),Y,,데이터 품질 점수 코드
+Raw Fact,,11,est_method_cd,VARCHAR(50),Y,,추정 방법 코드
+Raw Fact,,12,boundary_basis_code,VARCHAR(30),Y,,경계 기준 코드
+Raw Fact,,13,aggregation_level_code,VARCHAR(30),Y,,집계 수준 코드
+Raw Fact,,14,verif_status,VARCHAR(50),Y,,검증 상태
+Raw Fact,,15,src_doc_id,BIGINT,Y,FK,근거 문서
+Raw Fact,,16,evidence_id,BIGINT,Y,FK,근거 블록
+Raw Fact,,17,reg_date,TIMESTAMP,N,,레코드 등록 일시
+Raw Fact,,18,registrar,VARCHAR(100),N,,등록 주체
+Raw Fact,,19,update_date,TIMESTAMP,Y,,최종 수정 일시
+Raw Fact,,20,updater,VARCHAR(100),Y,,최종 수정 주체
+Raw Fact,,21,note,TEXT,Y,,추가 메모
+Raw Fact,co_target,1,co_target_id,BIGINT,N,PK,감축 목표 식별자
+Raw Fact,,2,company_id,BIGINT,N,FK,대상 회사
+Raw Fact,,3,period_id,BIGINT,N,FK,평가 기간
+Raw Fact,,4,entity_id,BIGINT,Y,FK,실제 보고 단위 엔티티
+Raw Fact,,5,target_type,VARCHAR(50),Y,,"목표 유형(absolute, intensity, netzero, renewable 등)"
+Raw Fact,,6,metric_type,VARCHAR(50),Y,,"지표 유형(scope12, scope123, scope3, energy 등)"
+Raw Fact,,7,base_year,INTEGER,Y,,기준 연도
+Raw Fact,,8,target_year,INTEGER,Y,,목표 연도
+Raw Fact,,9,target_scope,VARCHAR(100),Y,,목표 적용 범위
+Raw Fact,,10,target_val,"NUMERIC(24,6)",Y,,목표값
+Raw Fact,,11,target_unit,VARCHAR(50),Y,,목표 단위
+Raw Fact,,12,target_red_pct,"NUMERIC(8,5)",Y,,감축률(%)
+Raw Fact,,13,scen_align_cd,VARCHAR(50),Y,,시나리오 정렬 코드
+Raw Fact,,14,sbti_ok,BOOLEAN,Y,,SBTi 승인 여부
+Raw Fact,,15,residual_def,TEXT,Y,,잔여 배출 정의
+Raw Fact,,16,offset_use,BOOLEAN,Y,,탄소 상쇄 활용 여부
+Raw Fact,,17,offset_dep_ratio,"NUMERIC(8,5)",Y,,상쇄 의존 비율
+Raw Fact,,18,removal_plan,TEXT,Y,,제거 계획
+Raw Fact,,19,disclosed_flag,BOOLEAN,Y,,공시 여부
+Raw Fact,,20,boundary_basis_code,VARCHAR(30),Y,,경계 기준 코드
+Raw Fact,,21,aggregation_level_code,VARCHAR(30),Y,,집계 수준 코드
+Raw Fact,,22,src_doc_id,BIGINT,Y,FK,근거 문서
+Raw Fact,,23,evidence_id,BIGINT,Y,FK,근거 블록
+Raw Fact,,24,reg_date,TIMESTAMP,N,,레코드 등록 일시
+Raw Fact,,25,registrar,VARCHAR(100),N,,등록 주체
+Raw Fact,,26,update_date,TIMESTAMP,Y,,최종 수정 일시
+Raw Fact,,27,updater,VARCHAR(100),Y,,최종 수정 주체
+Raw Fact,,28,note,TEXT,Y,,추가 메모
+Raw Fact,co_ghg_method,1,ghg_method_id,BIGINT,N,PK,GHG 산정 방법 식별자
+Raw Fact,,2,company_id,BIGINT,N,FK,대상 회사
+Raw Fact,,3,period_id,BIGINT,N,FK,평가 기간
+Raw Fact,,4,entity_id,BIGINT,Y,FK,실제 보고 단위 엔티티
+Raw Fact,,5,scope_cd,VARCHAR(30),Y,,범위 코드
+Raw Fact,,6,topic_cd,VARCHAR(50),N,,"주제 코드(boundary, methodology, base_year 등)"
+Raw Fact,,7,base_year,INTEGER,Y,,기준 연도
+Raw Fact,,8,std_ref,VARCHAR(200),Y,,적용 기준 참조
+Raw Fact,,9,boundary_txt,TEXT,Y,,경계 설명 원문
+Raw Fact,,10,method_txt,TEXT,Y,,방법론 설명 원문
+Raw Fact,,11,factor_src,TEXT,Y,,배출계수 출처
+Raw Fact,,12,change_txt,TEXT,Y,,변경 사항 설명
+Raw Fact,,13,src_doc_id,BIGINT,Y,FK,근거 문서
 Raw Fact,,14,evidence_id,BIGINT,Y,FK,근거 블록
 Raw Fact,,15,reg_date,TIMESTAMP,N,,레코드 등록 일시
 Raw Fact,,16,registrar,VARCHAR(100),N,,등록 주체
 Raw Fact,,17,update_date,TIMESTAMP,Y,,최종 수정 일시
 Raw Fact,,18,updater,VARCHAR(100),Y,,최종 수정 주체
 Raw Fact,,19,note,TEXT,Y,,추가 메모
-Raw Fact,co_esg_kpi,1,co_esg_kpi_id,BIGINT,N,PK,기업 ESG KPI 식별자
-Raw Fact,,2,company_id,BIGINT,N,FK,대상 회사
-Raw Fact,,3,period_id,BIGINT,N,FK,평가 기간
-Raw Fact,,4,entity_id,BIGINT,Y,FK,실제 보고 단위 엔티티(자회사/사업장/그룹 등)
-Raw Fact,,5,fact_year,INTEGER,Y,,실제 KPI 측정 또는 집계 연도
-Raw Fact,,6,topic_cd,VARCHAR(50),N,,상위 토픽 코드(env, social, governance 등)
-Raw Fact,,7,subtopic_cd,VARCHAR(50),Y,,세부 토픽 코드
-Raw Fact,,8,kpi_cd,VARCHAR(100),N,,KPI 코드
-Raw Fact,,9,kpi_label,VARCHAR(200),Y,,KPI 표시명
-Raw Fact,,10,kpi_val_num,"NUMERIC(24,6)",Y,,수치형 KPI 값
-Raw Fact,,11,kpi_val_txt,TEXT,Y,,문자형 KPI 값
-Raw Fact,,12,unit,VARCHAR(50),Y,,KPI 단위
-Raw Fact,,13,dim1_cd,VARCHAR(50),Y,,1차 차원 코드
-Raw Fact,,14,dim1_val,VARCHAR(100),Y,,1차 차원 값
-Raw Fact,,15,dim2_cd,VARCHAR(50),Y,,2차 차원 코드
-Raw Fact,,16,dim2_val,VARCHAR(100),Y,,2차 차원 값
-Raw Fact,,17,verif_status,VARCHAR(50),Y,,검증 상태
-Raw Fact,,18,data_status,VARCHAR(30),N,,"reported, estimated, missing 등"
-Raw Fact,,19,source_document_id,BIGINT,Y,FK,근거 문서
-Raw Fact,,20,evidence_id,BIGINT,Y,FK,근거 블록
-Raw Fact,,21,reg_date,TIMESTAMP,N,,레코드 등록 일시
-Raw Fact,,22,registrar,VARCHAR(100),N,,등록 주체
-Raw Fact,,23,update_date,TIMESTAMP,Y,,최종 수정 일시
-Raw Fact,,24,updater,VARCHAR(100),Y,,최종 수정 주체
-Raw Fact,,25,note,TEXT,Y,,추가 메모
-Raw Fact,co_ghg_method,1,ghg_method_id,BIGINT,N,PK,배출 방법론 공시 식별자
-Raw Fact,,2,company_id,BIGINT,N,FK,대상 회사
-Raw Fact,,3,period_id,BIGINT,N,FK,평가 기간
-Raw Fact,,4,entity_id,BIGINT,Y,FK,실제 보고 단위 엔티티(자회사/사업장/그룹 등)
-Raw Fact,,5,scope_cd,VARCHAR(30),Y,,대상 Scope 코드
-Raw Fact,,6,topic_cd,VARCHAR(50),N,,"공시 주제 코드(boundary, method, factor_source, base_year, restatement 등)"
-Raw Fact,,7,base_year,INTEGER,Y,,기준연도
-Raw Fact,,8,std_ref,VARCHAR(200),Y,,적용 기준 또는 표준
-Raw Fact,,9,boundary_txt,TEXT,Y,,보고 경계 설명
-Raw Fact,,10,method_txt,TEXT,Y,,산정 방법 설명
-Raw Fact,,11,factor_src,TEXT,Y,,배출계수 또는 데이터 출처 설명
-Raw Fact,,12,change_txt,TEXT,Y,,재기술 또는 경계 변경 설명
-Raw Fact,,13,source_document_id,BIGINT,Y,FK,근거 문서
-Raw Fact,,14,evidence_id,BIGINT,Y,FK,근거 블록
-Raw Fact,,15,reg_date,TIMESTAMP,N,,레코드 등록 일시
-Raw Fact,,16,registrar,VARCHAR(100),N,,등록 주체
-Raw Fact,,17,update_date,TIMESTAMP,Y,,최종 수정 일시
-Raw Fact,,18,updater,VARCHAR(100),Y,,최종 수정 주체
-Raw Fact,,19,note,TEXT,Y,,추가 메모
-Rubric,company_assessments,1,assessment_id,BIGINT,N,PK,루브릭 평가 식별자
-Rubric,,2,company_id,BIGINT,N,FK,대상 회사
-Rubric,,3,period_id,BIGINT,N,FK,평가 기간
-Rubric,,4,variable_code,VARCHAR(100),N,,평가 대상 변수 코드
-Rubric,,5,assessment_status,VARCHAR(30),N,,평가 상태
-Rubric,,6,assessment_basis,VARCHAR(100),Y,,평가 기준(문서/수기/혼합 등)
-Rubric,,7,source_document_id,BIGINT,Y,FK,근거 문서
-Rubric,,8,evidence_id,BIGINT,Y,FK,대표 근거 블록
-Rubric,,9,reg_date,TIMESTAMP,N,,레코드 등록 일시
-Rubric,,10,registrar,VARCHAR(100),N,,등록 주체
-Rubric,,11,update_date,TIMESTAMP,Y,,최종 수정 일시
-Rubric,,12,updater,VARCHAR(100),Y,,최종 수정 주체
-Rubric,,13,note,TEXT,Y,,추가 메모
-Rubric,company_assessment_items,1,assessment_item_id,BIGINT,N,PK,루브릭 평가 항목 식별자
-Rubric,,2,assessment_id,BIGINT,N,FK,상위 루브릭 평가
-Rubric,,3,item_code,VARCHAR(100),N,,평가 항목 코드
-Rubric,,4,item_value_numeric,"NUMERIC(24,6)",Y,,수치형 항목값
-Rubric,,5,item_value_text,TEXT,Y,,문자형 항목값
-Rubric,,6,item_level_code,VARCHAR(50),Y,,단계형 코드
-Rubric,,7,item_score,"NUMERIC(8,5)",Y,,항목 점수
-Rubric,,8,evidence_id,BIGINT,Y,FK,근거 블록
-Rubric,,9,reg_date,TIMESTAMP,N,,레코드 등록 일시
-Rubric,,10,registrar,VARCHAR(100),N,,등록 주체
-Rubric,,11,update_date,TIMESTAMP,Y,,최종 수정 일시
-Rubric,,12,updater,VARCHAR(100),Y,,최종 수정 주체
-Rubric,,13,note,TEXT,Y,,추가 메모
-Reference,industry_reference_rules,1,industry_reference_rule_id,BIGINT,N,PK,업종 규칙 식별자
+Reference,industry_rule,1,industry_rule_id,BIGINT,N,PK,업종 규칙 식별자
 Reference,,2,industry_code,VARCHAR(50),N,,산업 코드
 Reference,,3,rule_domain,VARCHAR(50),N,,"규칙 도메인(V1, V2, V7 등)"
 Reference,,4,rule_code,VARCHAR(100),N,,"규칙 코드(activity_metric, target_capex_ratio 등)"
@@ -289,7 +205,7 @@ Reference,,11,registrar,VARCHAR(100),N,,등록 주체
 Reference,,12,update_date,TIMESTAMP,Y,,최종 수정 일시
 Reference,,13,updater,VARCHAR(100),Y,,최종 수정 주체
 Reference,,14,note,TEXT,Y,,추가 메모
-Reference,reference_market_data,1,reference_market_data_id,BIGINT,N,PK,참조 시계열 식별자
+Reference,market_ref,1,market_ref_id,BIGINT,N,PK,참조 시계열 식별자
 Reference,,2,data_domain,VARCHAR(50),N,,"데이터 도메인(EU_ETS, K_ETS, CBAM_FACTOR 등)"
 Reference,,3,key_code,VARCHAR(100),N,,시계열 키 코드
 Reference,,4,as_of_date,DATE,N,,기준 일자
@@ -313,7 +229,7 @@ Reference,,9,registrar,VARCHAR(100),N,,등록 주체
 Reference,,10,update_date,TIMESTAMP,Y,,최종 수정 일시
 Reference,,11,updater,VARCHAR(100),Y,,최종 수정 주체
 Reference,,12,note,TEXT,Y,,추가 메모
-Methodology,methodology_versions,1,methodology_version_id,BIGINT,N,PK,방법론 버전 식별자
+Methodology,method_ver,1,method_ver_id,BIGINT,N,PK,방법론 버전 식별자
 Methodology,,2,version_name,VARCHAR(50),N,,버전명
 Methodology,,3,effective_from,DATE,N,,적용 시작일
 Methodology,,4,effective_to,DATE,Y,,적용 종료일
@@ -325,10 +241,10 @@ Methodology,,9,update_date,TIMESTAMP,Y,,최종 수정 일시
 Methodology,,10,updater,VARCHAR(100),Y,,최종 수정 주체
 Methodology,,11,note,TEXT,Y,,추가 메모
 Methodology,score_categories,1,category_id,BIGINT,N,PK,카테고리 식별자
-Methodology,,2,methodology_version_id,BIGINT,N,FK,방법론 버전
-Methodology,,3,category_code,VARCHAR(20),N,,카테고리 코드
+Methodology,,2,method_ver_id,BIGINT,N,FK,방법론 버전
+Methodology,,3,category_code,VARCHAR(20),N,,"카테고리 코드(C_EMISSION, C_TARGET, C_STRATEGY, C_GOVERNANCE, C_INTEGRITY)"
 Methodology,,4,category_name,VARCHAR(200),N,,카테고리명
-Methodology,,5,category_weight,"NUMERIC(8,5)",N,,상위 가중치
+Methodology,,5,category_weight,"NUMERIC(8,5)",N,,카테고리 가중치
 Methodology,,6,display_order,INTEGER,Y,,표시 순서
 Methodology,,7,reg_date,TIMESTAMP,N,,레코드 등록 일시
 Methodology,,8,registrar,VARCHAR(100),N,,등록 주체
@@ -336,10 +252,10 @@ Methodology,,9,update_date,TIMESTAMP,Y,,최종 수정 일시
 Methodology,,10,updater,VARCHAR(100),Y,,최종 수정 주체
 Methodology,,11,note,TEXT,Y,,추가 메모
 Methodology,score_variables,1,variable_id,BIGINT,N,PK,변수 식별자
-Methodology,,2,methodology_version_id,BIGINT,N,FK,방법론 버전
+Methodology,,2,method_ver_id,BIGINT,N,FK,방법론 버전
 Methodology,,3,category_id,BIGINT,N,FK,카테고리
-Methodology,,4,display_code,VARCHAR(20),Y,,표시 코드(V1 등)
-Methodology,,5,stable_code,VARCHAR(100),N,,안정 코드
+Methodology,,4,display_code,VARCHAR(20),Y,,"표시 코드(V1~V9)"
+Methodology,,5,stable_code,VARCHAR(100),N,,"안정 코드(v1_scope12_performance 등)"
 Methodology,,6,variable_name,VARCHAR(300),N,,변수명
 Methodology,,7,is_scored,BOOLEAN,N,,총점 반영 여부
 Methodology,,8,is_experimental,BOOLEAN,N,,실험 변수 여부
@@ -351,8 +267,8 @@ Methodology,,13,registrar,VARCHAR(100),N,,등록 주체
 Methodology,,14,update_date,TIMESTAMP,Y,,최종 수정 일시
 Methodology,,15,updater,VARCHAR(100),Y,,최종 수정 주체
 Methodology,,16,note,TEXT,Y,,추가 메모
-Methodology,methodology_parameters,1,parameter_id,BIGINT,N,PK,파라미터 식별자
-Methodology,,2,methodology_version_id,BIGINT,N,FK,방법론 버전
+Methodology,method_param,1,parameter_id,BIGINT,N,PK,파라미터 식별자
+Methodology,,2,method_ver_id,BIGINT,N,FK,방법론 버전
 Methodology,,3,variable_id,BIGINT,Y,FK,대상 변수
 Methodology,,4,parameter_code,VARCHAR(100),N,,파라미터 코드
 Methodology,,5,parameter_name,VARCHAR(200),N,,파라미터명
@@ -370,9 +286,9 @@ Methodology,,16,note,TEXT,Y,,추가 메모
 Scoring,scoring_runs,1,scoring_run_id,BIGINT,N,PK,스코어링 실행 식별자
 Scoring,,2,company_id,BIGINT,N,FK,대상 회사
 Scoring,,3,period_id,BIGINT,N,FK,평가 기간
-Scoring,,4,methodology_version_id,BIGINT,N,FK,방법론 버전
+Scoring,,4,method_ver_id,BIGINT,N,FK,방법론 버전
 Scoring,,5,run_type,VARCHAR(30),N,,실행 유형
-Scoring,,6,run_status,VARCHAR(30),N,,실행 상태
+Scoring,,6,run_status,VARCHAR(30),N,,"실행 상태(pending, completed, failed)"
 Scoring,,7,started_at,TIMESTAMP,Y,,실행 시작일시
 Scoring,,8,finished_at,TIMESTAMP,Y,,실행 종료일시
 Scoring,,9,reg_date,TIMESTAMP,N,,레코드 등록 일시
@@ -384,7 +300,7 @@ Scoring,variable_scores,1,variable_score_id,BIGINT,N,PK,변수 점수 식별자
 Scoring,,2,scoring_run_id,BIGINT,N,FK,스코어링 실행
 Scoring,,3,variable_id,BIGINT,N,FK,변수
 Scoring,,4,raw_value_json,JSONB,Y,,원 입력값/중간값
-Scoring,,5,normalized_score,"NUMERIC(12,8)",Y,,정규화 점수
+Scoring,,5,normalized_score,"NUMERIC(12,8)",Y,,정규화 점수(0~1)
 Scoring,,6,weighted_score,"NUMERIC(12,8)",Y,,가중 반영 점수
 Scoring,,7,calc_trace_json,JSONB,Y,,계산 추적 정보
 Scoring,,8,reg_date,TIMESTAMP,N,,레코드 등록 일시
@@ -415,109 +331,110 @@ Scoring,,10,updater,VARCHAR(100),Y,,최종 수정 주체
 Scoring,,11,note,TEXT,Y,,추가 메모
 Scoring,cers_score,1,cers_score_id,BIGINT,N,PK,최종 점수 식별자
 Scoring,,2,scoring_run_id,BIGINT,N,FK,스코어링 실행
-Scoring,,3,sbase,"NUMERIC(12,8)",Y,,기초 점수
-Scoring,,4,cef,"NUMERIC(12,8)",Y,,CBAM 노출 조정 계수
-Scoring,,5,gv,"NUMERIC(12,8)",Y,,그린워싱 패널티
-Scoring,,6,cers_score,"NUMERIC(12,8)",Y,,최종 CERs 점수
-Scoring,,7,score_grade,VARCHAR(20),Y,,점수 등급
-Scoring,,8,reg_date,TIMESTAMP,N,,레코드 등록 일시
-Scoring,,9,registrar,VARCHAR(100),N,,등록 주체
-Scoring,,10,update_date,TIMESTAMP,Y,,최종 수정 일시
-Scoring,,11,updater,VARCHAR(100),Y,,최종 수정 주체
-Scoring,,12,note,TEXT,Y,,추가 메모
-Evidence,document_framework_adoptions,1,document_framework_adoption_id,BIGINT,N,PK,문서 프레임워크 채택 식별자
+Scoring,,3,sbase,"NUMERIC(12,8)",Y,,기초 점수(가중합)
+Scoring,,4,cef,"NUMERIC(12,8)",Y,,CBAM 노출 조정 계수(v0.3=1.0)
+Scoring,,5,gv,"NUMERIC(12,8)",Y,,그린워싱 패널티(v0.3=0.0)
+Scoring,,6,cers_score,"NUMERIC(12,8)",Y,,최종 CERs 점수(1~100)
+Scoring,,7,score_grade,VARCHAR(20),Y,,"등급(A, BBB, BB, B, CCC, CC, C)"
+Scoring,,8,index_status,VARCHAR(30),Y,,"인덱스 상태(full_index, limited_index, disclosure_only, universe_only)"
+Scoring,,9,reg_date,TIMESTAMP,N,,레코드 등록 일시
+Scoring,,10,registrar,VARCHAR(100),N,,등록 주체
+Scoring,,11,update_date,TIMESTAMP,Y,,최종 수정 일시
+Scoring,,12,updater,VARCHAR(100),Y,,최종 수정 주체
+Scoring,,13,note,TEXT,Y,,추가 메모
+Evidence,doc_fw_adopt,1,doc_fw_adopt_id,BIGINT,N,PK,문서 프레임워크 채택 식별자
 Evidence,,2,document_id,BIGINT,N,FK,대상 문서
-Evidence,,3,framework_code,VARCHAR(50),N,,프레임워크 코드(GRI, TCFD, SASB 등)
-Evidence,,4,framework_label,VARCHAR(200),Y,,프레임워크 표시명
-Evidence,,5,adoption_status,VARCHAR(30),Y,,"채택 상태(prepared_in_accordance, referenced, aligned 등)"
+Evidence,,3,fw_cd,VARCHAR(50),N,,"프레임워크 코드(GRI, TCFD, SASB, ISSB 등)"
+Evidence,,4,fw_label,VARCHAR(200),Y,,프레임워크 표시명
+Evidence,,5,adopt_status,VARCHAR(30),Y,,"채택 상태(prepared_in_accordance, referenced, aligned 등)"
 Evidence,,6,evidence_id,BIGINT,Y,FK,근거 블록
 Evidence,,7,reg_date,TIMESTAMP,N,,레코드 등록 일시
 Evidence,,8,registrar,VARCHAR(100),N,,등록 주체
 Evidence,,9,update_date,TIMESTAMP,Y,,최종 수정 일시
 Evidence,,10,updater,VARCHAR(100),Y,,최종 수정 주체
 Evidence,,11,note,TEXT,Y,,추가 메모
-Evidence,document_assurance_statements,1,document_assurance_statement_id,BIGINT,N,PK,문서 assurance 식별자
+Evidence,doc_assur_stmt,1,doc_assur_stmt_id,BIGINT,N,PK,보증·검증 선언 식별자
 Evidence,,2,document_id,BIGINT,N,FK,대상 문서
-Evidence,,3,assurance_provider,VARCHAR(200),Y,,보증 기관 또는 검증 기관명
-Evidence,,4,assurance_type_code,VARCHAR(30),Y,,"보증 유형 코드(limited, reasonable, unknown 등)"
-Evidence,,5,assurance_scope_text,TEXT,Y,,보증 범위 설명
-Evidence,,6,assurance_standard_text,VARCHAR(200),Y,,적용 기준(ISAE 3000 등)
+Evidence,,3,assur_provider,VARCHAR(200),Y,,보증 기관 또는 검증 기관명
+Evidence,,4,assur_type_cd,VARCHAR(30),Y,,"보증 유형 코드(limited, reasonable, unknown 등)"
+Evidence,,5,assur_scope_txt,TEXT,Y,,보증 범위 설명
+Evidence,,6,assur_std_txt,VARCHAR(200),Y,,"적용 기준(ISAE 3000, AA1000 등)"
 Evidence,,7,evidence_id,BIGINT,Y,FK,근거 블록
 Evidence,,8,reg_date,TIMESTAMP,N,,레코드 등록 일시
 Evidence,,9,registrar,VARCHAR(100),N,,등록 주체
 Evidence,,10,update_date,TIMESTAMP,Y,,최종 수정 일시
 Evidence,,11,updater,VARCHAR(100),Y,,최종 수정 주체
 Evidence,,12,note,TEXT,Y,,추가 메모
-Strategy,company_climate_strategies,1,climate_strategy_id,BIGINT,N,PK,기후 전략 식별자
+Strategy,co_climate_strat,1,strat_id,BIGINT,N,PK,기후 전략 식별자
 Strategy,,2,company_id,BIGINT,N,FK,대상 회사
 Strategy,,3,period_id,BIGINT,N,FK,평가 기간
 Strategy,,4,entity_id,BIGINT,Y,FK,실제 보고 단위 엔티티
-Strategy,,5,parent_strategy_id,BIGINT,Y,FK,상위 전략
+Strategy,,5,parent_strat_id,BIGINT,Y,FK,상위 전략
 Strategy,,6,strategy_name,VARCHAR(500),N,,전략 또는 실행과제명
-Strategy,,7,strategy_type_code,VARCHAR(50),N,,"전략 유형(pillar, program, initiative, campaign 등)"
-Strategy,,8,strategy_category_code,VARCHAR(50),Y,,전략 카테고리 코드
-Strategy,,9,target_horizon_code,VARCHAR(30),Y,,"목표 기간(short, mid, long, netzero 등)"
-Strategy,,10,target_reference_text,TEXT,Y,,연결 목표 원문
-Strategy,,11,status_code,VARCHAR(30),Y,,"전략 상태(planned, in_progress, completed 등)"
-Strategy,,12,strategy_description,TEXT,Y,,전략 설명 원문
-Strategy,,13,source_document_id,BIGINT,Y,FK,근거 문서
+Strategy,,7,strat_type_cd,VARCHAR(50),N,,"전략 유형(pillar, program, initiative, campaign 등)"
+Strategy,,8,strat_cat_cd,VARCHAR(50),Y,,"전략 카테고리(transition, adaptation, risk, opportunity 등)"
+Strategy,,9,horizon_cd,VARCHAR(30),Y,,"목표 기간(short, mid, long, netzero 등)"
+Strategy,,10,target_ref,TEXT,Y,,연결 목표 원문
+Strategy,,11,status_cd,VARCHAR(30),Y,,"전략 상태(planned, in_progress, completed 등)"
+Strategy,,12,strat_desc,TEXT,Y,,전략 설명 원문
+Strategy,,13,src_doc_id,BIGINT,Y,FK,근거 문서
 Strategy,,14,evidence_id,BIGINT,Y,FK,근거 블록
 Strategy,,15,reg_date,TIMESTAMP,N,,레코드 등록 일시
 Strategy,,16,registrar,VARCHAR(100),N,,등록 주체
 Strategy,,17,update_date,TIMESTAMP,Y,,최종 수정 일시
 Strategy,,18,updater,VARCHAR(100),Y,,최종 수정 주체
 Strategy,,19,note,TEXT,Y,,추가 메모
-Strategy,company_climate_strategy_target_links,1,climate_strategy_target_link_id,BIGINT,N,PK,기후 전략-목표 연결 식별자
-Strategy,,2,climate_strategy_id,BIGINT,N,FK,기후 전략
-Strategy,,3,company_target_fact_id,BIGINT,Y,FK,연결된 회사 목표 fact
+Strategy,co_strat_target,1,strat_target_id,BIGINT,N,PK,기후 전략-목표 연결 식별자
+Strategy,,2,strat_id,BIGINT,N,FK,기후 전략
+Strategy,,3,co_target_id,BIGINT,Y,FK,연결된 회사 목표 fact
 Strategy,,4,target_type,VARCHAR(50),Y,,연결 목표 유형
-Strategy,,5,target_reference_text,TEXT,Y,,목표 연결 설명 원문
+Strategy,,5,target_ref,TEXT,Y,,목표 연결 설명 원문
 Strategy,,6,linkage_type,VARCHAR(30),N,,"연결 유형(primary, supporting, enabling 등)"
-Strategy,,7,source_document_id,BIGINT,Y,FK,근거 문서
+Strategy,,7,src_doc_id,BIGINT,Y,FK,근거 문서
 Strategy,,8,evidence_id,BIGINT,Y,FK,근거 블록
 Strategy,,9,reg_date,TIMESTAMP,N,,레코드 등록 일시
 Strategy,,10,registrar,VARCHAR(100),N,,등록 주체
 Strategy,,11,update_date,TIMESTAMP,Y,,최종 수정 일시
 Strategy,,12,updater,VARCHAR(100),Y,,최종 수정 주체
 Strategy,,13,note,TEXT,Y,,추가 메모
-Strategy,company_climate_strategy_progress,1,climate_strategy_progress_id,BIGINT,N,PK,기후 전략 진행상황 식별자
-Strategy,,2,climate_strategy_id,BIGINT,N,FK,기후 전략
+Strategy,co_strat_prog,1,strat_prog_id,BIGINT,N,PK,기후 전략 진행상황 식별자
+Strategy,,2,strat_id,BIGINT,N,FK,기후 전략
 Strategy,,3,period_id,BIGINT,N,FK,평가 기간
-Strategy,,4,progress_status_code,VARCHAR(30),N,,진행 상태 코드
-Strategy,,5,progress_summary,TEXT,Y,,진행 현황 요약
-Strategy,,6,source_document_id,BIGINT,Y,FK,근거 문서
+Strategy,,4,prog_status_cd,VARCHAR(30),N,,"진행 상태(on_track, delayed, completed 등)"
+Strategy,,5,prog_summary,TEXT,Y,,진행 현황 요약
+Strategy,,6,src_doc_id,BIGINT,Y,FK,근거 문서
 Strategy,,7,evidence_id,BIGINT,Y,FK,근거 블록
 Strategy,,8,reg_date,TIMESTAMP,N,,레코드 등록 일시
 Strategy,,9,registrar,VARCHAR(100),N,,등록 주체
 Strategy,,10,update_date,TIMESTAMP,Y,,최종 수정 일시
 Strategy,,11,updater,VARCHAR(100),Y,,최종 수정 주체
 Strategy,,12,note,TEXT,Y,,추가 메모
-Governance,company_climate_governance_disclosures,1,climate_governance_disclosure_id,BIGINT,N,PK,기후 거버넌스 공시 식별자
+Governance,co_climate_gov,1,climate_gov_id,BIGINT,N,PK,기후 거버넌스 공시 식별자
 Governance,,2,company_id,BIGINT,N,FK,대상 회사
 Governance,,3,period_id,BIGINT,N,FK,평가 기간
 Governance,,4,entity_id,BIGINT,Y,FK,실제 보고 단위 엔티티
-Governance,,5,governance_topic_code,VARCHAR(50),N,,"거버넌스 주제 코드(board_oversight, committee, management_role 등)"
-Governance,,6,governance_level_code,VARCHAR(50),Y,,"거버넌스 레벨(board, committee, executive 등)"
-Governance,,7,governing_body_name,VARCHAR(200),Y,,이사회 또는 위원회명
-Governance,,8,disclosure_text,TEXT,N,,공시 원문
-Governance,,9,source_document_id,BIGINT,Y,FK,근거 문서
+Governance,,5,gov_topic_cd,VARCHAR(50),N,,"거버넌스 주제 코드(board_oversight, committee, management_role, exec_kpi 등)"
+Governance,,6,gov_level_cd,VARCHAR(50),Y,,"거버넌스 레벨(board, committee, executive 등)"
+Governance,,7,gov_body_name,VARCHAR(200),Y,,이사회 또는 위원회명
+Governance,,8,disc_txt,TEXT,N,,공시 원문
+Governance,,9,src_doc_id,BIGINT,Y,FK,근거 문서
 Governance,,10,evidence_id,BIGINT,Y,FK,근거 블록
 Governance,,11,reg_date,TIMESTAMP,N,,레코드 등록 일시
 Governance,,12,registrar,VARCHAR(100),N,,등록 주체
 Governance,,13,update_date,TIMESTAMP,Y,,최종 수정 일시
 Governance,,14,updater,VARCHAR(100),Y,,최종 수정 주체
 Governance,,15,note,TEXT,Y,,추가 메모
-Lineage,fact_observations,1,fact_observation_id,BIGINT,N,PK,fact 관측 이력 식별자
-Lineage,,2,fact_table_name,VARCHAR(100),N,,원본 fact 테이블명
+Lineage,fact_obs,1,fact_obs_id,BIGINT,N,PK,fact 관측 이력 식별자
+Lineage,,2,fact_table,VARCHAR(100),N,,원본 fact 테이블명
 Lineage,,3,fact_row_id,BIGINT,Y,,연결된 fact row id
 Lineage,,4,company_id,BIGINT,N,FK,대상 회사
 Lineage,,5,period_id,BIGINT,Y,FK,평가 기간
 Lineage,,6,entity_id,BIGINT,Y,FK,실제 보고 단위 엔티티
-Lineage,,7,observation_run_id,VARCHAR(100),N,,배치 실행 또는 적재 실행 식별자
+Lineage,,7,obs_run_id,VARCHAR(100),N,,배치 실행 또는 적재 실행 식별자
 Lineage,,8,business_key_hash,VARCHAR(128),Y,,논리 fact 키 해시
-Lineage,,9,observation_status,VARCHAR(30),N,,관측 상태(latest, superseded, rejected 등)
-Lineage,,10,observation_payload,JSONB,N,,관측 payload JSON
-Lineage,,11,source_document_id,BIGINT,Y,FK,근거 문서
+Lineage,,9,obs_status,VARCHAR(30),N,,"관측 상태(latest, superseded, rejected 등)"
+Lineage,,10,obs_payload,JSONB,N,,관측 payload JSON
+Lineage,,11,src_doc_id,BIGINT,Y,FK,근거 문서
 Lineage,,12,evidence_id,BIGINT,Y,FK,근거 블록
 Lineage,,13,observed_at,TIMESTAMP,N,,관측 시각
 Lineage,,14,is_latest,BOOLEAN,N,,최신 관측 여부
@@ -526,13 +443,13 @@ Lineage,,16,registrar,VARCHAR(100),N,,등록 주체
 Lineage,,17,update_date,TIMESTAMP,Y,,최종 수정 일시
 Lineage,,18,updater,VARCHAR(100),Y,,최종 수정 주체
 Lineage,,19,note,TEXT,Y,,추가 메모
-Lineage,scoring_lineage_links,1,scoring_lineage_link_id,BIGINT,N,PK,점수 계산 계보 링크 식별자
+Lineage,score_link,1,score_link_id,BIGINT,N,PK,점수 계산 계보 링크 식별자
 Lineage,,2,scoring_run_id,BIGINT,N,FK,스코어링 실행
 Lineage,,3,variable_score_id,BIGINT,Y,FK,변수 점수
-Lineage,,4,assessment_id,BIGINT,Y,FK,평가
-Lineage,,5,assessment_item_id,BIGINT,Y,FK,평가 항목
-Lineage,,6,source_table_name,VARCHAR(100),N,,원천 테이블명
-Lineage,,7,source_row_id,BIGINT,Y,,원천 row id
+Lineage,,4,assessment_id,BIGINT,Y,,평가 ID(미사용-레거시 호환)
+Lineage,,5,assessment_item_id,BIGINT,Y,,평가 항목 ID(미사용-레거시 호환)
+Lineage,,6,src_table,VARCHAR(100),N,,원천 테이블명
+Lineage,,7,src_row_id,BIGINT,Y,,원천 row id
 Lineage,,8,document_id,BIGINT,Y,FK,관련 문서
 Lineage,,9,evidence_id,BIGINT,Y,FK,관련 근거 블록
 Lineage,,10,link_role,VARCHAR(30),N,,"링크 역할(input, reference, adjustment, evidence 등)"

@@ -79,6 +79,8 @@ const DASHBOARD_TABLES = [
   "doc_fw_adopt",
   "document_assurance_statements",
   "doc_assur_stmt",
+  "variable_scores",
+  "score_variables",
 ] as const;
 
 const HISTORY_TABLES = ["company_metric_facts", "co_metric", "reporting_periods", "rpt_period"] as const;
@@ -113,11 +115,17 @@ const SECTOR_CODES = new Set([
 const RELEVANT_METRIC_CODES = [
   "scope1_emissions",
   "scope_1_emissions",
+  "scope1_tco2e",
   "scope2_emissions",
   "scope_2_emissions",
+  "scope2_tco2e",
+  "scope2_market_tco2e",
+  "scope2_location_tco2e",
   "scope12_emissions",
   "scope1_2_emissions",
   "scope_1_2_emissions",
+  "scope12_tco2e",
+  "scope1_2_tco2e",
   "revenue",
   "green_capex",
   "green_capex_total",
@@ -129,11 +137,17 @@ const RELEVANT_METRIC_CODES = [
 const EMISSION_METRIC_CODES = [
   "scope1_emissions",
   "scope_1_emissions",
+  "scope1_tco2e",
   "scope2_emissions",
   "scope_2_emissions",
+  "scope2_tco2e",
+  "scope2_market_tco2e",
+  "scope2_location_tco2e",
   "scope12_emissions",
   "scope1_2_emissions",
   "scope_1_2_emissions",
+  "scope12_tco2e",
+  "scope1_2_tco2e",
 ] as const;
 
 function toNumber(value: unknown) {
@@ -277,9 +291,9 @@ function lookupCodeLabel(
 
 function metricKey(metricCode: string | null) {
   const normalized = (metricCode || "").toLowerCase();
-  if (["scope1_emissions", "scope_1_emissions"].includes(normalized)) return "scope1";
-  if (["scope2_emissions", "scope_2_emissions"].includes(normalized)) return "scope2";
-  if (["scope12_emissions", "scope1_2_emissions", "scope_1_2_emissions"].includes(normalized)) return "total";
+  if (["scope1_emissions", "scope_1_emissions", "scope1_tco2e"].includes(normalized)) return "scope1";
+  if (["scope2_emissions", "scope_2_emissions", "scope2_tco2e", "scope2_market_tco2e", "scope2_location_tco2e"].includes(normalized)) return "scope2";
+  if (["scope12_emissions", "scope1_2_emissions", "scope_1_2_emissions", "scope12_tco2e", "scope1_2_tco2e"].includes(normalized)) return "total";
   if (normalized === "revenue") return "revenue";
   if (["green_capex", "green_capex_total"].includes(normalized)) return "greenCapex";
   if (["capex_total", "total_capex"].includes(normalized)) return "totalCapex";
@@ -399,6 +413,7 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
                       cs.gv,
                       cs.cers_score,
                       cs.score_grade,
+                      cs.index_status,
                       ROW_NUMBER() OVER (
                         PARTITION BY sr.company_id
                         ORDER BY
@@ -801,7 +816,9 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
         (currentScope1 !== null || currentScope2 !== null ? (currentScope1 || 0) + (currentScope2 || 0) : null);
       const reductionPct = primaryTarget?.targetReductionPct ?? null;
       const targetEmissions =
-        (primaryTarget?.metricType === "absolute" || primaryTarget?.metricType === null
+        (primaryTarget?.targetType === "absolute" ||
+         primaryTarget?.metricType === "absolute" ||
+         primaryTarget?.metricType === null
           ? primaryTarget?.targetValue
           : null) ??
         (reductionPct !== null && baseYearMetrics
@@ -875,6 +892,7 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
         methodologyVersion: toText(latestRun?.version_name) || methodologyVersion,
         overallScore: normalizeOverallScore(latestRun?.cers_score),
         scoreGrade: toText(latestRun?.score_grade),
+        indexStatus: toText(latestRun?.index_status),
         sbase: normalizeOverallScore(latestRun?.sbase),
         cef: toNumber(latestRun?.cef),
         gv: toNumber(latestRun?.gv),
@@ -895,11 +913,16 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
           baseYear,
           targetYear: primaryTarget?.targetYear ?? null,
           netZeroYear: netZeroTarget?.targetYear ?? null,
-          targetType: primaryTarget?.metricType ?? primaryTarget?.targetType ?? null,
+          targetType:
+            primaryTarget?.targetType === "absolute" || primaryTarget?.targetType === "intensity"
+              ? primaryTarget.targetType
+              : primaryTarget?.metricType === "absolute" || primaryTarget?.metricType === "intensity"
+                ? primaryTarget.metricType
+                : primaryTarget?.targetType ?? null,
           targetTypeLabel:
-            primaryTarget?.metricType === "absolute"
+            primaryTarget?.targetType === "absolute" || primaryTarget?.metricType === "absolute"
               ? "Absolute Reduction"
-              : primaryTarget?.metricType === "intensity"
+              : primaryTarget?.targetType === "intensity" || primaryTarget?.metricType === "intensity"
                 ? "Intensity Reduction"
                 : humanizeCode(primaryTarget?.targetType),
           scopeCode: primaryTarget?.scopeCode ?? netZeroTarget?.scopeCode ?? null,
@@ -982,7 +1005,7 @@ export const getCompanyEmissionHistory = cache(async (companyId: string): Promis
          AND rp.fiscal_year IS NOT NULL
        GROUP BY rp.fiscal_year, mf.metric_code
        ORDER BY rp.fiscal_year ASC`,
-      [numericCompanyId, ["scope1_emissions", "scope_1_emissions", "scope2_emissions", "scope_2_emissions", "scope12_emissions", "scope1_2_emissions", "scope_1_2_emissions"]],
+      [numericCompanyId, ["scope1_emissions", "scope_1_emissions", "scope1_tco2e", "scope2_emissions", "scope_2_emissions", "scope2_tco2e", "scope2_market_tco2e", "scope2_location_tco2e", "scope12_emissions", "scope1_2_emissions", "scope_1_2_emissions", "scope12_tco2e", "scope1_2_tco2e"]],
     );
 
     const byYear = new Map<number, Record<string, number | null>>();

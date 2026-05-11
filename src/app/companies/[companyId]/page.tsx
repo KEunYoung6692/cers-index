@@ -3,12 +3,13 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, FileText } from "lucide-react";
 import { AppShell } from "@/components/cers/app-shell";
 import { CarbonNeutralRoadmapCard } from "@/components/cers/carbon-neutral-roadmap-card";
+import { CalculationStatusBadge } from "@/components/cers/calculation-status-badge";
+import { VariableScorePanel } from "@/components/cers/variable-score-panel";
+import { V3QualityChecklist } from "@/components/cers/v3-quality-checklist";
 import { Button } from "@/components/ui/button";
 import { getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
 import {
   formatCompactNumber,
-  formatEmissions,
-  formatPercent,
   formatScore,
   getIndustrySummaries,
 } from "@/lib/cers/public";
@@ -35,23 +36,6 @@ export async function renderCompanyDetailPage(
   const industryAverage = industry?.averageScore ?? null;
   const topPeers = industry?.companies.filter((peer) => peer.id !== company.id).slice(0, 3) || [];
   const emissionsHistory = await getCompanyEmissionHistory(company.id);
-  const latestEmissionPoint = emissionsHistory.at(-1);
-  const displayScope1 = latestEmissionPoint?.scope1Emissions ?? company.metrics.scope1Emissions;
-  const displayScope2 = latestEmissionPoint?.scope2Emissions ?? company.metrics.scope2Emissions;
-  const displayTotal =
-    latestEmissionPoint?.totalEmissions ??
-    company.metrics.totalEmissions ??
-    (displayScope1 !== null || displayScope2 !== null ? (displayScope1 || 0) + (displayScope2 || 0) : null);
-  const displayTargetEmissions =
-    company.targetSummary.targetEmissions ??
-    (company.targetSummary.reductionPct !== null && displayTotal !== null
-      ? displayTotal * (1 - company.targetSummary.reductionPct / 100)
-      : null);
-  const displayReductionPct =
-    company.targetSummary.reductionPct ??
-    (displayTotal !== null && displayTargetEmissions !== null && displayTotal > 0
-      ? ((displayTotal - displayTargetEmissions) / displayTotal) * 100
-      : null);
   const companyMetaLabel =
     company.sectorLabel && company.industryLabel && company.sectorLabel !== company.industryLabel
       ? `${company.sectorLabel} · ${company.industryLabel}`
@@ -69,7 +53,10 @@ export async function renderCompanyDetailPage(
         <section className="mt-6 rounded-[36px] border border-slate-200 bg-white p-6 shadow-elevated dark:border-slate-800 dark:bg-slate-950/80">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-3xl">
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">{companyMetaLabel}</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">{companyMetaLabel}</p>
+                <CalculationStatusBadge company={company} locale={locale} size="xs" />
+              </div>
               <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 md:text-3xl">{company.displayName}</h1>
               <p className="mt-4 text-base leading-8 text-slate-600 dark:text-slate-300">{company.interpretation}</p>
               <div className="mt-5 flex flex-wrap gap-2">
@@ -90,36 +77,18 @@ export async function renderCompanyDetailPage(
           </div>
         </section>
 
-        <section className="mt-6 grid gap-5 xl:grid-cols-4">
-          {company.categories.map((category) => (
-            <div key={category.code} className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
-              <div className="text-sm font-medium text-slate-500 dark:text-slate-400">{category.label}</div>
-              <div className="mt-3 text-2xl font-semibold tracking-tight text-teal-600">{formatScore(category.rawScore)}</div>
-              <div className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                {t.common.weightedContribution}: {formatScore(category.weightedScore)}
-              </div>
-            </div>
-          ))}
+        <section className="mt-6 grid gap-6 xl:grid-cols-[1fr_1.2fr]">
+          <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
+            <h2 className="mb-4 text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+              {locale === "ko" ? "변수별 점수 (V1 – V9)" : "Variable Scores (V1 – V9)"}
+            </h2>
+            <VariableScorePanel categories={company.categories} locale={locale} />
+          </div>
+          <V3QualityChecklist company={company} locale={locale} />
         </section>
 
         <section className="mt-6">
           <CarbonNeutralRoadmapCard company={company} emissionsHistory={emissionsHistory} locale={locale} />
-        </section>
-
-        <section className="mt-6 grid gap-4 lg:grid-cols-6">
-          {[
-            { label: t.companyDetail.kpis.scope1, value: formatEmissions(displayScope1) },
-            { label: t.companyDetail.kpis.scope2, value: formatEmissions(displayScope2) },
-            { label: t.companyDetail.kpis.total, value: formatEmissions(displayTotal) },
-            { label: t.companyDetail.kpis.targetYear, value: company.targetSummary.targetYear || "—" },
-            { label: t.companyDetail.kpis.targetEmissions, value: formatEmissions(displayTargetEmissions) },
-            { label: t.companyDetail.kpis.reductionPct, value: formatPercent(displayReductionPct) },
-          ].map((item) => (
-            <div key={item.label} className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
-              <div className="text-sm font-medium tracking-[0.02em] text-slate-600 dark:text-slate-300">{item.label}</div>
-              <div className="mt-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100 md:text-xl">{item.value}</div>
-            </div>
-          ))}
         </section>
 
         <section className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">

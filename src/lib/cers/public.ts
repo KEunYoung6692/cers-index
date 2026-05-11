@@ -36,6 +36,42 @@ const PUBLIC_CATEGORY_LABELS: Record<SupportedLocale, PublicCategorySeed[]> = {
   ],
 };
 
+const V_CATEGORY_LABELS: Record<SupportedLocale, Record<string, string>> = {
+  en: {
+    v1: "Scope 1·2 Emission Performance",
+    v2: "Scope 3 Disclosure & Management",
+    v3: "Target Design Quality",
+    v4: "Implementation Progress",
+    v5: "Climate Risk & Transition Plan",
+    v6: "Governance & Compensation",
+    v7: "Capital Allocation (CapEx)",
+    v8: "Reporting Boundary Transparency",
+    v9: "Third-Party Verification",
+  },
+  ko: {
+    v1: "Scope 1·2 배출성과",
+    v2: "Scope 3 공개·관리",
+    v3: "감축목표 품질",
+    v4: "목표 이행률",
+    v5: "기후 리스크·전환계획",
+    v6: "거버넌스·보상 연계",
+    v7: "자본배분 (CapEx)",
+    v8: "보고경계 투명성",
+    v9: "제3자 검증",
+  },
+  ja: {
+    v1: "Scope 1·2 排出実績",
+    v2: "Scope 3 開示・管理",
+    v3: "目標設計品質",
+    v4: "目標達成進捗",
+    v5: "気候リスク・移行計画",
+    v6: "ガバナンス・報酬連携",
+    v7: "資本配分 (CapEx)",
+    v8: "報告境界透明性",
+    v9: "第三者検証",
+  },
+};
+
 const SCORE_BUCKETS: Record<SupportedLocale, Array<{ min: number; label: string }>> = {
   en: [
     { min: 80, label: "Leading Performance" },
@@ -293,9 +329,16 @@ export function getPublicCategoryLabel(
   index: number,
   locale: SupportedLocale = "en",
 ) {
-  const normalizedCode = (code || "").toLowerCase();
+  const normalizedCode = (code || "").toLowerCase().trim();
   const normalizedName = (name || "").toLowerCase();
   const labels = PUBLIC_CATEGORY_LABELS[locale];
+  const vLabels = V_CATEGORY_LABELS[locale];
+
+  // V1-V9 variable codes
+  const vMatch = normalizedCode.match(/^v([1-9])$/);
+  if (vMatch) {
+    return vLabels[normalizedCode] || humanizeCode(name || code);
+  }
 
   if (
     normalizedCode.includes("cat1") ||
@@ -329,6 +372,156 @@ export function getPublicCategoryLabel(
   }
 
   return labels[index]?.label || humanizeCode(name || code);
+}
+
+export type CalculationStatus = "full" | "limited" | "disclosure_only" | "universe_only";
+
+export function deriveCalculationStatus(company: CersCompanyProfile): CalculationStatus {
+  if (company.indexStatus) {
+    if (company.indexStatus === "full_index") return "full";
+    if (company.indexStatus === "limited_index") return "limited";
+    if (company.indexStatus === "disclosure_only") return "disclosure_only";
+    if (company.indexStatus === "universe_only") return "universe_only";
+  }
+  if (company.overallScore === null) {
+    const hasDisclosure =
+      Boolean(company.targetSummary.targetYear) ||
+      Boolean(company.disclosure.hasThirdPartyAssurance) ||
+      company.disclosure.scope3DisclosedCategories > 0;
+    return hasDisclosure ? "disclosure_only" : "universe_only";
+  }
+  const scoredCategories = company.categories.filter((c) => c.rawScore !== null);
+  if (scoredCategories.length >= company.categories.length && company.categories.length > 0) {
+    return "full";
+  }
+  return "limited";
+}
+
+export type V3SubComponent = {
+  key: string;
+  labelEn: string;
+  labelKo: string;
+  score: 1 | 0.5 | 0 | null;
+  note: string | null;
+};
+
+export function deriveV3Quality(company: CersCompanyProfile): V3SubComponent[] {
+  const primary = company.targets.find(
+    (t) =>
+      t.disclosed !== false &&
+      t.targetType !== "netzero" &&
+      t.targetType !== "residual_neutralization",
+  );
+  const netZero = company.targets.find(
+    (t) => t.targetType === "netzero" && t.disclosed !== false,
+  );
+  const currentYear = company.targetSummary.currentYear ?? new Date().getFullYear();
+
+  const scopeNorm = (primary?.scopeCode ?? "").toLowerCase().replace(/[\s_-]/g, "");
+  let scopeScore: 1 | 0.5 | 0 = 0;
+  if (scopeNorm.includes("123")) scopeScore = 1;
+  else if (scopeNorm.includes("12")) scopeScore = 0.5;
+  else if (scopeNorm.includes("1") || scopeNorm.includes("2")) scopeScore = 0.5;
+
+  const targetTypeNorm = (primary?.targetType ?? "").toLowerCase();
+  let targetTypeScore: 1 | 0.5 | 0 = 0;
+  if (targetTypeNorm === "absolute") targetTypeScore = 1;
+  else if (targetTypeNorm === "intensity") targetTypeScore = 0.5;
+
+  const targetYear = primary?.targetYear ?? null;
+  let nearMidScore: 1 | 0.5 | 0 = 0;
+  if (targetYear !== null) {
+    const yearsOut = targetYear - currentYear;
+    if (yearsOut > 0 && yearsOut <= 10) nearMidScore = 1;
+    else if (netZero?.targetYear) nearMidScore = 0.5;
+  } else if (netZero?.targetYear) {
+    nearMidScore = 0.5;
+  }
+
+  const hasNetZero = Boolean(netZero?.targetYear);
+  let creditScore: 1 | 0.5 | 0 = 1;
+  if (hasNetZero) {
+    if (primary?.offsetUsage === false) creditScore = 1;
+    else if (primary?.offsetDependencyRatio !== null && primary?.offsetDependencyRatio !== undefined) {
+      creditScore = 0.5;
+    } else if (primary?.offsetUsage === true && !primary?.carbonRemovalPlan) {
+      creditScore = 0;
+    } else {
+      creditScore = 0;
+    }
+  }
+
+  let grossNetScore: 1 | 0.5 | 0 = 0;
+  if (!hasNetZero) {
+    grossNetScore = 1;
+  } else if (primary?.residualDefined === true) {
+    grossNetScore = 1;
+  } else if (primary?.residualDefined === false) {
+    grossNetScore = 0;
+  } else {
+    grossNetScore = 0.5;
+  }
+
+  return [
+    {
+      key: "base_year",
+      labelEn: "Base year",
+      labelKo: "기준연도",
+      score: primary?.baseYear ? 1 : 0,
+      note: primary?.baseYear ? String(primary.baseYear) : null,
+    },
+    {
+      key: "target_year",
+      labelEn: "Target year",
+      labelKo: "목표연도",
+      score: targetYear ? 1 : netZero?.targetYear ? 0.5 : 0,
+      note: targetYear ? String(targetYear) : netZero?.targetYear ? `Net Zero ${netZero.targetYear}` : null,
+    },
+    {
+      key: "reduction_rate",
+      labelEn: "Reduction rate",
+      labelKo: "감축률",
+      score: primary?.targetReductionPct !== null && primary?.targetReductionPct !== undefined ? 1 : 0,
+      note: primary?.targetReductionPct !== null && primary?.targetReductionPct !== undefined
+        ? `${primary.targetReductionPct.toFixed(0)}%`
+        : null,
+    },
+    {
+      key: "scope_coverage",
+      labelEn: "Scope coverage",
+      labelKo: "Scope 범위",
+      score: scopeScore,
+      note: primary?.scopeCode ? humanizeCode(primary.scopeCode) : null,
+    },
+    {
+      key: "target_type",
+      labelEn: "Target type",
+      labelKo: "목표유형",
+      score: targetTypeScore,
+      note: primary?.targetType ? humanizeCode(primary.targetType) : null,
+    },
+    {
+      key: "near_mid_term",
+      labelEn: "Near/mid-term",
+      labelKo: "단·중기 목표",
+      score: nearMidScore,
+      note: nearMidScore === 1 ? `${targetYear}` : nearMidScore === 0.5 ? "Long-term only" : null,
+    },
+    {
+      key: "gross_net_separation",
+      labelEn: "Gross/net separation",
+      labelKo: "총/순배출 구분",
+      score: grossNetScore,
+      note: grossNetScore === 1 && !hasNetZero ? "Not applicable" : null,
+    },
+    {
+      key: "credit_transparency",
+      labelEn: "Carbon credit transparency",
+      labelKo: "탄소크레딧 투명성",
+      score: creditScore,
+      note: creditScore === 1 && !hasNetZero ? "Not applicable" : null,
+    },
+  ];
 }
 
 export function scoreToBand(score: number | null | undefined, locale: SupportedLocale = "en") {

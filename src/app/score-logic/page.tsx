@@ -1,4 +1,4 @@
-import ScoreLogic from "@/components/cers/score-logic";
+import ScoreLogic from "@/components/cers/score-logic-v3";
 import { AppShell } from "@/components/cers/app-shell";
 import type { SupportedLocale } from "@/lib/cers/i18n";
 

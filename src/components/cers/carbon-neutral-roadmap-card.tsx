@@ -372,7 +372,7 @@ export function CarbonNeutralRoadmapCard({
             </div>
           </div>
 
-          <div className="h-[340px]">
+          <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={chartPoints} margin={{ top: 52, right: 16, left: 10, bottom: 12 }}>
                 <defs>

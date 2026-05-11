@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { formatEmissions, formatScore } from "@/lib/cers/public";
+import { formatScore } from "@/lib/cers/public";
 import { getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
 import type { CersCompanyProfile } from "@/lib/cers/types";
+import { CalculationStatusBadge } from "./calculation-status-badge";
 
 type CompanyCardProps = {
   company: CersCompanyProfile;
@@ -27,7 +28,10 @@ export function CompanyCard({ company, compact = false, locale = "en", showSecto
     >
       <div className="mb-4 flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">{primaryMeta}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">{primaryMeta}</p>
+            <CalculationStatusBadge company={company} locale={locale} size="xs" />
+          </div>
           {secondaryMeta && <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{secondaryMeta}</p>}
           <h3 className="mt-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">{company.displayName}</h3>
         </div>
@@ -37,19 +41,6 @@ export function CompanyCard({ company, compact = false, locale = "en", showSecto
           {scoreYear !== null && <div className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">{t.common.fiscalYearLabel(scoreYear)}</div>}
         </div>
       </div>
-
-      {!compact && (
-        <div className="mb-4 grid grid-cols-2 gap-3 rounded-2xl bg-slate-50 p-3 text-sm dark:bg-slate-900">
-          <div>
-            <div className="text-xs uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">{t.companyDetail.roadmapCards.currentTotalEmissions}</div>
-            <div className="mt-1 font-medium text-slate-900 dark:text-slate-100">{formatEmissions(company.metrics.totalEmissions)}</div>
-          </div>
-          <div>
-            <div className="text-xs uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">{t.companyDetail.roadmapCards.targetYear}</div>
-            <div className="mt-1 font-medium text-slate-900 dark:text-slate-100">{company.targetSummary.targetYear || "—"}</div>
-          </div>
-        </div>
-      )}
 
       <p className="mb-4 text-sm leading-6 text-slate-600 dark:text-slate-300">{company.summary}</p>
 

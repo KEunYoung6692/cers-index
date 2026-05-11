@@ -106,6 +106,7 @@ export type CersCompanyProfile = {
   methodologyVersion: string | null;
   overallScore: number | null;
   scoreGrade: string | null;
+  indexStatus: string | null;
   sbase: number | null;
   cef: number | null;
   gv: number | null;

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Target, TrendingDown } from "lucide-react";
 import { AppShell } from "@/components/cers/app-shell";
-import { CompanyCard } from "@/components/cers/company-card";
 import { HomeScoreLeaderboard } from "@/components/cers/home-score-leaderboard";
 import { IndustryCard } from "@/components/cers/industry-card";
 import { getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
@@ -9,7 +8,6 @@ import {
   formatPercent,
   formatScore,
   getClearTargetCompanies,
-  getFeaturedCompanies,
   getIndustrySummaries,
   getNetZeroCompanies,
   getTopScoringCompanies,
@@ -22,7 +20,6 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
   const t = getTranslations(locale);
   const data = await getCersDashboardData(locale);
   const industries = getIndustrySummaries(data, locale);
-  const featuredCompanies = getFeaturedCompanies(data, 3);
   const topScorers = getTopScoringCompanies(data, 4);
   const clearTargets = getClearTargetCompanies(data, 3);
   const netZeroCompanies = getNetZeroCompanies(data, 3);
@@ -34,24 +31,6 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
           <div>
             <HomeScoreLeaderboard companies={data.companies} categories={data.categories} locale={locale} />
           </div>
-        </div>
-      </section>
-
-      <section className="container py-8">
-        <div className="mb-6 flex items-end justify-between gap-4">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400">{t.home.featuredEyebrow}</p>
-            <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.home.featuredTitle}</h2>
-          </div>
-          <Link href={localizedPath(locale, "/companies")} className="inline-flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-teal-700 dark:text-slate-200 dark:hover:text-teal-300">
-            {t.home.browseAllCompanies}
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-        <div className="grid gap-5 xl:grid-cols-3">
-          {featuredCompanies.map((company) => (
-            <CompanyCard key={company.id} company={company} compact locale={locale} />
-          ))}
         </div>
       </section>
 
@@ -140,7 +119,7 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
           </Link>
         </div>
         <div className="grid gap-5 xl:grid-cols-3">
-          {industries.slice(0, 6).map((industry) => (
+          {industries.slice(0, 3).map((industry) => (
             <IndustryCard key={industry.industryCode} industry={industry} locale={locale} />
           ))}
         </div>

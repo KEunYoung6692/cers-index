@@ -76,9 +76,9 @@ const ENGLISH_COPY = {
     industryTitle: "Explore by sector",
     seeAllIndustries: "See all sectors",
     scoreMeaningEyebrow: "What the score means",
-    scoreMeaningTitle: "A public-friendly view of climate performance",
+    scoreMeaningTitle: "A public view of climate transition reliability",
     scoreMeaningDescription:
-      "The score combines four plain-language dimensions: actual reduction performance, target clarity, execution readiness, and disclosure level. It is designed to help users scan corporate transition quality quickly, without reading a full methodology paper.",
+      "The score turns public climate evidence into a 1-100 view of transition reliability, combining emissions performance, target quality, governance, capital-allocation traceability, reporting boundaries, and assurance.",
     learnMore: "Learn more about the score",
   },
   companies: {
@@ -264,112 +264,194 @@ const ENGLISH_COPY = {
     eyebrow: "About the Score",
     title: "How the score works",
     description:
-      "This page summarizes the revised CERs methodology at a high level. It shows how ten variables roll into four weighted categories, how the base score is formed, and why the final score can change after risk adjustments.",
+      "CERs Index is a public-data-based climate transition reliability index aligned to CDP. This page explains what it measures and how the final score is organized.",
     logicCta: "View detailed logic",
-    logicCtaHint: "Open the technical reference with formulas, weights, and scoring rules.",
+    logicCtaHint: "Open the full formula, variable, and weighting page.",
     backToOverview: "Back to score overview",
+    formulaTitle: "Current CERs Index equation",
+    formulaDescription:
+      "The public score is built in three steps: score each variable, apply the P2 reliability coefficient when sources disagree, and transform the weighted internal score into a 1-100 index. The clamp step keeps the displayed range bounded without negative scores or oversized bonuses.",
+    formulaSteps: [
+      {
+        id: "adjusted",
+        title: "1. Reliability-adjusted variable score",
+        formula: "S_{\\mathrm{adjusted},v} = S_v \\times K_{\\mathrm{P2},v}",
+      },
+      {
+        id: "total",
+        title: "2. Weighted internal score",
+        formula: "S_{\\mathrm{total}}(i,t) = \\sum_v W_{v,g(i)} \\times S_{\\mathrm{adjusted}}(v,i,t)",
+      },
+      {
+        id: "index",
+        title: "3. Public CERs Index",
+        formula: "\\mathrm{CERs\\ Index}(i,t) = 1 + 99 \\times \\operatorname{clamp}(S_{\\mathrm{total}}(i,t), 0, 1)",
+      },
+    ],
+    formulaDefinitionsTitle: "What the symbols mean",
+    formulaDefinitions: [
+      { key: "S_v", label: "Raw variable score for V1-V9 on a 0-1 scale" },
+      {
+        key: "K_P2,v",
+        label: "Reliability coefficient applied when reported evidence conflicts with GIR, DART, or assurance evidence",
+      },
+      {
+        key: "W_v,g",
+        label: "Industry-specific variable weight derived from CDP 2025 Climate Change question mapping",
+      },
+      { key: "g(i)", label: "CERs industry group assigned to company i" },
+    ],
+    formulaNoteLabel: "Method note",
+    formulaNote:
+      "CDP is the primary methodology backbone. When a variable is truly not applicable, its denominator is removed and the remaining weights are renormalized. P1 is not a standalone variable; carbon-credit dependence is absorbed into V3 credit transparency.",
     meaningTitle: "What this score is for",
     meaningDescription:
-      "CERs Index is a public summary of transition quality. It organizes reported emissions, targets, governance, investment, and assurance evidence into one comparable view, but it should still be read with sector context.",
+      "CERs Index is not an ESG overall rating. It is a public-data-based climate transition reliability index designed to show whether emissions reduction, target design, governance, capital allocation, reporting boundaries, and assurance stand up across public sources.",
     meaningPoints: [
-      "Builds ten variables from reported emissions, targets, capex, governance, assurance, and decision-use evidence",
-      "Keeps fixed top-level category weights while adapting variable weights to data validity and sector context",
-      "Applies final credibility adjustments for CBAM exposure and divergence between apparent and real performance",
+      "Scores nine variables using sustainability reports, DART, KRX ESG, GIR, and assurance statements as the main public evidence base",
+      "Shows climate transition reliability and carbon-risk response rather than ESG marketing language or carbon-credit value",
+      "Uses industry-specific weights derived from CDP 2025 Climate Change Management and Leadership scoring denominators",
+      "Uses MSCI only as a secondary exposure-management lens for industry interpretation",
+      "Reduces variable scores through P2 when reported claims conflict with GIR, DART, or assurance evidence",
     ],
-    logicTitle: "How the revised score is built",
+    logicTitle: "How the current score is built",
     logicDescription:
-      "The revised logic starts by scoring V1-V10, then combines them through fixed category weights and dynamic within-category weighting rules before external adjustments are applied.",
+      "The current methodology scores V1-V9 first, applies P2 reliability coefficients to the affected variables, and then converts the weighted internal total into the public 1-100 CERs Index.",
     logicSteps: [
       {
-        title: "Score ten variables from public evidence",
+        title: "Score V1-V9 from public evidence",
         description:
-          "V1-V10 cover actual decarbonization, target pathway alignment, capital allocation, governance linkage, assurance quality, and embedded decision tools.",
+          "Each variable is normalized to 0-1 using the current v0.3 rules for emissions performance, targets, transition planning, governance, capex traceability, boundary transparency, and assurance.",
       },
       {
-        title: "Combine them into four fixed categories",
+        title: "Apply P2 reliability adjustment where sources conflict",
         description:
-          "The top-level methodology keeps category weights at 0.40, 0.25, 0.20, and 0.15 so real decarbonization remains the anchor.",
+          "If key figures disagree across report text, GIR, DART, or assurance statements, the affected variable is multiplied by K_P2,v instead of being accepted at face value.",
       },
       {
-        title: "Rebalance weights inside each category",
+        title: "Calculate industry-specific weights",
         description:
-          "Variable weights are filtered for missingness, informed by entropy, protected with shrinkage, adjusted for sector materiality, and smoothed over time.",
+          "W_v,g is not hand-set. It is derived from CDP 2025 Climate Change question mapping using Management and Leadership denominators for each CERs industry group.",
       },
       {
-        title: "Apply final credibility adjustments",
+        title: "Convert the internal total into the public index",
         description:
-          "The weighted base score becomes the final score only after CBAM exposure and greenwashing divergence checks are applied.",
+          "The weighted sum is clamped to 0-1 and transformed to the displayed 1-100 CERs Index with the current public formula.",
       },
     ],
-    dimensionsTitle: "What the four weighted areas look at",
+    dimensionsTitle: "What the nine variables assess",
     dimensionsDescription:
-      "These are the public-facing labels for four methodology buckets. Each one maps to specific variables and fixed category weights.",
+      "The current v0.3 public score is built from nine variables. Some variables can be marked NA and trigger weight renormalization, but the index is still anchored in this set.",
     roadmapTitle: "How to read the roadmap",
     industryTitle: "Why industry comparison matters",
     industryDescription:
-      "Sector context matters twice: it shapes peer comparison, and it also affects material Scope 3 categories, bounded Cat 1 reweighting, and small-sample protection in the underlying method.",
+      "Industry context is built directly into the equation. Material Scope 3 categories and W_v,g both depend on the CERs industry group, so the same disclosure can matter differently across sectors.",
     readingTitle: "How to interpret the result",
     readingCards: [
       {
-        title: "Read the base score separately",
+        title: "Read the 1-100 score as a transformed value",
         description:
-          "A strong S_base can still move after CBAM exposure and greenwashing divergence adjustments are applied.",
+          "The displayed score is not a simple percentage. It is 1 + 99 × clamp(S_total, 0, 1), so movement reflects changes in the weighted internal total.",
       },
       {
-        title: "Read target pathways, not only target presence",
+        title: "Read P2 as a reliability check",
         description:
-          "Short-, mid-, and long-term alignment and net-zero validity matter more than a single target announcement.",
+          "A P2 reduction is not a direct greenwashing verdict. It is a variable-level reliability adjustment triggered when public sources disagree and need manual review.",
+      },
+      {
+        title: "Check whether the company is Full or Limited",
+        description:
+          "Some companies can still receive a Limited Index when core variables are available but some conditional variables remain missing or not applicable.",
       },
       {
         title: "Compare within sector first",
         description:
-          "The method still depends on sector context, especially for material Scope 3 categories and relative transition conditions.",
+          "Because material Scope 3 categories and CDP-derived weights vary by industry group, within-sector comparison is usually the cleaner first read.",
       },
     ],
     faqTitle: "FAQ",
     dimensions: [
       {
-        title: "Actual Reduction Performance",
+        title: "V1. Scope 1 and 2 emissions performance",
         description:
-          "This anchor category combines intensity improvement with absolute-emissions checks, then adds Scope 3 transparency in material value-chain categories.",
-        weight: "40%",
+          "Checks whether combined Scope 1 and 2 emissions intensity improves over time and whether absolute emissions are at least not rising.",
         bullets: [
-          "V1 intensity improvement with absolute bonus and penalty",
-          "V2 Scope 3 data quality, material categories, and primary-data use",
-          "Bounded reweighting inside Cat 1 based on sector carbon intensity",
+          "Uses a 3-year annualized intensity-improvement rate where available",
+          "Absolute emissions growth reduces the score even if intensity improves",
         ],
       },
       {
-        title: "Target Clarity",
+        title: "V2. Material Scope 3 disclosure and management",
         description:
-          "Targets are treated as a pathway. Near-, mid-, and long-term alignment and the validity of the net-zero claim are scored separately.",
-        weight: "25%",
+          "Checks whether the company quantifies and manages the Scope 3 categories that are material for its CERs industry group.",
         bullets: [
-          "V3-V5 short-, mid-, and long-term target alignment",
-          "Penalty strength increases when near-term delivery misses the path",
-          "V6 net-zero validity and residual-neutralization credibility",
+          "Material categories depend on the assigned industry group g",
+          "Clearly non-applicable categories are removed from the denominator",
         ],
       },
       {
-        title: "Execution Readiness",
+        title: "V3. Target design quality",
         description:
-          "Execution looks for capital and incentive evidence. The score checks whether transition ambition is backed by funding and management linkage.",
-        weight: "20%",
+          "Checks whether the reduction target is structurally traceable rather than a broad ambition statement.",
         bullets: [
-          "V7 green capex share with brown-capex penalty",
-          "V8 executive compensation linkage to climate KPI delivery",
-          "Resource allocation matters more than narrative alone",
+          "Looks at base year, target year, reduction rate, scope coverage, target type, and credit transparency",
+          "Net-zero claims without gross-emissions clarity score poorly",
         ],
       },
       {
-        title: "Disclosure Level",
+        title: "V4. Delivery against the target path",
         description:
-          "This category is about evidence quality and decision-use integrity, not only disclosure volume.",
-        weight: "15%",
+          "Checks whether actual performance is tracking the disclosed reduction path and whether concrete reduction initiatives are evidenced.",
         bullets: [
-          "V9 assurance quality across standard, level, provider, and evidence depth",
-          "V10 embedded decision tools such as ICP, MACC, and climate-linked investment review",
-          "Reported climate processes need to show operational use, not only mention",
+          "Compares current performance with the linear path from base year to target year",
+          "Reduction initiatives need scope, timing, and evidence to score well",
+        ],
+      },
+      {
+        title: "V5. Climate risk and transition-plan identification",
+        description:
+          "Checks whether the company identifies physical and transition risks, opportunities, time horizons, financial impact, and transition levers.",
+        bullets: [
+          "Uses an arithmetic mean across seven public planning signals",
+          "General narrative without company-specific detail stays partial",
+        ],
+      },
+      {
+        title: "V6. Board oversight, accountability, and pay linkage",
+        description:
+          "Checks whether climate oversight sits with the board, is assigned to management, and links to executive compensation with documentable evidence.",
+        bullets: [
+          "Uses a geometric mean so missing governance links weaken the whole variable",
+          "This is evidence of linkage between climate KPIs and executive pay, not a compensation-linkage rate",
+          "General ESG oversight is not enough on its own",
+        ],
+      },
+      {
+        title: "V7. Capital allocation and traceability",
+        description:
+          "Checks whether the transition investment story can be tied to real capex or, for financials, to transition-finance allocation.",
+        bullets: [
+          "This is a traceability variable, not a perfect green-capex estimator",
+          "Traceability against DART or financial statements matters as much as the green investment claim",
+          "If the variable is not applicable, the remaining weights are renormalized",
+        ],
+      },
+      {
+        title: "V8. Emissions accounting and boundary transparency",
+        description:
+          "Checks whether organizational, operational, and financial boundaries are clearly aligned with reporting methodology.",
+        bullets: [
+          "Covers calculation standards, emission factors, Scope 2 method, and restatement disclosure",
+          "Boundary mismatches can also trigger a P2 reduction",
+        ],
+      },
+      {
+        title: "V9. Third-party assurance and data reliability",
+        description:
+          "Checks whether emissions and key climate data are independently assured, at what level, and across which scopes.",
+        bullets: [
+          "Assurance existence, quality, and scope coverage are all required",
+          "Scope 3 assurance matters more when those categories are material",
         ],
       },
     ],
@@ -392,24 +474,24 @@ const ENGLISH_COPY = {
     ],
     faqs: [
       {
-        question: "Why can a strong base score still end lower than expected?",
+        question: "What happens when data is missing or not disclosed?",
         answer:
-          "Because the final score applies external adjustments after the weighted base score is formed. CBAM exposure and greenwashing divergence can both reduce the headline result.",
+          "Non-disclosed items are generally scored zero. Truly non-applicable items can be excluded from the denominator, and unresolved collection failures should not be finalized as a confirmed score.",
       },
       {
-        question: "What happens when data is missing?",
+        question: "Why can a strong climate narrative still receive a modest score?",
         answer:
-          "Variables with more than 30% missingness can be excluded from sector-level weighting. Lower missingness can be median-filled, and Scope 3 uses a glide-path penalty rather than a flat replacement.",
+          "Because the model requires operational evidence across V1, V4, V7, V8, and V9. Public claims can also be reduced through P2 when source documents do not match.",
       },
       {
-        question: "Why is Scope 3 included in performance instead of disclosure only?",
+        question: "Why are weights not assigned manually?",
         answer:
-          "Because the revised method treats material value-chain transparency as part of actual decarbonization quality. In some sectors, real transition credibility is incomplete without it.",
+          "The current method derives W_v,g from CDP 2025 Climate Change question mapping using Management and Leadership denominators rather than subjective fixed weights.",
       },
       {
-        question: "Does the score only reward narrative and commitments?",
+        question: "How are carbon credits handled?",
         answer:
-          "No. The score still anchors on V1 and V2, then checks whether targets, capex, governance, assurance, and decision tools are supported by evidence and actual pathway delivery.",
+          "Carbon-credit dependence is not scored as a standalone bonus or penalty. It is absorbed into V3 through credit-transparency checks on gross versus net target design.",
       },
     ],
   },
@@ -503,9 +585,9 @@ const KOREAN_COPY: Translation = {
     industryTitle: "섹터별로 살펴보기",
     seeAllIndustries: "전체 섹터 보기",
     scoreMeaningEyebrow: "점수 해석",
-    scoreMeaningTitle: "일반 사용자도 이해하기 쉬운 기후 성과 뷰",
+    scoreMeaningTitle: "기후전환 신뢰도를 보는 공개 지표",
     scoreMeaningDescription:
-      "이 점수는 실질 감축 성과, 목표 명확성, 실행 준비도, 공시 수준의 네 가지 축을 합쳐 보여줍니다. 복잡한 방법론 문서를 읽지 않아도 기업 전환의 질을 빠르게 훑어볼 수 있도록 설계했습니다.",
+      "이 점수는 공개된 기후 근거를 1~100 범위의 전환 신뢰도 지표로 바꿔 보여주며, 배출 성과, 목표 품질, 거버넌스, 자본배분 추적성, 보고경계, 검증 수준을 함께 반영합니다.",
     learnMore: "점수 더 알아보기",
   },
   companies: {
@@ -688,108 +770,185 @@ const KOREAN_COPY: Translation = {
     eyebrow: "점수 소개",
     title: "점수는 어떻게 만들어지나",
     description:
-      "이 페이지는 개정된 CERs 방법론을 요약해서 보여줍니다. 10개 변수, 4개 고정 가중 카테고리, 기초점수 형성, 그리고 최종 위험 보정까지를 수식 없이 설명합니다.",
-    logicCta: "로직 상세보기",
-    logicCtaHint: "수식, 가중치, 세부 산정 규칙이 담긴 기술 참고 페이지를 엽니다.",
-    backToOverview: "점수 소개로 돌아가기",
+      "CERs Index는 CDP에 정렬된 공개자료 기반 기후전환 신뢰도 인덱스입니다. 이 페이지는 무엇을 보고, 최종 점수가 어떤 구조로 만들어지는지 설명합니다.",
+    logicCta: "상세 로직 보기",
+    logicCtaHint: "전체 수식, 변수, 가중치 구조를 자세히 봅니다.",
+    backToOverview: "점수 개요로 돌아가기",
+    formulaTitle: "현재 CERs Index 전체 수식",
+    formulaDescription:
+      "공개 점수는 세 단계로 만들어집니다. 먼저 변수점수를 계산하고, 출처가 충돌하면 P2 신뢰도 계수를 적용한 다음, 가중 내부점수를 1~100 CERs Index로 변환합니다. clamp 단계는 음수 점수와 과도한 보너스를 막으면서 표시 범위를 고정합니다.",
+    formulaSteps: [
+      {
+        id: "adjusted",
+        title: "1. 신뢰도 보정 변수점수",
+        formula: "S_{\\mathrm{adjusted},v} = S_v \\times K_{\\mathrm{P2},v}",
+      },
+      {
+        id: "total",
+        title: "2. 가중 내부점수",
+        formula: "S_{\\mathrm{total}}(i,t) = \\sum_v W_{v,g(i)} \\times S_{\\mathrm{adjusted}}(v,i,t)",
+      },
+      {
+        id: "index",
+        title: "3. 공개 CERs Index",
+        formula: "\\mathrm{CERs\\ Index}(i,t) = 1 + 99 \\times \\operatorname{clamp}(S_{\\mathrm{total}}(i,t), 0, 1)",
+      },
+    ],
+    formulaDefinitionsTitle: "기호 설명",
+    formulaDefinitions: [
+      { key: "S_v", label: "V1~V9의 원점수로, 0~1 범위에서 계산됩니다" },
+      {
+        key: "K_P2,v",
+        label: "보고서 주장과 GIR, DART, 검증 근거가 충돌할 때 적용하는 신뢰도 계수입니다",
+      },
+      {
+        key: "W_v,g",
+        label: "CDP 2025 Climate Change 질문 매핑으로 계산한 산업군별 변수 가중치입니다",
+      },
+      { key: "g(i)", label: "기업 i에 부여된 CERs 산업군입니다" },
+    ],
+    formulaNoteLabel: "방법론 메모",
+    formulaNote:
+      "CDP가 현재 방법론의 주된 뼈대입니다. 변수가 명확히 비해당이면 해당 분모를 제외하고 남은 가중치를 재정규화합니다. P1은 별도 변수로 두지 않고, 탄소크레딧 의존도를 V3의 크레딧 투명성에 흡수합니다.",
     meaningTitle: "이 점수의 용도",
     meaningDescription:
-      "CERs Index는 기업의 전환 품질을 공개 정보 기준으로 비교하기 위한 요약 점수입니다. 보고된 배출량, 목표, 거버넌스, 투자, 검증 근거를 하나의 화면으로 모으지만, 해석은 여전히 섹터 맥락과 함께 이뤄져야 합니다.",
+      "CERs Index는 ESG 종합등급이 아닙니다. 공개자료를 바탕으로 실제 배출 감축, 목표 설계, 거버넌스, 자본배분, 보고경계, 검증 수준이 공적 근거와 맞아떨어지는지를 보여주는 기후전환 신뢰도 인덱스입니다.",
     meaningPoints: [
-      "보고된 배출량, 목표, CAPEX, 거버넌스, 보증, 의사결정 도구 근거로 10개 변수를 만듭니다",
-      "상위 카테고리 가중치는 고정하되, 하위 변수 가중치는 데이터 유효성과 섹터 맥락에 따라 달라집니다",
-      "기초점수 이후에도 CBAM 노출과 그린워싱 괴리 보정이 최종 점수에 반영됩니다",
+      "지속가능경영보고서, DART, KRX ESG, GIR, 검증의견서를 중심으로 한 공개 근거를 9개 변수로 점수화합니다",
+      "ESG 홍보문구나 탄소크레딧 가치가 아니라 기후전환 신뢰도와 탄소리스크 대응 수준을 보여줍니다",
+      "가중치는 임의로 정하지 않고, CDP 2025 Climate Change의 Management 및 Leadership denominator를 기반으로 산업별로 계산합니다",
+      "MSCI는 원점수 산식이 아니라 산업별 해석을 돕는 exposure-management 보조 프레임으로만 사용합니다",
+      "보고서 주장과 GIR, DART, 검증 근거가 충돌하면 P2 계수로 해당 변수점수를 낮춥니다",
     ],
-    logicTitle: "개정된 점수는 이렇게 만들어집니다",
+    logicTitle: "현재 점수는 이렇게 만들어집니다",
     logicDescription:
-      "개정 로직은 먼저 V1-V10을 산정한 뒤, 고정된 대분류 가중치와 동적 하위 가중치 규칙으로 기초점수를 만들고, 마지막에 외생 조정항을 적용합니다.",
+      "현재 방법론은 먼저 V1~V9를 산정하고, 출처 불일치가 있는 변수에는 P2 계수를 반영한 뒤, 산업별 가중 내부총점을 공개용 1~100 CERs Index로 변환합니다.",
     logicSteps: [
       {
-        title: "공개 근거에서 10개 변수를 산정합니다",
+        title: "공개 근거에서 V1~V9를 산정합니다",
         description:
-          "V1-V10은 실제 탈탄소 성과, 목표 경로 정렬, 자본 배분, 경영 연계, 검증 품질, 의사결정 도구 내재화를 함께 봅니다.",
+          "각 변수는 v0.3 기준에 따라 0~1로 정규화되며, 배출 성과, 목표 설계, 전환계획, 거버넌스, 투자 추적성, 경계 투명성, 검증 수준을 함께 봅니다.",
       },
       {
-        title: "네 개 대분류로 묶고 고정 가중치를 적용합니다",
+        title: "출처 충돌이 있으면 P2 신뢰도 보정을 적용합니다",
         description:
-          "상위 카테고리 가중치는 0.40, 0.25, 0.20, 0.15로 고정해 실질 탈탄소 성과를 가장 크게 둡니다.",
+          "핵심 수치가 보고서, GIR, DART, 검증의견서 사이에서 맞지 않으면 해당 변수는 그대로 인정하지 않고 K_P2,v를 곱해 신뢰도를 낮춥니다.",
       },
       {
-        title: "카테고리 내부 가중치를 다시 조정합니다",
+        title: "산업별 변수 가중치를 계산합니다",
         description:
-          "결측률, 엔트로피, 베이지안 축소, 산업 중대성, 시계열 평활화를 반영해 실제 적용 가중치를 확정합니다.",
+          "W_v,g는 손으로 정한 값이 아니라, CERs 산업군별 CDP 2025 Climate Change 질문 매핑과 Management 및 Leadership denominator로 산출됩니다.",
       },
       {
-        title: "최종 신뢰도 보정을 적용합니다",
+        title: "내부총점을 공개 점수로 변환합니다",
         description:
-          "기초점수 이후에도 CBAM 노출 계수와 그린워싱 괴리 패널티가 작동해 최종 점수가 달라질 수 있습니다.",
+          "가중합 내부점수는 0~1 범위로 제한한 뒤 1 + 99 × clamp(...) 공식을 적용해 화면에 보이는 CERs Index로 변환합니다.",
       },
     ],
-    dimensionsTitle: "네 개 가중 카테고리는 무엇을 보나",
+    dimensionsTitle: "현재 9개 변수는 무엇을 보나",
     dimensionsDescription:
-      "공개 화면의 라벨은 단순하지만, 실제 방법론에서는 아래 변수들과 고정 가중치에 연결됩니다.",
+      "현재 v0.3 공개 점수는 아래 9개 변수로 구성됩니다. 일부 변수는 비해당 처리 후 가중치가 재정규화될 수 있지만, 전체 지수는 이 집합을 기준으로 계산됩니다.",
     roadmapTitle: "로드맵 읽는 법",
     industryTitle: "왜 산업 비교가 중요한가",
     industryDescription:
-      "섹터 맥락은 단순 비교를 넘어서 실제 점수 구조에도 들어갑니다. 중대 Scope 3 카테고리, Cat1 내부 재가중, 소표본 보호 규칙이 모두 섹터 조건의 영향을 받습니다.",
+      "산업 맥락은 해석 참고 수준이 아니라 산식 안에 직접 들어갑니다. 중대 Scope 3 카테고리와 W_v,g 모두 CERs 산업군에 따라 달라지기 때문에, 같은 공시라도 섹터에 따라 의미가 달라질 수 있습니다.",
     readingTitle: "결과는 이렇게 읽는 것이 좋습니다",
     readingCards: [
       {
-        title: "기초점수와 최종점수를 구분해 보세요",
+        title: "1~100 점수는 변환값으로 읽으세요",
         description:
-          "S_base가 높아도 CBAM 노출이나 그린워싱 괴리 보정 이후 최종 점수는 낮아질 수 있습니다.",
+          "화면 점수는 단순 백분율이 아니라 1 + 99 × clamp(S_total, 0, 1) 변환값입니다. 따라서 점수 변화는 가중 내부총점의 변화로 읽는 것이 맞습니다.",
       },
       {
-        title: "목표 존재보다 목표 경로를 보세요",
+        title: "P2는 신뢰도 점검으로 읽으세요",
         description:
-          "단기·중기·장기 목표 정렬과 넷제로 타당성이 함께 좋아야 Cat2가 강하게 나옵니다.",
+          "P2 감점은 곧바로 그린워싱 확정 판정이 아닙니다. 공개 출처가 충돌해 수동 검수가 필요할 때 적용하는 변수 단위 신뢰도 보정입니다.",
+      },
+      {
+        title: "Full과 Limited 상태를 함께 보세요",
+        description:
+          "핵심 변수는 계산되지만 조건부 변수 일부가 비어 있는 경우 Limited Index가 붙을 수 있습니다. 점수 숫자만 보지 말고 산출 상태를 함께 해석해야 합니다.",
       },
       {
         title: "섹터 내 비교를 먼저 보세요",
         description:
-          "특히 Scope 3 중대성, 탄소집약도, 전환 난이도는 섹터별로 다르기 때문에 같은 섹터 안에서 보는 해석이 우선입니다.",
+          "중대 Scope 3와 CDP 기반 가중치가 산업군마다 다르기 때문에, 같은 섹터 안에서 먼저 비교하는 해석이 보통 더 정확합니다.",
       },
     ],
     faqTitle: "자주 묻는 질문",
     dimensions: [
       {
-        title: "실질 감축 성과",
-        description: "점수의 중심 축입니다. 집약도 개선과 절대배출 검증을 함께 보고, 중대 가치사슬 영역의 Scope 3 투명성까지 포함합니다.",
-        weight: "40%",
+        title: "V1. Scope 1·2 배출 성과",
+        description: "Scope 1·2 합산 배출집약도가 개선되는지와 절대배출이 최소한 늘지 않는지를 함께 봅니다.",
         bullets: [
-          "V1 집약도 개선 + 절대배출 보너스/패널티",
-          "V2 Scope 3 데이터 품질, 중대 카테고리, 1차 데이터 비율",
-          "섹터 탄소집약도에 따라 Cat1 내부 가중치가 제한적으로 재배분됩니다",
+          "가능하면 3개년 연환산 집약도 개선률을 사용합니다",
+          "집약도가 좋아져도 절대배출이 늘면 점수가 깎입니다",
         ],
       },
       {
-        title: "목표 명확성",
-        description: "목표는 선언이 아니라 경로로 읽습니다. 단기·중기·장기 목표 정렬과 넷제로 타당성을 따로 점수화합니다.",
-        weight: "25%",
+        title: "V2. 중대 Scope 3 공개·관리",
+        description: "해당 산업군에서 중요한 Scope 3 카테고리를 정량 공개하고 관리하는지를 봅니다.",
         bullets: [
-          "V3-V5 단기·중기·장기 목표 경로 준수도",
-          "가까운 시점 목표를 놓칠수록 더 큰 페널티가 적용됩니다",
-          "V6 넷제로 타당성과 잔여배출 중립화 계획의 신뢰성",
+          "중대 카테고리는 기업이 속한 CERs 산업군에 따라 달라집니다",
+          "명확한 비해당 사유가 있으면 해당 항목은 분모에서 제외합니다",
         ],
       },
       {
-        title: "실행 준비도",
-        description: "실행은 실제 돈과 인센티브에서 드러납니다. 전환 자본 배분과 경영진 보상 연계를 함께 봅니다.",
-        weight: "20%",
+        title: "V3. 감축목표 설계 품질",
+        description: "감축목표가 선언 수준이 아니라 실제로 추적 가능한 구조인지 확인합니다.",
         bullets: [
-          "V7 Green CapEx 비중과 Brown CapEx 패널티",
-          "V8 기후 KPI와 경영진 보상 연계율",
-          "서술보다 자원 배분과 경영 연결 근거를 더 중시합니다",
+          "기준연도, 목표연도, 감축률, Scope 범위, 목표유형, 크레딧 투명성을 함께 봅니다",
+          "총배출보다 순배출만 강조하는 넷제로 서술은 낮게 평가됩니다",
         ],
       },
       {
-        title: "공시 수준",
-        description: "이 카테고리는 단순 공시량보다 증거 신뢰도와 의사결정 내재화 수준을 봅니다.",
-        weight: "15%",
+        title: "V4. 목표 대비 이행률·감축활동 증거",
+        description: "실제 배출 성과가 공개한 감축 경로를 따라가고 있는지, 그리고 감축활동 근거가 있는지를 확인합니다.",
         bullets: [
-          "V9 검증 기준, 보증 수준, 기관 신뢰도, 증거 깊이",
-          "V10 ICP, MACC, 경제성 평가, 투자 의사결정 내재화",
-          "기후 관련 프로세스가 실제 운영에 쓰이는지가 중요합니다",
+          "기준연도에서 목표연도까지의 선형 경로와 현재 성과를 비교합니다",
+          "활동명만 있는 선언보다 범위, 기간, 성과 근거가 있는 경우가 높게 평가됩니다",
+        ],
+      },
+      {
+        title: "V5. 기후 리스크·전환계획 식별",
+        description: "물리적 위험, 전환위험, 기회, 시간범위, 재무영향, 전환수단, 진행상황을 실제 경영 언어로 인식하는지를 봅니다.",
+        bullets: [
+          "7개 공개 신호를 산술평균으로 합산합니다",
+          "회사 맥락 없이 일반론만 반복하면 부분점수에 머뭅니다",
+        ],
+      },
+      {
+        title: "V6. 이사회 감독·책임·보상 연계",
+        description: "기후 대응이 이사회 감독, 경영진 책임, 임원 보상체계와의 연계 근거까지 갖추고 있는지를 봅니다.",
+        bullets: [
+          "핵심 연결고리 하나가 빠지면 전체 점수가 약해지도록 기하평균을 사용합니다",
+          "보상연계율이 아니라 기후 KPI와 임원보상체계의 연계 증거를 보는 변수입니다",
+          "일반 ESG 감독만으로는 충분하지 않습니다",
+        ],
+      },
+      {
+        title: "V7. 자본배분·추적성",
+        description: "전환투자 주장이 실제 CapEx 또는 금융업의 전환금융 배분과 연결되는지를 봅니다.",
+        bullets: [
+          "녹색 CapEx를 완벽히 추정하는 값이 아니라 전환투자 주장의 추적가능성을 보는 변수입니다",
+          "녹색투자 주장만큼 DART나 재무제표와의 추적성이 중요합니다",
+          "비해당이면 나머지 변수 가중치를 재정규화합니다",
+        ],
+      },
+      {
+        title: "V8. 배출량 산정·보고경계 투명성",
+        description: "조직·운영·재무 경계와 산정 방법이 명확하게 맞물려 있는지를 확인합니다.",
+        bullets: [
+          "산정기준, 배출계수, Scope 2 방식, 재작성 공시까지 포함합니다",
+          "경계 불일치는 P2 감점 사유가 되기도 합니다",
+        ],
+      },
+      {
+        title: "V9. 제3자 검증·데이터 신뢰성",
+        description: "배출량과 핵심 기후정보가 독립적으로 검증됐는지, 어떤 수준이며 어떤 Scope를 덮는지를 봅니다.",
+        bullets: [
+          "검증 존재, 검증 수준, 검증 범위가 모두 필요합니다",
+          "중대한 Scope 3가 있는 산업일수록 Scope 3 검증의 의미가 커집니다",
         ],
       },
     ],
@@ -812,23 +971,24 @@ const KOREAN_COPY: Translation = {
     ],
     faqs: [
       {
-        question: "기초점수가 높은데 최종점수가 더 낮을 수 있나요?",
-        answer: "그럴 수 있습니다. 기초점수 형성 뒤에도 CBAM 노출 계수와 그린워싱 괴리 패널티가 적용되기 때문입니다.",
+        question: "데이터가 없거나 미공시이면 어떻게 처리되나요?",
+        answer:
+          "원칙적으로 미공시는 0점 처리합니다. 다만 기업이 명확한 비해당 사유를 밝히면 분모에서 제외할 수 있고, 수집실패처럼 아직 확정할 수 없는 상태는 점수 확정을 보류해야 합니다.",
       },
       {
-        question: "데이터가 비어 있으면 어떻게 처리되나요?",
+        question: "기후 서술이 좋아 보여도 점수가 높지 않을 수 있나요?",
         answer:
-          "결측률이 30%를 넘는 변수는 섹터 내 가중치 산정에서 제외될 수 있습니다. 그보다 낮은 결측은 중앙값 대체가 가능하고, Scope 3는 별도 연착륙 페널티를 사용합니다.",
+          "그럴 수 있습니다. V1, V4, V7, V8, V9처럼 실제 운영 근거가 필요한 변수 비중이 크고, 공적 자료와 충돌하는 주장은 P2로 다시 감점되기 때문입니다.",
       },
       {
-        question: "왜 Scope 3가 공시가 아니라 성과 쪽에 들어가나요?",
+        question: "왜 가중치를 사람이 정하지 않나요?",
         answer:
-          "개정 로직은 중대한 가치사슬 투명성을 실제 탈탄소 역량의 일부로 봅니다. 일부 섹터에서는 Scope 3를 빼면 전환 품질을 제대로 읽기 어렵기 때문입니다.",
+          "현재 방법론은 주관적 고정값 대신 CDP 2025 Climate Change 질문 매핑과 Management 및 Leadership denominator를 이용해 W_v,g를 계산합니다.",
       },
       {
-        question: "이 점수는 서술과 선언만 잘하면 올라가나요?",
+        question: "탄소크레딧은 별도 점수로 들어가나요?",
         answer:
-          "아닙니다. V1과 V2가 점수의 중심을 잡고, 그 위에 목표, 자본 배분, 보증, 의사결정 도구가 실제 근거와 함께 있는지를 봅니다.",
+          "아닙니다. 탄소크레딧 의존도는 독립 변수로 보너스나 패널티를 주지 않고, V3의 크레딧 투명성 항목 안에서 총배출 대비 순배출 목표 설계와 함께 평가합니다.",
       },
     ],
   },
@@ -920,9 +1080,9 @@ const JAPANESE_COPY: Translation = {
     industryTitle: "セクター別に見る",
     seeAllIndustries: "すべてのセクターを見る",
     scoreMeaningEyebrow: "スコアの見方",
-    scoreMeaningTitle: "一般ユーザー向けの気候パフォーマンス表示",
+    scoreMeaningTitle: "気候移行信頼性を見る公開指標",
     scoreMeaningDescription:
-      "このスコアは、実際の削減実績、目標の明確さ、実行準備度、開示水準の4つの軸を組み合わせて示します。複雑な方法論文書を読まなくても、企業の移行品質を素早く把握できるように設計されています。",
+      "このスコアは公開された気候根拠を 1 から 100 の移行信頼性指標に変換し、排出実績、目標品質、ガバナンス、資本配分の追跡可能性、報告境界、保証水準を合わせて示します。",
     learnMore: "スコアの詳細を見る",
   },
   companies: {
@@ -1105,108 +1265,185 @@ const JAPANESE_COPY: Translation = {
     eyebrow: "スコアについて",
     title: "スコアはどう作られるのか",
     description:
-      "このページでは、改訂された CERs 方法論を高いレベルで要約します。10の変数、4つの固定ウェイト区分、基礎スコアの形成、最終的なリスク補正までを数式なしで説明します。",
+      "CERs Index は CDP に整合した公開資料ベースの気候移行信頼性インデックスです。このページでは何を見るのか、そして最終スコアがどのような構成で作られるのかを説明します。",
     logicCta: "ロジック詳細を見る",
-    logicCtaHint: "数式、重み、採点ルールをまとめた技術リファレンスを開きます。",
+    logicCtaHint: "全体式、変数、重み付け構造を詳しく見ます。",
     backToOverview: "スコア概要へ戻る",
+    formulaTitle: "現在の CERs Index 全体式",
+    formulaDescription:
+      "公開スコアは3段階で作られます。まず各変数を採点し、出所が衝突した場合は P2 信頼性係数を適用し、その後に加重内部スコアを 1 から 100 の CERs Index に変換します。clamp の段階は負の点数や過大なボーナスを防ぎながら表示範囲を固定します。",
+    formulaSteps: [
+      {
+        id: "adjusted",
+        title: "1. 信頼性補正後の変数スコア",
+        formula: "S_{\\mathrm{adjusted},v} = S_v \\times K_{\\mathrm{P2},v}",
+      },
+      {
+        id: "total",
+        title: "2. 加重内部スコア",
+        formula: "S_{\\mathrm{total}}(i,t) = \\sum_v W_{v,g(i)} \\times S_{\\mathrm{adjusted}}(v,i,t)",
+      },
+      {
+        id: "index",
+        title: "3. 公開 CERs Index",
+        formula: "\\mathrm{CERs\\ Index}(i,t) = 1 + 99 \\times \\operatorname{clamp}(S_{\\mathrm{total}}(i,t), 0, 1)",
+      },
+    ],
+    formulaDefinitionsTitle: "記号の意味",
+    formulaDefinitions: [
+      { key: "S_v", label: "V1 から V9 の生スコアで、0 から 1 の範囲で計算されます" },
+      {
+        key: "K_P2,v",
+        label: "報告書の主張が GIR、DART、保証根拠と食い違うときに適用する信頼性係数です",
+      },
+      {
+        key: "W_v,g",
+        label: "CDP 2025 Climate Change の質問マッピングから導く業種別の変数重みです",
+      },
+      { key: "g(i)", label: "企業 i に割り当てられた CERs 業種グループです" },
+    ],
+    formulaNoteLabel: "方法論メモ",
+    formulaNote:
+      "CDP が現在方法論の主要な骨格です。変数が明確に非該当なら、その分母を外して残りの重みを再正規化します。P1 は独立変数ではなく、炭素クレジット依存は V3 のクレジット透明性に吸収されます。",
     meaningTitle: "このスコアの目的",
     meaningDescription:
-      "CERs Index は企業の移行品質を公開情報ベースで比較するための要約スコアです。報告排出量、目標、ガバナンス、投資、保証根拠を一つの見方にまとめますが、解釈は依然としてセクター文脈と併せて行う必要があります。",
+      "CERs Index は ESG 全体格付けではありません。公開資料を基に、実際の排出削減、目標設計、ガバナンス、資本配分、報告境界、保証水準が公的根拠と整合しているかを示す気候移行信頼性インデックスです。",
     meaningPoints: [
-      "報告排出量、目標、CAPEX、ガバナンス、保証、意思決定ツールの根拠から 10 変数を構成します",
-      "上位カテゴリの重みは固定しつつ、下位変数の重みはデータ有効性とセクター文脈に応じて変わります",
-      "基礎スコアの後にも CBAM 露出とグリーンウォッシング乖離の補正が最終スコアに反映されます",
+      "サステナビリティレポート、DART、KRX ESG、GIR、保証意見書を中心とした公開根拠を 9 変数で採点します",
+      "ESG の宣伝文句や炭素クレジット価値ではなく、気候移行信頼性と炭素リスク対応水準を示します",
+      "重みは恣意的に決めず、CDP 2025 Climate Change の Management と Leadership denominator を基に業種別で計算します",
+      "MSCI は生スコア式ではなく、業種別解釈を助ける exposure-management の補助フレームとしてのみ使います",
+      "報告書の主張が GIR、DART、保証根拠と食い違う場合は、P2 係数で該当変数の点数を下げます",
     ],
-    logicTitle: "改訂後のスコアはこの流れで作られます",
+    logicTitle: "現在のスコアはこの流れで作られます",
     logicDescription:
-      "改訂ロジックでは、まず V1-V10 を採点し、その後に固定カテゴリ重みと動的な下位重みルールで基礎スコアを作り、最後に外生的調整項を適用します。",
+      "現在の方法論では、まず V1 から V9 を採点し、出所不一致のある変数に P2 係数を反映したうえで、業種別の加重内部合計を公開用の 1 から 100 の CERs Index に変換します。",
     logicSteps: [
       {
-        title: "公開根拠から 10 変数を採点する",
+        title: "公開根拠から V1 から V9 を採点する",
         description:
-          "V1-V10 は実質的な脱炭素実績、目標経路の整合性、資本配分、経営連動、保証品質、意思決定ツールの内在化を見ます。",
+          "各変数は v0.3 ルールに従って 0 から 1 に正規化され、排出実績、目標設計、移行計画、ガバナンス、投資追跡性、境界透明性、保証水準を見ます。",
       },
       {
-        title: "4つの固定カテゴリにまとめる",
+        title: "出所が衝突したら P2 信頼性補正をかける",
         description:
-          "上位カテゴリの重みは 0.40、0.25、0.20、0.15 に固定され、実質的な脱炭素実績を最も重く置きます。",
+          "主要数値が報告書、GIR、DART、保証意見書の間で食い違う場合、その変数は額面通りに採らず K_P2,v を掛けて信頼度を下げます。",
       },
       {
-        title: "カテゴリ内部の重みを再調整する",
+        title: "業種別の変数重みを計算する",
         description:
-          "欠損率、エントロピー、ベイズ縮小、産業重要度、時系列平滑化を反映して最終適用ウェイトを決めます。",
+          "W_v,g は手作業で固定する値ではなく、CERs 業種グループごとの CDP 2025 Climate Change 質問マッピングと Management / Leadership denominator から算出されます。",
       },
       {
-        title: "最終的な信頼性補正を適用する",
+        title: "内部合計を公開スコアへ変換する",
         description:
-          "基礎スコアの後にも、CBAM 露出係数とグリーンウォッシング乖離ペナルティによって最終結果が変わることがあります。",
+          "加重合計の内部スコアを 0 から 1 に収め、1 + 99 × clamp(...) の式で画面に表示する CERs Index に変換します。",
       },
     ],
-    dimensionsTitle: "4つの加重カテゴリは何を見るか",
+    dimensionsTitle: "現在の9変数は何を見るか",
     dimensionsDescription:
-      "公開画面のラベルは簡潔ですが、実際の方法論では以下の変数群と固定重みに結び付いています。",
+      "現在の v0.3 公開スコアは以下の 9 変数で構成されます。一部の変数は非該当として扱われ重みが再正規化されることがありますが、指数はこの集合を軸に計算されます。",
     roadmapTitle: "ロードマップの見方",
     industryTitle: "なぜ業種比較が重要か",
     industryDescription:
-      "セクター文脈は比較だけでなく、実際のスコア構造にも入っています。重要 Scope 3 カテゴリ、Cat 1 内部の再配分、小標本保護ルールはいずれもセクター条件の影響を受けます。",
+      "業種文脈は解釈の補助ではなく、式そのものに入っています。重要 Scope 3 カテゴリと W_v,g の両方が CERs 業種グループに依存するため、同じ開示でもセクターによって意味が変わります。",
     readingTitle: "結果はこう読むのが有効です",
     readingCards: [
       {
-        title: "基礎スコアと最終スコアを分けて見る",
+        title: "1 から 100 の値は変換後の表示値として読む",
         description:
-          "S_base が強くても、CBAM 露出やグリーンウォッシング乖離補正の後で最終スコアが下がることがあります。",
+          "画面上の値は単純な百分率ではなく、1 + 99 × clamp(S_total, 0, 1) の変換値です。したがって変動は加重内部合計の動きとして読むべきです。",
       },
       {
-        title: "目標の有無より目標経路を見る",
+        title: "P2 は信頼性チェックとして読む",
         description:
-          "短期・中期・長期の整合性とネットゼロ妥当性が揃って初めて Cat2 は強くなります。",
+          "P2 の減点は直ちにグリーンウォッシング認定を意味しません。公開出所が食い違い、手動レビューが必要なときに使う変数単位の信頼性補正です。",
+      },
+      {
+        title: "Full と Limited の状態も確認する",
+        description:
+          "中核変数は計算できても、条件付き変数の一部が欠けると Limited Index になることがあります。数値だけでなく算出状態も合わせて読む必要があります。",
       },
       {
         title: "まずセクター内比較を見る",
         description:
-          "特に Scope 3 の重要性、炭素集約度、移行難易度はセクターごとに異なるため、同一セクター内の比較が優先されます。",
+          "重要 Scope 3 と CDP ベース重みは業種グループごとに異なるため、同一セクター内の比較から読むほうが通常は正確です。",
       },
     ],
     faqTitle: "FAQ",
     dimensions: [
       {
-        title: "実際の削減実績",
-        description: "スコアの中心軸です。原単位改善と絶対排出の検証を組み合わせ、重要なバリューチェーン領域の Scope 3 透明性まで含めます。",
-        weight: "40%",
+        title: "V1. Scope 1・2 排出実績",
+        description: "Scope 1・2 合算の排出原単位が改善しているか、かつ絶対排出が少なくとも増えていないかを見ます。",
         bullets: [
-          "V1 原単位改善 + 絶対排出ボーナス/ペナルティ",
-          "V2 Scope 3 データ品質、重要カテゴリ、一次データ比率",
-          "セクター炭素集約度に応じて Cat1 内部ウェイトが限定的に再配分されます",
+          "可能なら 3 年の年率換算改善率を使います",
+          "原単位が改善しても絶対排出が増えれば減点されます",
         ],
       },
       {
-        title: "目標の明確さ",
-        description: "目標は宣言ではなく経路として読みます。短期・中期・長期の整合性とネットゼロ妥当性を別々に採点します。",
-        weight: "25%",
+        title: "V2. 重要 Scope 3 の開示・管理",
+        description: "その業種グループで重要な Scope 3 カテゴリを定量開示し、管理しているかを見ます。",
         bullets: [
-          "V3-V5 短期・中期・長期の目標経路順守",
-          "近い時点の目標を外すほど強いペナルティがかかります",
-          "V6 ネットゼロ妥当性と残余排出中和計画の信頼性",
+          "重要カテゴリは企業が属する CERs 業種グループで変わります",
+          "明確な非該当理由があればその項目は分母から外れます",
         ],
       },
       {
-        title: "実行準備度",
-        description: "実行は実際のお金とインセンティブに表れます。移行投資と経営報酬の連動を見ます。",
-        weight: "20%",
+        title: "V3. 削減目標の設計品質",
+        description: "削減目標が単なる宣言ではなく、実際に追跡できる構造になっているかを確認します。",
         bullets: [
-          "V7 Green CapEx 比率と Brown CapEx ペナルティ",
-          "V8 気候 KPI と経営報酬の連動率",
-          "物語よりも資源配分と経営連動の根拠を重視します",
+          "基準年、目標年、削減率、Scope 範囲、目標タイプ、クレジット透明性を見ます",
+          "総排出より純排出だけを強調するネットゼロ表現は低く評価されます",
         ],
       },
       {
-        title: "開示水準",
-        description: "このカテゴリは単なる開示量ではなく、証拠の信頼性と意思決定への内在化を見ます。",
-        weight: "15%",
+        title: "V4. 目標経路に対する進捗と削減施策の証拠",
+        description: "実際の排出実績が公表した削減経路をたどっているか、具体的な削減施策の証拠があるかを確認します。",
         bullets: [
-          "V9 検証基準、保証水準、機関信頼性、証拠の深さ",
-          "V10 ICP、MACC、経済性評価、投資意思決定への内在化",
-          "気候関連プロセスが実際の運営で使われているかが重要です",
+          "基準年から目標年までの線形経路と現在実績を比較します",
+          "施策名だけの宣言より、範囲、期間、成果根拠があるほうが高く評価されます",
+        ],
+      },
+      {
+        title: "V5. 気候リスク・移行計画の識別",
+        description: "物理リスク、移行リスク、機会、時間軸、財務影響、移行手段、進捗状況を実際の経営言語で認識しているかを見ます。",
+        bullets: [
+          "7 つの公開シグナルを算術平均でまとめます",
+          "企業文脈のない一般論だけでは部分点にとどまります",
+        ],
+      },
+      {
+        title: "V6. 取締役会監督・責任・報酬連動",
+        description: "気候対応が取締役会監督、経営責任、役員報酬体系との連結根拠まで備えているかを見ます。",
+        bullets: [
+          "重要な連結のどれかが欠けると全体が弱くなるよう幾何平均を使います",
+          "報酬連動率ではなく、気候 KPI と役員報酬体系の連結証拠を見る変数です",
+          "一般的な ESG 監督だけでは不十分です",
+        ],
+      },
+      {
+        title: "V7. 資本配分と追跡可能性",
+        description: "移行投資の主張が、実際の CapEx あるいは金融業なら移行金融配分に結び付いているかを見ます。",
+        bullets: [
+          "グリーン CapEx を完全に推計する値ではなく、移行投資主張の追跡可能性を見る変数です",
+          "グリーン投資の主張と同じくらい DART や財務諸表との追跡可能性が重要です",
+          "非該当なら残りの変数重みを再正規化します",
+        ],
+      },
+      {
+        title: "V8. 排出算定・報告境界の透明性",
+        description: "組織、運営、財務の境界と算定方法が明確に整合しているかを確認します。",
+        bullets: [
+          "算定基準、排出係数、Scope 2 方式、再記載開示まで含みます",
+          "境界不一致は P2 減点理由にもなります",
+        ],
+      },
+      {
+        title: "V9. 第三者保証・データ信頼性",
+        description: "排出量と主要な気候情報が独立に保証されているか、どの水準で、どの Scope を覆うかを見ます。",
+        bullets: [
+          "保証の有無、保証水準、保証範囲がすべて必要です",
+          "重要 Scope 3 を持つ業種ほど Scope 3 保証の意味が大きくなります",
         ],
       },
     ],
@@ -1229,24 +1466,24 @@ const JAPANESE_COPY: Translation = {
     ],
     faqs: [
       {
-        question: "基礎スコアが高くても最終スコアが下がることはありますか？",
+        question: "データがない、または未開示の場合はどう処理されますか？",
         answer:
-          "あります。基礎スコア形成後にも、CBAM 露出係数とグリーンウォッシング乖離ペナルティが適用されるためです。",
+          "原則として未開示は 0 点です。ただし企業が明確な非該当理由を示せば分母から外せますし、収集失敗のように未確定な状態は確定スコアにすべきではありません。",
       },
       {
-        question: "データが欠けている場合はどう処理されますか？",
+        question: "気候ストーリーが強く見えても点数が高くないことはありますか？",
         answer:
-          "欠損率が 30% を超える変数は、セクター内ウェイト算定から除外されることがあります。より低い欠損は中央値補完の対象になり、Scope 3 には別途グライドパス型ペナルティが使われます。",
+          "あります。V1、V4、V7、V8、V9 のように実運用の根拠を要する変数の比重が大きく、公的資料と衝突する主張は P2 でさらに減点されるためです。",
       },
       {
-        question: "なぜ Scope 3 は開示だけでなく実績側に入るのですか？",
+        question: "なぜ重みを人が固定しないのですか？",
         answer:
-          "改訂ロジックでは、重要なバリューチェーン透明性を実質的な脱炭素品質の一部と見なします。一部セクターでは Scope 3 を外すと移行品質を十分に読めません。",
+          "現在の方法論では、主観的な固定値ではなく、CDP 2025 Climate Change の質問マッピングと Management / Leadership denominator を使って W_v,g を計算するためです。",
       },
       {
-        question: "このスコアは物語や宣言だけで上がるのですか？",
+        question: "炭素クレジットは独立した点数として入りますか？",
         answer:
-          "いいえ。V1 と V2 がスコアの中心を取り、その上で目標、資本配分、保証、意思決定ツールが実証的な根拠と一緒にあるかを見ます。",
+          "いいえ。炭素クレジット依存は独立変数のボーナスやペナルティではなく、V3 のクレジット透明性項目の中で、総排出と純排出の目標設計と合わせて評価されます。",
       },
     ],
   },
