@@ -1,0 +1,90 @@
+[
+  {
+    "id": "F01",
+    "screen": "홈 리더보드",
+    "route": "/",
+    "behavior": "CERs Index 점수 기준 기업 순위 표시. 점수·등급·업종·배출량 카드. 점수 없을 때는 배출 데이터만 표시.",
+    "verification": "npm run dev → http://localhost:3000 → 기업 카드 1개 이상 노출",
+    "state": "active",
+    "evidence": "구현 완료. DB views 미적용으로 실제 데이터 미검증.",
+    "blocked_by": "docs/views.sql DB 적용"
+  },
+  {
+    "id": "F02",
+    "screen": "기업 목록",
+    "route": "/companies",
+    "behavior": "전체 기업 목록. 업종·국가·점수 필터. 검색.",
+    "verification": "npm run dev → /ko/companies → 기업 목록 로드",
+    "state": "active",
+    "evidence": "구현 완료. DB views 미적용으로 실제 데이터 미검증.",
+    "blocked_by": "docs/views.sql DB 적용"
+  },
+  {
+    "id": "F03",
+    "screen": "기업 상세",
+    "route": "/companies/[companyId]",
+    "behavior": "기업 점수 상세, 배출 추이 그래프, 감축목표, 넷제로 로드맵, 프레임워크 배지, 검증 상태.",
+    "verification": "npm run dev → /ko/companies/{id} → 배출 차트 노출",
+    "state": "active",
+    "evidence": "구현 완료. DB views 미적용으로 실제 데이터 미검증.",
+    "blocked_by": "docs/views.sql DB 적용"
+  },
+  {
+    "id": "F04",
+    "screen": "보고서 뷰어",
+    "route": "/companies/[companyId]/report",
+    "behavior": "기업 ESG 보고서 PDF 직접 뷰어. API route /api/companies/[companyId]/report 로 파일 서빙.",
+    "verification": "npm run dev → /ko/companies/{id}/report → PDF 렌더링",
+    "state": "active",
+    "evidence": "9f9df44 커밋에서 구현. 파일 경로 매핑 검증 필요.",
+    "blocked_by": "docs/views.sql DB 적용 + 로컬 파일 경로 확인"
+  },
+  {
+    "id": "F05",
+    "screen": "업종별 분석",
+    "route": "/industries",
+    "behavior": "업종별 평균 점수, 분포, 상위 기업 비교.",
+    "verification": "npm run dev → /ko/industries → 업종 카드 노출",
+    "state": "active",
+    "evidence": "구현 완료. DB views 미적용으로 실제 데이터 미검증.",
+    "blocked_by": "docs/views.sql DB 적용"
+  },
+  {
+    "id": "F06",
+    "screen": "기업 비교",
+    "route": "/compare",
+    "behavior": "최대 3개 기업 나란히 비교. 점수·목표·배출 항목별 비교표.",
+    "verification": "npm run dev → /ko/compare → 기업 선택 후 비교 가능",
+    "state": "active",
+    "evidence": "구현 완료. DB views 미적용으로 실제 데이터 미검증.",
+    "blocked_by": "docs/views.sql DB 적용"
+  },
+  {
+    "id": "F07",
+    "screen": "점수 로직 설명",
+    "route": "/score-logic",
+    "behavior": "CERs Index v0.3 산식 설명 (V1~V9, KPI 구조, 가중치).",
+    "verification": "npm run dev → /ko/score-logic → 페이지 정상 렌더링",
+    "state": "passing",
+    "evidence": "정적 콘텐츠, DB 불필요. 렌더링 확인."
+  },
+  {
+    "id": "F08",
+    "screen": "About",
+    "route": "/about",
+    "behavior": "CERs Index 소개, 방법론 개요.",
+    "verification": "npm run dev → /ko/about → 페이지 정상 렌더링",
+    "state": "passing",
+    "evidence": "정적 콘텐츠, DB 불필요."
+  },
+  {
+    "id": "F09",
+    "screen": "점수 표시 (스코어링 연동)",
+    "route": "전체 화면",
+    "behavior": "CERsIndex-batch F05 스코어링 결과(final_score, kpi_score)가 DB에 적재되면 scoring_runs/cers_score views 를 통해 화면에 점수 표시.",
+    "verification": "batch F05 실행 후 npm run dev → 홈 리더보드에 점수 노출",
+    "state": "blocked",
+    "evidence": "",
+    "blocked_by": "CERsIndex-batch F05 스코어링 엔진 미구현"
+  }
+]

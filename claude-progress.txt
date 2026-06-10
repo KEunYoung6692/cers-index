@@ -1,0 +1,56 @@
+# Claude Progress — cers-index
+
+## 2026-06-10 — 하네스 엔지니어링 세팅 + 스키마 통일
+
+### 배경
+CERsIndex-batch 파이프라인이 적재한 DB(Supabase)와 cers-index 프론트가 기대하는
+테이블명이 완전히 달랐음. 화면 구조는 유지한 채 스키마를 통일하도록 요청.
+
+### 완료 작업
+
+#### 1. DB Views 설계 및 파일화 (`docs/views.sql`)
+batch 스키마 → 프론트 기대 이름 매핑 views 11개:
+
+| View | 소스 | 상태 |
+|------|------|------|
+| `companies` | `company` | SQL 작성 완료 |
+| `documents` | `report` | SQL 작성 완료 |
+| `rpt_period` | `clean_val` | SQL 작성 완료 |
+| `co_metric` | `clean_val` (배출·에너지) | SQL 작성 완료 |
+| `co_target` | `clean_val` pivot | SQL 작성 완료 |
+| `doc_fw_adopt` | `report.frame_json` | SQL 작성 완료 |
+| `score_categories` | `kpi` | SQL 작성 완료 |
+| `method_ver` | `score_run` | SQL 작성 완료 |
+| `scoring_runs` | `final_score` | SQL 작성 완료 |
+| `cers_score` | `final_score` | SQL 작성 완료 |
+| `category_scores` | `kpi_score` | SQL 작성 완료 |
+
+⚠️ **DB 미적용**: Supabase MCP read-only 제약으로 SQL 실행 불가.
+수동 적용 필요 → `docs/views.sql` 참고.
+
+#### 2. 하네스 파일 구축
+- `CLAUDE.md` 신규: 아키텍처, DB 연결, views 변경 절차, 제약사항
+- `AGENTS.md` 신규: 운영 매뉴얼 (기술 스택, 피처 추적, 세션 규칙)
+- `feature_list.json` 신규: 화면별 피처 상태 추적
+- `session-handoff.md` 신규: 세션 상태 핸드오프
+- `clean-state-checklist.md` 신규: 세션 종료 전 체크리스트
+- `.env.example` 신규: 필요 환경변수 템플릿
+
+#### 3. vitest 수정
+- 문제: `setup.ts`에 테스트 코드 혼입 → glob 불일치로 `No test files found`
+- 수정: `setup.ts` → 빈 setup 파일 / 테스트는 `smoke.test.ts` 분리
+- 결과: `npm run test` 1 pass ✅
+
+#### 4. 구버전 파일 정리
+- 구 Vite/dashboard 컴포넌트 30여 개 삭제 커밋 (cers_index_ver2 브랜치)
+
+### 현재 상태
+- 브랜치: `cers_index_ver2`
+- 커밋: `22d95ac`
+- DB views: **미적용** (수동 실행 필요)
+- 화면 데이터: views 적용 후 실제 데이터 표시 예정
+
+### 다음 작업
+1. `docs/views.sql` DB 적용 (psql 또는 Supabase Dashboard)
+2. `npm run dev` 후 실제 데이터 노출 확인
+3. CERsIndex-batch F05 스코어링 엔진 구현 → `scoring_runs`/`cers_score` 채워짐
