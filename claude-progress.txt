@@ -44,13 +44,51 @@ batch 스키마 → 프론트 기대 이름 매핑 views 11개:
 #### 4. 구버전 파일 정리
 - 구 Vite/dashboard 컴포넌트 30여 개 삭제 커밋 (cers_index_ver2 브랜치)
 
-### 현재 상태
+### 현재 상태 (2026-06-10 업데이트)
 - 브랜치: `cers_index_ver2`
-- 커밋: `22d95ac`
-- DB views: **미적용** (수동 실행 필요)
-- 화면 데이터: views 적용 후 실제 데이터 표시 예정
+- 커밋: `bf0fa68`
+- DB views: **적용 완료** (Node.js pg 스크립트로 실행)
+  - 11개 views 모두 생성 확인
+- 화면 동작:
+  - 넷제로 선언 기업 섹션 → 실제 DB 데이터 표시 ✅
+  - CERs Index List / 섹터별 → "데이터 부족" (F05 스코어 미실행 탓) ⚠️
+  - 개발 서버: Node 20 + `npm run dev` 정상 기동 (Node 18 사용 불가)
 
 ### 다음 작업
-1. `docs/views.sql` DB 적용 (psql 또는 Supabase Dashboard)
-2. `npm run dev` 후 실제 데이터 노출 확인
-3. CERsIndex-batch F05 스코어링 엔진 구현 → `scoring_runs`/`cers_score` 채워짐
+1. CERsIndex-batch **F05 스코어링 엔진** 실행 → `final_score`, `kpi_score` 채워짐
+2. 스코어 적재 후 Index List / 섹터별 화면 데이터 확인
+3. (선택) 기업 상세 페이지 데이터 확인
+
+## 2026-06-10 — cers-index 하네스 실행 계층 보강
+
+### 완료
+
+- `AGENTS.md`를 짧은 진입 지도와 WIP=1/완료 조건 중심으로 정리
+- `CLAUDE.md`를 `AGENTS.md` 참조 파일로 축소해 규칙 중복 제거
+- 환경, 아키텍처, 테스트, 설계 결정, 품질 문서를 `docs/`로 분리
+- `scripts/check-harness.mjs` 추가
+  - Node 20.19 이상
+  - 필수 하네스 파일
+  - `feature_list.json` 상태 계약
+  - Client Component의 server 모듈 import 금지
+  - 비밀정보·생성물 ignore 규칙 검사
+- `npm run check:harness`, `check:quick`, `check` 검증 명령 추가
+- GitHub Actions에서 Node 20.19 + `npm run check` 실행하도록 구성
+- ESLint가 `.next` 생성물을 검사하던 문제 수정
+- `feature_list.json`을 WIP=1 기준으로 정리
+
+### 검증
+
+- `npm run check:quick`: 통과
+  - harness, lint, typecheck, Vitest 1/1
+- `npm run build`: Node 20.19에서 통과
+- `npm run dev`: Ready 상태까지 확인
+- HTTP 화면 확인은 WSL 안정성 요청에 따라 중단
+
+### 운영 주의
+
+- 기본 셸 Node가 18일 수 있으므로 모든 npm 작업 전에 `nvm use` 필요
+- WSL에서 이미 실행 중인 웹 프로세스와 충돌하거나 WSL이 종료될 수 있어,
+  웹/E2E 검증은 사용자 요청이 있을 때만 제한적으로 수행
+- `.env.example` 삭제와 `docs/harness-engineering/` 미추적 상태는 이번 작업 이전부터
+  존재한 변경으로 유지

@@ -1,59 +1,49 @@
 # Clean State Checklist — cers-index
 
-세션 종료 전 4개 차원 체크. 실패 항목은 커밋 전에 해결.
+세션 완료는 작업 검증과 저장소 clean-state 검증을 모두 통과해야 한다.
 
----
-
-## 1. 빌드 — 타입 에러 없음
+## 1. 자동 검증
 
 ```bash
-npm run build
+nvm use
+npm run check
 ```
 
-- [ ] 빌드 성공, 에러 0개
+- [ ] 하네스 상태 계약 통과
+- [ ] lint 오류 0개
+- [ ] typecheck 통과
+- [ ] 전체 Vitest 통과
+- [ ] production build 통과
 
----
+## 2. 런타임 검증
 
-## 2. 테스트 통과
+화면, 라우트, DB 또는 보고서 파일 동작을 변경한 경우:
 
 ```bash
-npm run test
+npm run dev
 ```
 
-- [ ] `Test Files N passed` 출력 확인
+- [ ] 해당 `feature_list.json` verification 실행
+- [ ] 실제 DB 데이터 또는 기대 fallback 상태 확인
+- [ ] 성공 결과를 `evidence`에 기록
 
----
+## 3. 상태 기록
 
-## 3. 진행 기록 업데이트
+- [ ] `feature_list.json`에 active 항목이 최대 하나
+- [ ] passing 항목은 evidence 보유
+- [ ] blocked 항목은 blocked_by 보유
+- [ ] `claude-progress.txt`에 이번 세션 결과 기록
+- [ ] `session-handoff.md`에 미완료 작업과 다음 명령 기록
 
-- [ ] `claude-progress.txt` 오늘 작업 내용 기록
-- [ ] `feature_list.json` 변경된 피처 `state` 업데이트
-  - `active` → `passing`: `npm run dev` 에서 실제 데이터 확인 후에만
-- [ ] `session-handoff.md` 미완료 작업 업데이트
-
----
-
-## 4. 보안·임시 파일
+## 4. 저장소 위생
 
 ```bash
-grep -r "PGPASSWORD\|password\|secret" src/ --include="*.ts" --include="*.tsx"
-find . -name "*.tmp" -not -path "./.git/*"
+git status --short
+git diff --check
 ```
 
-- [ ] DB 접속 정보 코드 하드코딩 없음
-- [ ] 임시 파일 없음
-- [ ] `.env` 파일 스테이징 안 됨
+- [ ] `.env`, `.next`, `.playwright-mcp`, 임시 파일이 추적되지 않음
+- [ ] 디버그 코드와 의도하지 않은 변경 없음
+- [ ] 사용자 기존 변경을 되돌리지 않음
 
----
-
-## 커밋 전 확인
-
-```bash
-git status
-git diff --staged
-```
-
-**커밋 금지 대상**:
-- `.env` (DB 비밀번호 포함)
-- `node_modules/`
-- `.next/` (빌드 결과물)
+커밋은 사용자가 요청한 경우에만 수행한다.

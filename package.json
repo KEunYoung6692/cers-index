@@ -1,5 +1,5 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "cers-index",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,8 +11,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "check:harness": "node scripts/check-harness.mjs",
+    "check:quick": "npm run check:harness && npm run lint && npm run typecheck && npm run test",
+    "check": "npm run check:quick && npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

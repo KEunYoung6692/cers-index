@@ -3,88 +3,84 @@
     "id": "F01",
     "screen": "홈 리더보드",
     "route": "/",
-    "behavior": "CERs Index 점수 기준 기업 순위 표시. 점수·등급·업종·배출량 카드. 점수 없을 때는 배출 데이터만 표시.",
-    "verification": "npm run dev → http://localhost:3000 → 기업 카드 1개 이상 노출",
+    "behavior": "CERs Index 점수 기준 기업 순위를 표시하고, 점수가 없을 때는 배출·목표 데이터만으로 명시적인 데이터 부족 상태를 표시한다.",
+    "verification": "npm run dev 실행 후 /ko 에서 실제 기업 카드와 데이터 소스 경고 상태를 확인한다.",
     "state": "active",
-    "evidence": "구현 완료. DB views 미적용으로 실제 데이터 미검증.",
-    "blocked_by": "docs/views.sql DB 적용"
+    "evidence": "DB views 적용 및 넷제로 기업 실제 데이터 노출까지 확인됨. 홈 전체 완료 조건 재검증 필요."
   },
   {
     "id": "F02",
     "screen": "기업 목록",
     "route": "/companies",
-    "behavior": "전체 기업 목록. 업종·국가·점수 필터. 검색.",
-    "verification": "npm run dev → /ko/companies → 기업 목록 로드",
-    "state": "active",
-    "evidence": "구현 완료. DB views 미적용으로 실제 데이터 미검증.",
-    "blocked_by": "docs/views.sql DB 적용"
+    "behavior": "전체 기업 목록을 업종·국가·점수 조건과 검색어로 조회한다.",
+    "verification": "npm run dev 실행 후 /ko/companies 에서 실제 DB 기업 목록, 검색, 필터를 확인한다.",
+    "state": "not_started",
+    "evidence": "구현은 존재하나 현재 검증 사이클은 시작하지 않음."
   },
   {
     "id": "F03",
     "screen": "기업 상세",
     "route": "/companies/[companyId]",
-    "behavior": "기업 점수 상세, 배출 추이 그래프, 감축목표, 넷제로 로드맵, 프레임워크 배지, 검증 상태.",
-    "verification": "npm run dev → /ko/companies/{id} → 배출 차트 노출",
-    "state": "active",
-    "evidence": "구현 완료. DB views 미적용으로 실제 데이터 미검증.",
-    "blocked_by": "docs/views.sql DB 적용"
+    "behavior": "기업 점수, 배출 추이, 감축목표, 넷제로 로드맵, 프레임워크와 검증 상태를 표시한다.",
+    "verification": "npm run dev 실행 후 실제 companyId의 /ko/companies/{id}에서 배출 차트와 목표 데이터를 확인한다.",
+    "state": "not_started",
+    "evidence": "구현은 존재하나 실제 companyId 기반 런타임 검증이 필요함."
   },
   {
     "id": "F04",
     "screen": "보고서 뷰어",
     "route": "/companies/[companyId]/report",
-    "behavior": "기업 ESG 보고서 PDF 직접 뷰어. API route /api/companies/[companyId]/report 로 파일 서빙.",
-    "verification": "npm run dev → /ko/companies/{id}/report → PDF 렌더링",
-    "state": "active",
-    "evidence": "9f9df44 커밋에서 구현. 파일 경로 매핑 검증 필요.",
-    "blocked_by": "docs/views.sql DB 적용 + 로컬 파일 경로 확인"
+    "behavior": "선택한 기업의 ESG 보고서 PDF를 API route를 통해 렌더링한다.",
+    "verification": "npm run dev 실행 후 실제 companyId의 /ko/companies/{id}/report에서 해당 기업 PDF와 HTTP range 응답을 확인한다.",
+    "state": "blocked",
+    "evidence": "페이지와 API route 구현은 존재함.",
+    "blocked_by": "src/lib/server/report-assets.ts가 현재 모든 기업을 동일한 로컬 PDF fixture로 매핑함. batch 보고서 저장 경로 또는 object storage 계약 확정 필요."
   },
   {
     "id": "F05",
     "screen": "업종별 분석",
     "route": "/industries",
-    "behavior": "업종별 평균 점수, 분포, 상위 기업 비교.",
-    "verification": "npm run dev → /ko/industries → 업종 카드 노출",
-    "state": "active",
-    "evidence": "구현 완료. DB views 미적용으로 실제 데이터 미검증.",
-    "blocked_by": "docs/views.sql DB 적용"
+    "behavior": "업종별 평균 점수, 분포, 상위 기업 비교를 표시한다.",
+    "verification": "CERsIndex-batch F05 결과 적재 후 npm run dev로 /ko/industries의 업종 카드와 점수 분포를 확인한다.",
+    "state": "blocked",
+    "evidence": "화면 구현과 DB views는 존재함.",
+    "blocked_by": "CERsIndex-batch F05 점수 결과(final_score, kpi_score)가 필요함."
   },
   {
     "id": "F06",
     "screen": "기업 비교",
     "route": "/compare",
-    "behavior": "최대 3개 기업 나란히 비교. 점수·목표·배출 항목별 비교표.",
-    "verification": "npm run dev → /ko/compare → 기업 선택 후 비교 가능",
-    "state": "active",
-    "evidence": "구현 완료. DB views 미적용으로 실제 데이터 미검증.",
-    "blocked_by": "docs/views.sql DB 적용"
+    "behavior": "최대 3개 기업의 점수, 목표, 배출 항목을 나란히 비교한다.",
+    "verification": "npm run dev 실행 후 /ko/compare에서 실제 기업 2~3개를 선택하고 비교표 항목을 확인한다.",
+    "state": "not_started",
+    "evidence": "구현은 존재하나 현재 검증 사이클은 시작하지 않음."
   },
   {
     "id": "F07",
     "screen": "점수 로직 설명",
     "route": "/score-logic",
-    "behavior": "CERs Index v0.3 산식 설명 (V1~V9, KPI 구조, 가중치).",
-    "verification": "npm run dev → /ko/score-logic → 페이지 정상 렌더링",
+    "behavior": "CERs Index v0.3 산식 설명과 KPI 구조를 표시한다.",
+    "verification": "npm run build 성공 후 /ko/score-logic 정적 페이지 렌더링을 확인한다.",
     "state": "passing",
-    "evidence": "정적 콘텐츠, DB 불필요. 렌더링 확인."
+    "evidence": "정적 콘텐츠 렌더링 확인. DB 의존성 없음."
   },
   {
     "id": "F08",
     "screen": "About",
     "route": "/about",
-    "behavior": "CERs Index 소개, 방법론 개요.",
-    "verification": "npm run dev → /ko/about → 페이지 정상 렌더링",
+    "behavior": "CERs Index 소개와 방법론 개요를 표시한다.",
+    "verification": "npm run build 성공 후 /ko/about 정적 페이지 렌더링을 확인한다.",
     "state": "passing",
-    "evidence": "정적 콘텐츠, DB 불필요."
+    "evidence": "정적 콘텐츠 렌더링 확인. DB 의존성 없음."
   },
   {
     "id": "F09",
-    "screen": "점수 표시 (스코어링 연동)",
+    "screen": "점수 표시 연동",
     "route": "전체 화면",
-    "behavior": "CERsIndex-batch F05 스코어링 결과(final_score, kpi_score)가 DB에 적재되면 scoring_runs/cers_score views 를 통해 화면에 점수 표시.",
-    "verification": "batch F05 실행 후 npm run dev → 홈 리더보드에 점수 노출",
+    "behavior": "CERsIndex-batch F05 결과가 적재되면 scoring views를 통해 점수와 KPI를 표시한다.",
+    "verification": "batch F05 실행 후 npm run dev로 홈, 기업 상세, 업종 화면에서 동일 run의 점수가 표시되는지 확인한다.",
     "state": "blocked",
-    "evidence": "",
-    "blocked_by": "CERsIndex-batch F05 스코어링 엔진 미구현"
+    "evidence": "scoring_runs, cers_score, category_scores views는 생성됨.",
+    "blocked_by": "CERsIndex-batch F05 스코어링 결과 미적재."
   }
 ]

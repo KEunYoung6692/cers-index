@@ -1,44 +1,54 @@
 # Session Handoff
 
-## 2026-06-10 (최신) — 하네스 엔지니어링 + 스키마 통일 views
+## Current State — 2026-06-10
 
-### 완료
-- `docs/views.sql`: batch 스키마 → 프론트 매핑 views 11개 작성
-- `CLAUDE.md`, `AGENTS.md`, `feature_list.json`, `clean-state-checklist.md` 신규
-- vitest 수정 (1 pass)
-- 구버전 파일 30여 개 삭제 커밋 (`cers_index_ver2` 브랜치, `22d95ac`)
+### Harness
 
-### ⚠️ 미완료: DB Views 적용 필요
+- 진입 규칙: `AGENTS.md`
+- 상세 문서:
+  - `docs/ENVIRONMENT.md`
+  - `docs/ARCHITECTURE.md`
+  - `docs/TESTING.md`
+  - `docs/DECISIONS.md`
+  - `docs/QUALITY.md`
+- 상태 프리미티브: `feature_list.json`
+- 자동 검사: `scripts/check-harness.mjs`
+- 로컬/CI 전체 검증: `npm run check`
 
-**views.sql 이 DB에 적용되지 않았다.** 프론트는 현재 fallback(샘플 데이터)를 표시함.
+### Verification
 
-적용 방법:
-```bash
-psql "postgresql://postgres.lqwerolxuszvepbtnnbd:<PW>@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require" \
-     -f docs/views.sql
-```
-또는 Supabase Dashboard → SQL Editor.
+- `npm run check:quick`: 통과
+- `npm run build`: Node 20.19에서 통과
+- `npm run dev`: Ready 확인
+- 실제 HTTP 사용자 흐름은 WSL 안정성 때문에 이번 세션에서 중단
 
-적용 후 확인:
-```bash
-npm run dev
-# http://localhost:3000 → 기업 카드에 실제 한국 기업 이름 표시되면 성공
-```
+### Product State
 
-### 다음 우선순위
+- DB compatibility views 11개는 적용 완료
+- 실제 넷제로 기업 데이터 노출 확인 이력 있음
+- F01 홈 검증이 유일한 `active` 항목
+- F04 보고서 뷰어는 기업별 파일 경로 계약 미확정으로 blocked
+- F05/F09 점수 화면은 CERsIndex-batch F05 결과 미적재로 blocked
 
-1. **views DB 적용** (위 명령어 실행)
-2. **보고서 뷰어 경로 확인** (F04)
-   - `src/app/api/companies/[companyId]/report/route.ts` 에서 PDF 파일 경로가
-     CERsIndex-batch `data/data_collection/reports/{corp_code}/` 와 일치하는지 확인
-3. **CERsIndex-batch F05 스코어링 엔진 구현** → 완료 시 자동으로 점수 표시
+### Next Work
 
----
+1. 웹 프로세스 실행 전 사용자에게 WSL 상태 확인
+2. F01 verification을 실제 DB 데이터로 완료하고 evidence 갱신
+3. 이후 `feature_list.json`에서 다음 항목 하나만 active로 전환
 
-## 이전 세션 상태
+### Constraints
 
-브랜치 `cers_index_ver2`, 마지막 커밋 `ea6b5c7` (2026-05-11):
-- 보고서 뷰어 페이지 추가
-- CERs v0.3 스코어 로직 페이지 (`score-logic-v3.tsx`)
-- `config/cers_v3.md` (내부 산식 정의서 R1) 추가
-- 다크모드 조정
+- npm 명령 전 `nvm use`
+- 웹/E2E 검증은 WSL 안정성 때문에 자동으로 장시간 실행하지 않음
+- 점수 계산은 프론트에서 구현하지 않음
+- 화면 구조와 `docs/views.sql`은 명시적 요청 없이 변경하지 않음
+
+## Existing Worktree Changes
+
+이번 하네스 작업 전부터 존재:
+
+- `.env.example` 삭제
+- `docs/harness-engineering/` 미추적
+- `claude-progress.txt` 수정
+
+사용자 변경으로 간주하며 임의로 되돌리지 않는다.
