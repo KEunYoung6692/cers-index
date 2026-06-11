@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { AppShell } from "@/components/cers/app-shell";
 import { getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
 
-type AboutFormulaId = "adjusted" | "total" | "index";
+type AboutFormulaId = "kpi" | "index";
 
 function FormulaPanel({ formulaId, latex }: { formulaId: AboutFormulaId; latex: string }) {
   return (
@@ -16,82 +16,41 @@ function FormulaPanel({ formulaId, latex }: { formulaId: AboutFormulaId; latex: 
 }
 
 function renderFormulaMath(formulaId: AboutFormulaId, latex: string) {
-  if (formulaId === "adjusted") {
+  if (formulaId === "kpi") {
     return (
       <math display="block" className="mx-auto" aria-label={latex}>
         <semantics>
           <mrow>
-            <msub>
-              <mi>S</mi>
-              <mrow>
-                <mtext>adjusted</mtext>
-                <mo>,</mo>
-                <mi>v</mi>
-              </mrow>
-            </msub>
-            <mo>=</mo>
-            <msub>
-              <mi>S</mi>
-              <mi>v</mi>
-            </msub>
-            <mo>×</mo>
             <msub>
               <mi>K</mi>
-              <mrow>
-                <mtext>P2</mtext>
-                <mo>,</mo>
-                <mi>v</mi>
-              </mrow>
+              <mi>j</mi>
             </msub>
-          </mrow>
-          <annotation encoding="application/x-tex">{latex}</annotation>
-        </semantics>
-      </math>
-    );
-  }
-
-  if (formulaId === "total") {
-    return (
-      <math display="block" className="mx-auto" aria-label={latex}>
-        <semantics>
-          <mrow>
-            <msub>
-              <mi>S</mi>
-              <mtext>total</mtext>
-            </msub>
-            <mo>(</mo>
-            <mi>i</mi>
-            <mo>,</mo>
-            <mi>t</mi>
-            <mo>)</mo>
             <mo>=</mo>
+            <mo>(</mo>
+            <mn>1</mn>
+            <mo>/</mo>
+            <msub>
+              <mi>n</mi>
+              <mi>j</mi>
+            </msub>
+            <mo>)</mo>
+            <mo>×</mo>
             <munder>
               <mo>∑</mo>
-              <mi>v</mi>
+              <mrow>
+                <mi>i</mi>
+                <mo>=</mo>
+                <mn>1</mn>
+              </mrow>
             </munder>
             <msub>
-              <mi>W</mi>
+              <mi>V</mi>
               <mrow>
-                <mi>v</mi>
+                <mi>j</mi>
                 <mo>,</mo>
-                <mi>g</mi>
-                <mo>(</mo>
                 <mi>i</mi>
-                <mo>)</mo>
               </mrow>
             </msub>
-            <mo>×</mo>
-            <msub>
-              <mi>S</mi>
-              <mtext>adjusted</mtext>
-            </msub>
-            <mo>(</mo>
-            <mi>v</mi>
-            <mo>,</mo>
-            <mi>i</mi>
-            <mo>,</mo>
-            <mi>t</mi>
-            <mo>)</mo>
           </mrow>
           <annotation encoding="application/x-tex">{latex}</annotation>
         </semantics>
@@ -103,36 +62,31 @@ function renderFormulaMath(formulaId: AboutFormulaId, latex: string) {
     <math display="block" className="mx-auto" aria-label={latex}>
       <semantics>
         <mrow>
-          <msub>
-            <mtext>CERs</mtext>
-            <mtext>Index</mtext>
-          </msub>
-          <mo>(</mo>
-          <mi>i</mi>
-          <mo>,</mo>
-          <mi>t</mi>
-          <mo>)</mo>
+          <mtext>CERs</mtext>
           <mo>=</mo>
-          <mn>1</mn>
-          <mo>+</mo>
-          <mn>99</mn>
-          <mo>×</mo>
-          <mtext>clamp</mtext>
           <mo>(</mo>
           <msub>
-            <mi>S</mi>
-            <mtext>total</mtext>
+            <mi>K</mi>
+            <mn>1</mn>
           </msub>
-          <mo>(</mo>
-          <mi>i</mi>
-          <mo>,</mo>
-          <mi>t</mi>
+          <mo>+</mo>
+          <msub>
+            <mi>K</mi>
+            <mn>2</mn>
+          </msub>
+          <mo>+</mo>
+          <msub>
+            <mi>K</mi>
+            <mn>3</mn>
+          </msub>
+          <mo>+</mo>
+          <msub>
+            <mi>K</mi>
+            <mn>4</mn>
+          </msub>
           <mo>)</mo>
-          <mo>,</mo>
-          <mn>0</mn>
-          <mo>,</mo>
-          <mn>1</mn>
-          <mo>)</mo>
+          <mo>/</mo>
+          <mn>4</mn>
         </mrow>
         <annotation encoding="application/x-tex">{latex}</annotation>
       </semantics>
