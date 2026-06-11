@@ -3,8 +3,11 @@ import AppProviders from "../App";
 import "../index.css";
 
 export const metadata = {
-  title: "CERS Index",
-  description: "CERS Index dashboard",
+  title: {
+    default: "CERs Index",
+    template: "%s | CERs Index",
+  },
+  description: "Public-facing dashboard for comparing corporate carbon reduction performance.",
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon-16x16.png",
@@ -16,7 +19,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
+      <body className="min-h-screen bg-background text-foreground">
         <AppProviders>{children}</AppProviders>
       </body>
     </html>
