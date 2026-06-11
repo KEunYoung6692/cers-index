@@ -1,7 +1,2 @@
-import { describe, it, expect } from "vitest";
-
-describe("example", () => {
-  it("should pass", () => {
-    expect(true).toBe(true);
-  });
-});
+// vitest global setup — runs before each test file
+// server-only stub is handled via vitest.config.ts alias
