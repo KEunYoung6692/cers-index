@@ -1,5 +1,29 @@
 # Session Handoff
 
+## Current State — 2026-06-11
+
+### Methodology
+
+- About와 상세 로직 화면은 CERs Index v1.4 기준으로 전환됨
+- 4개 KPI와 16개 변수, KPI 내부 및 KPI 간 동일가중 평균을 사용
+- 한국어, 영어, 일본어 콘텐츠와 렌더링 테스트가 추가됨
+- 화면 개편 기획서는 `docs/screen/README.md`에 있음
+- 홈의 공개 탄소감축 대시보드 표와 점수소개 영역은 유지 대상으로 확정
+
+### Verification
+
+- Node.js 20.19.0에서 `npm run check:quick` 통과
+- Vitest 2 files, 7 tests 통과
+- `npm run check`와 production build 통과
+- `/about`, `/about/logic`, `/score-logic`과 다국어 라우트 생성 확인
+
+### Product State
+
+- DB 강제 목데이터 반환은 제거되어 실제 DB 조회 경로를 사용함
+- F01 홈 검증이 유일한 `active` 항목
+- F05/F09는 CERsIndex-batch F05 점수 결과 적재 전까지 blocked
+- 점수 계산은 계속 batch 소유이며 프론트에서는 계산하지 않음
+
 ## Current State — 2026-06-10
 
 ### Harness

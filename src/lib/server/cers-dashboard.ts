@@ -365,8 +365,6 @@ function makeIssueMessage(message: string, locale: SupportedLocale) {
 }
 
 export const getCersDashboardData = cache(async (locale: SupportedLocale = "en"): Promise<CersDashboardData> => {
-  // TODO: 실데이터 연동 시 아래 줄 제거
-  return localizeDashboardData(fallbackDashboardData, locale);
   try {
     const existingTables = await getExistingTableNames([...DASHBOARD_TABLES]);
     const schema = resolveDashboardSchema(existingTables);
@@ -984,8 +982,6 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
 });
 
 export const getCompanyEmissionHistory = cache(async (companyId: string): Promise<CersEmissionHistoryPoint[]> => {
-  // TODO: 실데이터 연동 시 아래 줄 제거
-  return fallbackEmissionHistory[companyId] ?? [];
   const numericCompanyId = Number(companyId);
   if (!Number.isFinite(numericCompanyId)) {
     return fallbackEmissionHistory[companyId] ?? [];

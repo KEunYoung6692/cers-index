@@ -1,5 +1,30 @@
 # Claude Progress — cers-index
 
+## 2026-06-11 — CERs Index v1.4 방법론 화면 전환
+
+### 완료 작업
+
+- `docs/LOGIC/`의 v1.4 방법론을 기준으로 About 개요를 4 KPI·16개 변수
+  구조와 동일가중 집계 방식으로 교체
+- `/about/logic`과 `/score-logic`이 사용하는 상세 로직 화면을 한국어,
+  영어, 일본어로 전환
+- 3개 언어에서 16개 변수가 모두 렌더링되고 구 V1~V9/P2/산업별 가중치
+  설명이 남지 않는지 검사하는 Vitest 추가
+- 향후 전체 화면 개편 기준을 `docs/screen/README.md`에 작성
+  - 홈의 공개 탄소감축 대시보드 표와 점수소개 영역은 유지
+  - 나머지 화면은 v1.4의 4 KPI·16개 변수 구조로 재설계
+- 대시보드 서버 조회에 남아 있던 강제 목데이터 반환을 제거해 실제 DB 조회
+  경로를 복구
+
+### 검증
+
+- Node.js 20.19.0
+- `npm run check:quick`: 통과
+- Vitest: 2 files, 7 tests 통과
+- `npm run check`: 통과
+- production build에서 `/about`, `/about/logic`, `/score-logic`과 다국어
+  라우트 생성 확인
+
 ## 2026-06-10 — 하네스 엔지니어링 세팅 + 스키마 통일
 
 ### 배경
