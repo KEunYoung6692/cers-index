@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, CalendarDays, FileText, ShieldCheck } from "lucide-react";
 import { AppShell } from "@/components/cers/app-shell";
 import { CarbonNeutralRoadmapCard } from "@/components/cers/carbon-neutral-roadmap-card";
 import { CalculationStatusBadge } from "@/components/cers/calculation-status-badge";
-import { VariableScorePanel } from "@/components/cers/variable-score-panel";
-import { V3QualityChecklist } from "@/components/cers/v3-quality-checklist";
+import { KpiScoreGrid } from "@/components/cers/kpi-score-grid";
 import { Button } from "@/components/ui/button";
 import { getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
 import {
@@ -75,16 +74,56 @@ export async function renderCompanyDetailPage(
               <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">{company.summary}</p>
             </div>
           </div>
+
+          <div className="mt-7 grid gap-3 border-t border-slate-200 pt-6 md:grid-cols-3 dark:border-slate-800">
+            <div className="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-4 dark:bg-slate-900">
+              <ShieldCheck className="mt-0.5 h-4 w-4 text-teal-600 dark:text-teal-300" />
+              <div>
+                <div className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">{t.companyDetail.methodologyBasis}</div>
+                <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {company.methodologyVersion || data.methodologyVersion || "v1.5"}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-4 dark:bg-slate-900">
+              <CalendarDays className="mt-0.5 h-4 w-4 text-blue-600 dark:text-blue-300" />
+              <div>
+                <div className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">{t.companyDetail.scoreBasisYear}</div>
+                <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {scoreYear !== null ? t.common.fiscalYearLabel(scoreYear) : t.common.noData}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-4 dark:bg-slate-900">
+              <FileText className="mt-0.5 h-4 w-4 text-violet-600 dark:text-violet-300" />
+              <div className="min-w-0">
+                <div className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">{t.companyDetail.latestEvidence}</div>
+                <div className="mt-1 truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {company.latestDocument?.title || t.common.noLinkedDocument}
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
-        <section className="mt-6 grid gap-6 xl:grid-cols-[1fr_1.2fr]">
-          <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
-            <h2 className="mb-4 text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-              {locale === "ko" ? "변수별 점수 (V1 – V9)" : "Variable Scores (V1 – V9)"}
-            </h2>
-            <VariableScorePanel categories={company.categories} locale={locale} />
+        <section className="mt-6 rounded-[36px] border border-slate-200 bg-white p-6 shadow-card md:p-8 dark:border-slate-800 dark:bg-slate-950/80">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-600 dark:text-teal-300">CERs Index v1.5</p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">{t.companyDetail.kpiProfile}</h2>
+              <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">{t.companyDetail.kpiProfileDescription}</p>
+            </div>
+            <Link
+              href={localizedPath(locale, "/about/logic")}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-teal-700 dark:text-slate-200 dark:hover:text-teal-300"
+            >
+              {t.kpi.methodLink}
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
           </div>
-          <V3QualityChecklist company={company} locale={locale} />
+          <div className="mt-6">
+            <KpiScoreGrid categories={company.categories} locale={locale} />
+          </div>
         </section>
 
         <section className="mt-6">
@@ -94,19 +133,39 @@ export async function renderCompanyDetailPage(
         <section className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
           <div className="rounded-[36px] border border-slate-200 bg-white p-6 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
             <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.companyDetail.industryComparison}</h2>
-            <div className="mt-6 grid gap-5 md:grid-cols-2">
-              <div className="rounded-3xl bg-slate-50 p-6 dark:bg-slate-900">
-                <div className="text-sm text-slate-500 dark:text-slate-400">{company.name}</div>
-                <div className="mt-3 h-48 rounded-t-[24px] bg-gradient-to-t from-teal-600 to-teal-400 p-4 text-right text-xl font-semibold text-white">
-                  {formatScore(company.overallScore)}
-                </div>
-              </div>
-              <div className="rounded-3xl bg-slate-50 p-6 dark:bg-slate-900">
-                <div className="text-sm text-slate-500 dark:text-slate-400">{industry?.label || t.companyDetail.industryAverage}</div>
-                <div className="mt-3 h-48 rounded-t-[24px] bg-gradient-to-t from-slate-500 to-slate-300 p-4 text-right text-xl font-semibold text-white">
-                  {formatScore(industryAverage)}
-                </div>
-              </div>
+            <div className="mt-6 space-y-4">
+              {[
+                {
+                  label: t.companyDetail.companyScoreLabel,
+                  name: company.displayName,
+                  value: company.overallScore,
+                  barClass: "bg-teal-500",
+                  valueClass: "text-teal-700 dark:text-teal-300",
+                },
+                {
+                  label: t.companyDetail.sectorAverageLabel,
+                  name: industry?.label || t.companyDetail.industryAverage,
+                  value: industryAverage,
+                  barClass: "bg-slate-400",
+                  valueClass: "text-slate-700 dark:text-slate-200",
+                },
+              ].map((item) => {
+                const width = item.value === null ? 0 : Math.max(0, Math.min(100, item.value));
+                return (
+                  <div key={item.label} className="rounded-3xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-900">
+                    <div className="flex items-end justify-between gap-4">
+                      <div>
+                        <div className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">{item.label}</div>
+                        <div className="mt-1 text-sm font-medium text-slate-700 dark:text-slate-200">{item.name}</div>
+                      </div>
+                      <div className={`text-2xl font-semibold tabular-nums ${item.valueClass}`}>{formatScore(item.value)}</div>
+                    </div>
+                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                      <div className={`h-full rounded-full ${item.barClass}`} style={{ width: `${width}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             <p className="mt-6 rounded-3xl bg-teal-50 px-5 py-4 text-sm leading-7 text-slate-700 dark:bg-teal-950/30 dark:text-slate-200">
               {industryAverage !== null && company.overallScore !== null && company.overallScore >= industryAverage
@@ -137,7 +196,9 @@ export async function renderCompanyDetailPage(
           </div>
 
           <div className="rounded-[36px] border border-slate-200 bg-white p-6 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
-            <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.companyDetail.targetDetails}</h2>
+            <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.companyDetail.evidenceOverview}</h2>
+            <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">{t.companyDetail.evidenceOverviewDescription}</p>
+            <h3 className="mt-6 text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{t.companyDetail.targetDetails}</h3>
             <div className="mt-6 space-y-4">
               {[
                 { label: t.companyDetail.targetRows.baselineYear, value: company.targetSummary.baseYear || "—" },

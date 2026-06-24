@@ -118,7 +118,9 @@ export async function renderIndustryDetailPage(
               <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 md:text-4xl">{industry.label}</h1>
               <p className="mt-5 text-base leading-8 text-slate-600 dark:text-slate-300">{industry.summary}</p>
               <div className="mt-4 flex flex-wrap gap-2 text-sm text-slate-500 dark:text-slate-400">
-                <span className="rounded-full bg-slate-100 px-3 py-1 dark:bg-slate-900">{industry.performanceTag}</span>
+                <span className="rounded-full bg-slate-100 px-3 py-1 dark:bg-slate-900">
+                  {industry.sampleBucket === "robust" ? t.industries.robustSample : t.industries.limitedSample}
+                </span>
                 <span className="rounded-full bg-slate-100 px-3 py-1 dark:bg-slate-900">
                   {industry.latestScoreYear ? t.common.fiscalYearLabel(industry.latestScoreYear) : t.common.noData}
                 </span>

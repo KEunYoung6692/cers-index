@@ -8,20 +8,17 @@ type KpiId = (typeof KPI_ORDER)[number];
 type CoreFormulaId = (typeof CORE_FORMULA_ORDER)[number];
 
 const KPI_VARIABLES: Record<KpiId, readonly VariableId[]> = {
-  kpi1: ["v1", "v2", "v3"],
-  kpi2: ["w1", "w2", "w3", "w4"],
+  kpi1: ["v1", "v2"],
+  kpi2: ["w1", "w2"],
   kpi3: ["c1", "c2", "c3", "c4"],
-  kpi4: ["a1", "a2", "a3", "a4", "a5"],
+  kpi4: ["a1", "a2", "a3", "a4"],
 };
 
 type VariableId =
   | "v1"
   | "v2"
-  | "v3"
   | "w1"
   | "w2"
-  | "w3"
-  | "w4"
   | "c1"
   | "c2"
   | "c3"
@@ -29,8 +26,7 @@ type VariableId =
   | "a1"
   | "a2"
   | "a3"
-  | "a4"
-  | "a5";
+  | "a4";
 
 type VariableCopy = {
   title: string;
@@ -75,7 +71,7 @@ const CORE_FORMULAS: Record<CoreFormulaId, ReactNode[]> = {
       K<sub>j</sub> = (1 / n<sub>j</sub>) × Σ<sub>i</sub> V<sub>j,i</sub>
     </>,
     <>
-      (n<sub>1</sub> = 3, n<sub>2</sub> = 4, n<sub>3</sub> = 4, n<sub>4</sub> = 5)
+      (n<sub>1</sub> = 2, n<sub>2</sub> = 2, n<sub>3</sub> = 4, n<sub>4</sub> = 4)
     </>,
   ],
   index: [
@@ -102,50 +98,26 @@ const VARIABLE_FORMULAS: Record<VariableId, ReactNode[]> = {
   ],
   v2: [
     <>
-      I3<sub>t</sub> = E3<sub>t</sub> / D<sub>t</sub>,&nbsp;&nbsp; r<sub>3,t</sub> = 1 − (I3<sub>t</sub> / I3<sub>t−3</sub>)<sup>1/3</sup>
+      V2 = 100 × clamp(1 − (E3<sub>t</sub> / E3<sub>t−3</sub>)<sup>1/3</sup>, 0, 1)
     </>,
     <>
-      g<sub>3,t</sub> = (E3<sub>t</sub> / E3<sub>t−3</sub>)<sup>1/3</sup> − 1
-    </>,
-    <>
-      S<sub>absolute</sub> = 1 if g<sub>3,t</sub> ≤ 0;&nbsp;&nbsp; 1 / (1 + g<sub>3,t</sub>) if g<sub>3,t</sub> &gt; 0
-    </>,
-    <>
-      V2 = 100 × clamp(r<sub>3,t</sub> / 0.025, 0, 1) × S<sub>absolute</sub>
-    </>,
-  ],
-  v3: [
-    <>
-      V3 = 100 × RE<sub>t</sub> / EL<sub>t</sub>
+      E3<sub>t</sub>, E3<sub>t−3</sub> = Scope 3 absolute emissions in year t and t−3
     </>,
   ],
   w1: [
     <>
-      r<sub>amb</sub> = R / (T<sub>y</sub> − B<sub>y</sub>)
+      W1<sub>j</sub> = 100 × Π<sub>k∈K_j</sub> W<sub>j,k</sub>,&nbsp;&nbsp; W<sub>j,k</sub> ∈ {"{"}0, 1{"}"}
     </>,
     <>
-      W1<sub>absolute</sub> = 100 × clamp(r<sub>amb</sub> / 0.042, 0, 1)
-    </>,
-    <>
-      W1<sub>intensity</sub> = 100 × clamp(r<sub>amb</sub> / 0.07, 0, 1)
+      W1 = (W1<sub>1</sub> + W1<sub>2</sub> + ... + W1<sub>J</sub>) / J
     </>,
   ],
   w2: [
     <>
-      W2 = 100 × Σ<sub>s</sub> E<sub>s</sub>·c<sub>s</sub> / Σ<sub>s</sub> E<sub>s</sub>
-    </>,
-  ],
-  w3: [
-    <>
       P<sub>t</sub> = [(E<sub>B</sub> − E<sub>t</sub>) / E<sub>B</sub>] ÷ [R · (t − B<sub>y</sub>) / (T<sub>y</sub> − B<sub>y</sub>)]
     </>,
     <>
-      W3 = 100 × clamp(P<sub>t</sub>, 0, 1)
-    </>,
-  ],
-  w4: [
-    <>
-      W4 ∈ {"{"}0, 50, 100{"}"}
+      W2 = 100 × clamp(P<sub>t</sub>, 0, 1)
     </>,
   ],
   c1: [
@@ -160,7 +132,10 @@ const VARIABLE_FORMULAS: Record<VariableId, ReactNode[]> = {
   ],
   c3: [
     <>
-      C3 = 100 × clamp(P<sub>ICP</sub> / 100, 0, 1)
+      C3 ∈ {"{"}100, 25, 0{"}"}
+    </>,
+    <>
+      100 = ICP operated &amp; price disclosed;&nbsp; 25 = operated, price not disclosed;&nbsp; 0 = none / unverifiable
     </>,
   ],
   c4: [
@@ -170,10 +145,13 @@ const VARIABLE_FORMULAS: Record<VariableId, ReactNode[]> = {
   ],
   a1: [
     <>
-      A1 = 100 × Σ<sub>s</sub> E<sub>s</sub><sup>ver</sup>·a<sub>s</sub> / Σ<sub>s</sub> E<sub>s</sub>
+      a1 ∈ {"{"}100, 50, 0{"}"} (SBTi target status)
     </>,
     <>
-      a<sub>s</sub> ∈ {"{"}0, 0.5, 1.0{"}"}
+      a2 = 100 × Σ<sub>s</sub> E<sub>s</sub><sup>ver</sup>·a<sub>s</sub> / Σ<sub>s</sub> E<sub>s</sub>,&nbsp;&nbsp; a<sub>s</sub> ∈ {"{"}0, 0.5, 1.0{"}"}
+    </>,
+    <>
+      A1 = (a1 + a2) / 2
     </>,
   ],
   a2: [
@@ -188,21 +166,16 @@ const VARIABLE_FORMULAS: Record<VariableId, ReactNode[]> = {
   ],
   a4: [
     <>
-      A4 = 100 × min((N − 1) / 3, 1)
-    </>,
-  ],
-  a5: [
-    <>
-      A5 = 100 × p / 4
+      A4 = 100 × p / 4
     </>,
   ],
 };
 
 const ENGLISH_COPY: LogicCopy = {
-  heroEyebrow: "CERs Index Methodology v1.4",
+  heroEyebrow: "CERs Index Methodology v1.5",
   heroTitle: "Formulas and variables",
   heroDescription:
-    "The CERs (Climate-related Emissions & Responsibility Score) Index scores corporate climate transition from public disclosure only. Sixteen variables across four KPIs — and every benchmark in the method is quoted from an external standard: the index sets no numbers of its own. Reference frameworks: CDP 2024, IFRS S1/S2, the GHG Protocol, and the SBTi Corporate Net-Zero Standard.",
+    "The CERs (Climate-related Emissions & Responsibility Score) Index scores corporate climate transition from public disclosure only. Twelve variables across four KPIs — and every benchmark in the method is quoted from an external standard: the index sets no numbers of its own. Reference frameworks: CDP, IFRS S1/S2, the GHG Protocol, and the SBTi Corporate Net-Zero Standard.",
   principlesTitle: "Design principles — no arbitrary numbers",
   principlesDescription:
     "Every variable, formula, and aggregation step must rest on at least one of five rules, and no figure may be a back-solved allocation. All inputs must be obtainable from public disclosure; what is not disclosed scores zero.",
@@ -211,25 +184,25 @@ const ENGLISH_COPY: LogicCopy = {
       code: "R1",
       title: "External benchmark normalization",
       description:
-        "Score denominators are quoted directly from international norms and scientific pathways — e.g. the SBTi 1.5°C pace of 4.2%/yr, the Stern–Stiglitz carbon price of USD 100.",
+        "Score denominators are quoted directly from international norms and scientific pathways — e.g. the SBTi 1.5°C cross-sector pace of 4.2%/yr for Scope 1·2 absolute reduction.",
     },
     {
       code: "R2",
       title: "Raw ratios as scores",
       description:
-        "Natural 0–1 ratios are scored as-is with no curvature assumptions — renewable share, target coverage, green capex share.",
+        "Natural 0–1 ratios are scored as-is with no curvature assumptions — green capex share, low-carbon revenue share.",
     },
     {
       code: "R3",
       title: "Equal count of standard-defined items",
       description:
-        "Checklists consist only of items defined by external standards, each counted equally — the 15 Scope 3 categories, the 4 TCFD/ISSB pillars.",
+        "Checklists consist only of items defined by external standards, each counted equally — the 15 Scope 3 categories, the 4 TCFD/ISSB pillars, the IFRS S2 target-design elements.",
     },
     {
       code: "R4",
       title: "Binary facts",
       description:
-        "Only externally verifiable facts are scored 0 or 1 — SBTi validation status, pay linkage disclosed or not.",
+        "Only externally verifiable facts are scored 0 or 1 — whether a target element is disclosed, whether pay linkage is disclosed.",
     },
     {
       code: "R5",
@@ -240,7 +213,7 @@ const ENGLISH_COPY: LogicCopy = {
   ],
   equationsTitle: "Aggregation",
   equationsDescription:
-    "Sixteen variables, each 0–100, are averaged into four KPI scores, which are averaged into the final index. Equal weighting is the design consequence, not a convenience: with no external basis for differential weights, any chosen weight would itself be an arbitrary allocation (principle of insufficient reason; OECD/EU JRC composite-indicator handbook). Because every variable lies in 0–100 and the mean is a convex combination, the index is mathematically guaranteed to stay in 0–100.",
+    "Twelve variables, each 0–100, are averaged into four KPI scores, which are averaged into the final index. Equal weighting is the design consequence, not a convenience: with no external basis for differential weights, any chosen weight would itself be an arbitrary allocation (principle of insufficient reason; OECD/EU JRC composite-indicator handbook). Because every variable lies in 0–100 and the mean is a convex combination, the index is mathematically guaranteed to stay in 0–100.",
   equationTitles: {
     kpi: "1. Variables → KPI score (equal-weighted mean)",
     index: "2. KPI scores → CERs Index (equal-weighted mean)",
@@ -248,7 +221,7 @@ const ENGLISH_COPY: LogicCopy = {
   definitionsTitle: "What the symbols mean",
   definitions: [
     { key: "V_j,i", label: "Variable i of KPI j, on a 0–100 scale" },
-    { key: "n_j", label: "Number of variables in KPI j (3 / 4 / 4 / 5)" },
+    { key: "n_j", label: "Number of variables in KPI j (2 / 2 / 4 / 4)" },
     { key: "K_j", label: "KPI score: the equal-weighted mean of its variables" },
     { key: "CERs", label: "Final index, 0–100 — bounded by construction, no clamping needed" },
     { key: "clamp(x, 0, 1)", label: "Caps a ratio into the 0–1 range" },
@@ -259,16 +232,16 @@ const ENGLISH_COPY: LogicCopy = {
     "The four KPIs cover mutually non-overlapping dimensions — performance, targets, capital, credibility — with no international consensus that any one matters more, hence equal weights.",
   kpis: {
     kpi1: {
-      title: "KPI 1 — Realized decarbonization performance",
+      title: "KPI 1 — Realized decarbonization",
       tagline: "Measured change, not statements",
       description:
-        "Did measured emissions and the energy mix actually move over the 3-year window? Three variables: V1–V3.",
+        "Did measured Scope 1·2 and Scope 3 emissions actually fall over the 3-year window? Two variables: V1–V2.",
     },
     kpi2: {
-      title: "KPI 2 — Target ambition & delivery",
-      tagline: "Scientific, broad, on track, validated",
+      title: "KPI 2 — Target design & delivery",
+      tagline: "Is the target fully defined, and is it being met?",
       description:
-        "Four questions about the target: is it 1.5°C-aligned, does it cover enough, is the company on the path, has it been independently validated? W1–W4.",
+        "Two questions about the target: is it specified completely enough to be evaluated, and is the company on its declared reduction path? W1–W2.",
     },
     kpi3: {
       title: "KPI 3 — Capital allocation",
@@ -280,10 +253,10 @@ const ENGLISH_COPY: LogicCopy = {
       title: "KPI 4 — Data credibility",
       tagline: "Can the numbers behind KPI 1–3 be trusted?",
       description:
-        "Assurance, inventory completeness, methodology transparency, time-series consistency, and disclosure-framework alignment. A1–A5. Climate disclosure regulation is concentrated here.",
+        "Third-party validation and assurance, inventory completeness, methodology transparency, and disclosure-framework alignment. A1–A4. Climate disclosure regulation is concentrated here.",
     },
   },
-  variablesTitle: "The sixteen variables",
+  variablesTitle: "The twelve variables",
   variablesDescription:
     "Each card shows what the variable measures, its governing formula, and what the formula means. Full marks always mean the same thing: 1.5°C-aligned, or the external standard fully met.",
   variables: {
@@ -300,59 +273,30 @@ const ENGLISH_COPY: LogicCopy = {
     v2: {
       title: "V2. Scope 3 emissions performance",
       description:
-        "The identical structure applied to value-chain emissions — typically 65–95% of the footprint — with the benchmark switched to SBTi's Scope 3 minimum of 2.5%/yr.",
+        "How much the company's Scope 3 absolute emissions — typically the bulk of the footprint — actually fell over the same three-year window on a like-for-like boundary.",
       bullets: [
-        "Like-for-like boundary rule: recalculated time series first; otherwise only categories reported in both years are compared; a method change without recalculation scores 0.",
-        "Expanding measurement is never penalized here (it is rewarded in A2), and quietly dropping categories is neutralized by the intersection rule.",
-        "Basis: SBTi Near-Term Criteria (Scope 3 minimum), GHG Protocol consistency and recalculation requirements.",
-      ],
-    },
-    v3: {
-      title: "V3. Renewable electricity share",
-      description:
-        "Renewable share of total electricity consumption — a leading indicator of transition that complements the lagging emissions results.",
-      bullets: [
-        "The ratio itself is the score: 60% renewable electricity = 60 points. The 100% endpoint comes from RE100 and the IEA Net Zero roadmap.",
-        "Linear mapping is the minimal assumption: each renewable MWh contributes the same marginal abatement, and there is no external basis for curvature.",
+        "The annualized absolute reduction rate is the score directly (clamped 0–100). No improvement or an increase scores 0.",
+        "Like-for-like boundary rule: only figures recalculated and disclosed by the company are compared when the boundary or method changed.",
+        "Category selection adequacy, disclosure completeness, assurance, and method reliability are not scored here — they are handled in KPI 4. Basis: GHG Protocol Scope 3 Standard (same-boundary absolute tracking).",
       ],
     },
     w1: {
-      title: "W1. Target ambition",
+      title: "W1. Target design completeness",
       description:
-        "How fast the company's headline reduction target is, converted to a linear annual rate and measured against the 1.5°C pace.",
+        "Whether each disclosed reduction target is specified clearly enough — scope, period, level — for its ambition and delivery to be evaluated from the outside.",
       bullets: [
-        "\"30% by 2030 from 2020\" is 3%/yr → 3 / 4.2 ≈ 71 points.",
-        "Intensity-only targets face a 7%/yr denominator (SBTi GEVA) — a fairness adjustment, since intensity must improve faster than growth to deliver absolute cuts.",
-        "The headline target is selected by a pre-fixed rule (largest covered base-year emissions among absolute S1+2 targets), removing evaluator discretion.",
+        "Each target scores 100 only if every applicable element is disclosed: base year, target year, quantified level, boundary, target type, interim target, and carbon-credit role. Missing any one applicable element scores that target 0.",
+        "Element sets adapt to the target: short-term targets skip the interim-target element; gross targets without credits skip the credit element.",
+        "Multiple valid targets are averaged, so W1 is the share of a company's valid targets that are completely defined. Basis: IFRS S2 §33–36, CDP target questions.",
       ],
     },
     w2: {
-      title: "W2. Target coverage",
-      description:
-        "How much of total emissions (Scope 1+2+3) is actually bound by valid targets — the counterweight to cherry-picked ambitious targets.",
-      bullets: [
-        "Coverage is resolved per scope first, then combined with emissions weights — materiality, so a scope that is 80% of the footprint carries 80% of the weight.",
-        "Overlapping targets within a scope take the maximum: a conservative lower bound of the union that structurally cannot overstate. Only disclosed-disjoint targets are summed.",
-        "Basis: GHG Protocol conservativeness principle; SBTi coverage thresholds as reference points.",
-      ],
-    },
-    w3: {
-      title: "W3. On-track performance",
+      title: "W2. On-track performance",
       description: "Whether actual reductions sit on the straight line from base year to target year.",
       bullets: [
         "Numerator: reduction achieved. Denominator: reduction expected for elapsed time. 12% achieved when 15% was due = 80 points.",
         "Capped at 100 — overshoot is already rewarded in V1·V2, so the cap prevents double counting.",
         "The linear path is not a new assumption: it is the same one CDP's progress metric and SBTi's pathway definition use.",
-      ],
-    },
-    w4: {
-      title: "W4. Third-party target validation",
-      description:
-        "Whether the target passed independent science-based validation by a qualified body, or has formally entered the process.",
-      bullets: [
-        "Stage 1 is a pass/fail gate for the validator: independence, publicly documented 1.5°C-aligned criteria, public registry. Currently qualified: SBTi.",
-        "Stage 2 uses the body's own official status ladder — approved 100 / committed 50 / none 0. The scale is the validator's own hierarchy, not an invented allocation.",
-        "Non-participation costs at most 6.25 index points (1/16) — the equal-weight structure self-limits the penalty.",
       ],
     },
     c1: {
@@ -374,12 +318,13 @@ const ENGLISH_COPY: LogicCopy = {
       ],
     },
     c3: {
-      title: "C3. Internal carbon price level",
+      title: "C3. Internal carbon price operation",
       description:
-        "The strength of the carbon price signal embedded in investment decisions, measured against USD 100/tCO₂e.",
+        "Whether the company operates an internal carbon price and discloses the applied level so the price signal can be verified externally.",
       bullets: [
-        "USD 100 is the upper bound of the Stern–Stiglitz 2030 corridor (USD 50–100) — the 1.5°C-consistent end, matching the index-wide definition of full marks.",
-        "No ICP = 0, and claiming a program without disclosing the price = 0: an unverifiable price is indistinguishable from no signal.",
+        "Three states: 100 if an ICP is operated and the applied price is disclosed in currency/tCO₂e; 25 if operation is disclosed but the price is not; 0 if there is no ICP, only a plan, or operation cannot be verified.",
+        "The level of the price is not scored — only the existence of a verifiable signal — because price meaning varies by type, purpose, and scope. External carbon taxes, ETS market prices, and credit purchase prices do not count as an internal price.",
+        "Basis: CDP carbon-price responses (primary source), sustainability reports (supplementary).",
       ],
     },
     c4: {
@@ -392,12 +337,13 @@ const ENGLISH_COPY: LogicCopy = {
       ],
     },
     a1: {
-      title: "A1. Third-party assurance level",
+      title: "A1. Third-party validation & assurance",
       description:
-        "How much of reported emissions is independently assured, and how strongly — coverage × strength in a single number.",
+        "Two credibility checks averaged: whether the target is independently validated (SBTi status), and how much of reported emissions is independently assured.",
       bullets: [
-        "0 / 0.5 / 1.0 is the ISAE 3410 ordinal scale (none < limited < reasonable), normalized at equal intervals. Weighting by emissions applies the materiality principle: if 90% of the footprint is unassured Scope 3, strong Scope 1·2 assurance cannot mask it.",
-        "Statutory ETS verification (K-ETS, EU ETS — ISO 14064-3 based, reasonable level) counts as 1.0 for the covered emissions.",
+        "a1 — target setting: SBTi targets set (approved, valid) = 100, an official committed status within the deadline = 50, none or a non-qualified validator only = 0.",
+        "a2 — emissions assurance: 0 / 0.5 / 1.0 is the ISAE 3410 ordinal scale (none < limited < reasonable), weighted by emissions so an unassured Scope 3 cannot be masked by strong Scope 1·2 assurance.",
+        "A1 = (a1 + a2) / 2.",
       ],
     },
     a2: {
@@ -415,26 +361,17 @@ const ENGLISH_COPY: LogicCopy = {
       description:
         "Whether a third party could reproduce the numbers: organizational boundary, operational boundary, emission factors and GWP source, base-year recalculation policy.",
       bullets: [
-        "Four equally counted items from the GHG Protocol Corporate Standard's required reporting information.",
+        "Four equally counted items from the GHG Protocol Corporate Standard's required reporting information (Ch. 3–6).",
         "A disclosed recalculation policy also unlocks the preferred path in V2's like-for-like rule — the variables interlock.",
       ],
     },
     a4: {
-      title: "A4. Time-series consistency",
-      description:
-        "Whether the company provides the comparable multi-year series this index needs to measure performance at all.",
-      bullets: [
-        "The denominator 3 is endogenous, not arbitrary: V1·V2 measure over a 3-year window (4 data points), so A4 is simply \"did you provide the data the index requires\". Three years of comparable data = about 67 points.",
-        "Boundary changes remain continuous if recalculation is disclosed — the same philosophy as V2: measurement improvement is not punished.",
-      ],
-    },
-    a5: {
-      title: "A5. Disclosure framework alignment",
+      title: "A4. Disclosure framework alignment",
       description:
         "Whether climate reporting is organized along the four TCFD/IFRS S2 pillars: governance, strategy (incl. scenario analysis), risk management, metrics & targets.",
       bullets: [
-        "Counts the existence of each pillar's disclosure; content quality is scored by the other fifteen variables.",
-        "Division of labor with C4: A5 checks that the form is complete, C4 checks how deep the governance chain actually goes.",
+        "Counts the existence of each pillar's disclosure (p / 4); content quality is scored by the other eleven variables.",
+        "Division of labor with C4: A4 checks that the form is complete, C4 checks how deep the governance chain actually goes.",
       ],
     },
   },
@@ -444,8 +381,8 @@ const ENGLISH_COPY: LogicCopy = {
       title: "Missing and not-applicable data",
       bullets: [
         "Undisclosed = 0. Disclosure incentive is the reason this index exists; imputation is never used because every imputation method injects arbitrariness.",
-        "N/A is allowed only when the activity physically does not exist (e.g. V3 for a company using no electricity) and that absence is confirmed by disclosure — the variable is then removed from both numerator and denominator.",
-        "Pre-excluded: CDP-membership-linked questions and biomass/bioenergy questions (low general disclosure, poor universality).",
+        "N/A is allowed only when the activity physically does not exist (e.g. no capital expenditure to classify for C1) and that absence is confirmed by disclosure — the variable is then removed from both numerator and denominator.",
+        "Operation-unconfirmed and explicitly not-operated both score 0 (e.g. C3), but the raw status is stored separately.",
       ],
     },
     {
@@ -453,31 +390,31 @@ const ENGLISH_COPY: LogicCopy = {
       bullets: [
         "Every variable lies in 0–100; KPI scores and the index are means, so the 0–100 bound is mathematical, not enforced.",
         "Full marks mean the same thing everywhere: 1.5°C-aligned, or the external standard's requirement fully met.",
-        "All benchmarks — 4.2%, 2.5%, 7%, USD 100, 15 categories, 4 pillars, the SBTi status ladder — are quoted from external sources. The index sets no numbers of its own.",
+        "All benchmarks — 4.2%, the 15 categories, the 4 pillars, the SBTi status ladder, the ISAE assurance levels — are quoted from external sources. The index sets no numbers of its own.",
       ],
     },
     {
       title: "Aggregation and grades",
       bullets: [
         "Equal weights at both levels: with no external basis for differential weights, any chosen weight would itself be arbitrary (principle of insufficient reason; OECD/EU JRC handbook).",
-        "A geometric-mean variant is computed alongside for robustness — it flags companies whose high scores in one dimension mask a zero in another. It is not used in scoring.",
+        "Equal weighting is the starting point; weights and rankings may later be re-derived with reference to CDP or the Korea Institute of Corporate Governance and Sustainability.",
         "If grades (A/B/C/…) are published, band boundaries are defined only by distribution statistics such as universe quartiles — never by hand.",
       ],
     },
   ],
   checksTitle: "Built-in checks and balances",
   checksDescription:
-    "The sixteen variables are arranged in counterbalancing pairs, so inflating one score triggers a deduction in its counterpart.",
+    "The variables are arranged in counterbalancing pairs, so inflating one score triggers a deduction in its counterpart.",
   checks: [
     {
       title: "Intensity ↔ absolute emissions",
       description:
-        "Inside V1 and V2: intensity gains from growth alone are clipped by the absolute-emissions correction.",
+        "Inside V1: intensity gains from growth alone are clipped by the absolute-emissions correction.",
     },
     {
-      title: "Ambition ↔ coverage",
+      title: "Target design ↔ delivery",
       description:
-        "W1 ↔ W2: a narrow but ambitious target (cherry-picking) scores high on W1 and is cut down by W2.",
+        "W1 ↔ W2: a fully specified target (W1) still has to sit on its reduction path (W2), so disclosure alone does not carry the KPI.",
     },
     {
       title: "Future investment ↔ present revenue",
@@ -487,16 +424,16 @@ const ENGLISH_COPY: LogicCopy = {
     {
       title: "Performance claims ↔ data credibility",
       description:
-        "KPI 1–3 ↔ KPI 4: performance numbers carry less weight in interpretation when assurance, completeness, and transparency are weak — the geometric-mean flag makes the imbalance visible.",
+        "KPI 1–3 ↔ KPI 4: performance numbers carry less weight when validation, assurance, completeness, and transparency are weak.",
     },
   ],
 };
 
 const KOREAN_COPY: LogicCopy = {
-  heroEyebrow: "CERs Index 평가방법론 v1.4",
+  heroEyebrow: "CERs Index 평가방법론 v1.5",
   heroTitle: "산식과 변수",
   heroDescription:
-    "CERs(Climate-related Emissions & Responsibility Score) Index는 공개 자료만으로 기업의 기후전환을 채점합니다. 4개 KPI에 걸친 16개 변수로 구성되며, 방법론의 모든 기준값은 외부 표준에서 인용한 것으로 지수가 자체 설정한 수치는 존재하지 않습니다. 기준 프레임워크: CDP 2024, IFRS S1/S2, GHG Protocol, SBTi Corporate Net-Zero Standard.",
+    "CERs(Climate-related Emissions & Responsibility Score) Index는 공개 자료만으로 기업의 기후전환을 채점합니다. 4개 KPI에 걸친 12개 변수로 구성되며, 방법론의 모든 기준값은 외부 표준에서 인용한 것으로 지수가 자체 설정한 수치는 존재하지 않습니다. 기준 프레임워크: CDP, IFRS S1/S2, GHG Protocol, SBTi Corporate Net-Zero Standard.",
   principlesTitle: "설계 원칙 — 임의 배점 금지",
   principlesDescription:
     "모든 변수·산식·집계는 아래 5개 규칙 중 하나 이상에 근거해야 하며, 어떤 수치도 결과를 보고 역산한 배점이어서는 안 됩니다. 모든 입력값은 공개 자료에서 확보 가능해야 하고, 공시하지 않은 것은 0점입니다.",
@@ -505,24 +442,24 @@ const KOREAN_COPY: LogicCopy = {
       code: "R1",
       title: "외부 벤치마크 정규화",
       description:
-        "점수의 분모(기준값)는 국제 규범·과학적 경로에서 직접 인용합니다 — SBTi 1.5°C 연 4.2% 감축률, Stern–Stiglitz 탄소가격 USD 100 등.",
+        "점수의 분모(기준값)는 국제 규범·과학적 경로에서 직접 인용합니다 — Scope 1·2 절대감축에 적용하는 SBTi 1.5°C 횡단 경로 연 4.2% 등.",
     },
     {
       code: "R2",
       title: "비율 그 자체 사용",
       description:
-        "0~1 사이의 자연 비율은 변환 없이 그대로 점수화합니다(곡률 가정 배제 = 최소 가정 원칙) — 재생전력 비중, 목표 커버리지, 녹색 CAPEX 비중.",
+        "0~1 사이의 자연 비율은 변환 없이 그대로 점수화합니다(곡률 가정 배제 = 최소 가정 원칙) — 녹색 CAPEX 비중, 저탄소 매출 비중.",
     },
     {
       code: "R3",
       title: "표준 정의 항목의 동일가중 카운트",
       description:
-        "체크리스트는 외부 표준이 정의한 항목으로만 구성하고 각 항목을 동일하게 셉니다 — GHG Protocol Scope 3 15개 카테고리, TCFD/ISSB 4대 축.",
+        "체크리스트는 외부 표준이 정의한 항목으로만 구성하고 각 항목을 동일하게 셉니다 — GHG Protocol Scope 3 15개 카테고리, TCFD/ISSB 4대 축, IFRS S2 목표 설계 요소.",
     },
     {
       code: "R4",
       title: "사실 여부 이진값",
-      description: "외부에서 검증 가능한 사실(있다/없다)만 0 또는 1로 채점합니다 — SBTi 검증 여부, 보상 연계 공시 여부.",
+      description: "외부에서 검증 가능한 사실(있다/없다)만 0 또는 1로 채점합니다 — 목표 요소 공시 여부, 보상 연계 공시 여부.",
     },
     {
       code: "R5",
@@ -533,7 +470,7 @@ const KOREAN_COPY: LogicCopy = {
   ],
   equationsTitle: "집계",
   equationsDescription:
-    "0~100 범위의 16개 변수를 4개 KPI 점수로 평균하고, 다시 4개 KPI를 평균해 최종 지수를 만듭니다. 동일가중은 편의가 아니라 설계의 귀결입니다: 차등 가중을 정당화할 외부 근거가 없을 때, 어떤 가중치든 그 수치 자체가 임의 배점이 됩니다(불충분 이유의 원리, OECD·EU JRC 종합지표 핸드북). 모든 변수가 0~100이고 평균은 볼록결합이므로 지수의 0~100 범위는 수학적으로 보장됩니다.",
+    "0~100 범위의 12개 변수를 4개 KPI 점수로 평균하고, 다시 4개 KPI를 평균해 최종 지수를 만듭니다. 동일가중은 편의가 아니라 설계의 귀결입니다: 차등 가중을 정당화할 외부 근거가 없을 때, 어떤 가중치든 그 수치 자체가 임의 배점이 됩니다(불충분 이유의 원리, OECD·EU JRC 종합지표 핸드북). 모든 변수가 0~100이고 평균은 볼록결합이므로 지수의 0~100 범위는 수학적으로 보장됩니다.",
   equationTitles: {
     kpi: "1. 변수 → KPI 점수 (동일가중 평균)",
     index: "2. KPI 점수 → CERs Index (동일가중 평균)",
@@ -541,7 +478,7 @@ const KOREAN_COPY: LogicCopy = {
   definitionsTitle: "기호 설명",
   definitions: [
     { key: "V_j,i", label: "KPI j의 i번째 변수, 0~100 범위" },
-    { key: "n_j", label: "KPI j의 변수 수 (3 / 4 / 4 / 5)" },
+    { key: "n_j", label: "KPI j의 변수 수 (2 / 2 / 4 / 4)" },
     { key: "K_j", label: "KPI 점수: 소속 변수들의 동일가중 평균" },
     { key: "CERs", label: "최종 지수, 0~100 — 구조적으로 범위가 보장되어 별도 절사가 필요 없음" },
     { key: "clamp(x, 0, 1)", label: "비율을 0~1 범위로 자르는 안전핀" },
@@ -552,15 +489,15 @@ const KOREAN_COPY: LogicCopy = {
     "4개 KPI는 성과–목표–자본–신뢰성이라는 상호 비중복 차원을 다루며, 어느 차원이 더 중요하다는 국제 규범적 합의가 없으므로 동일가중입니다.",
   kpis: {
     kpi1: {
-      title: "KPI 1 — 실질 탈탄소 성과",
+      title: "KPI 1 — 실질 탄소감축 성과",
       tagline: "말이 아닌 실측",
-      description: "배출량과 에너지 구조가 3년 창에서 실제로 움직였는가. 변수 3개: V1~V3.",
+      description: "Scope 1·2와 Scope 3 배출량이 3년 창에서 실제로 줄었는가. 변수 2개: V1~V2.",
     },
     kpi2: {
-      title: "KPI 2 — 감축 목표 및 이행",
-      tagline: "과학적이고, 넓고, 궤도 위에 있고, 검증받았는가",
+      title: "KPI 2 — 목표 및 이행성과",
+      tagline: "목표가 완전하게 정의되었고, 지켜지고 있는가",
       description:
-        "목표에 대한 4가지 질문: 1.5°C에 정합하는가, 충분히 커버하는가, 경로 위에 있는가, 독립 검증을 받았는가. W1~W4.",
+        "목표에 대한 2가지 질문: 외부에서 평가할 수 있을 만큼 완전하게 설계되었는가, 그리고 공표한 감축 경로 위에 있는가. W1~W2.",
     },
     kpi3: {
       title: "KPI 3 — 자본배분",
@@ -571,10 +508,10 @@ const KOREAN_COPY: LogicCopy = {
       title: "KPI 4 — 데이터 신뢰성",
       tagline: "KPI 1~3에 들어간 숫자를 믿을 수 있는가",
       description:
-        "검증, 인벤토리 완전성, 방법론 투명성, 시계열 일관성, 공시 체계 정합성. A1~A5. 기후 공시 규제 요건이 집중 반영되는 KPI입니다.",
+        "제3자 검증·보증, 인벤토리 완전성, 방법론 투명성, 공시 체계 정합성. A1~A4. 기후 공시 규제 요건이 집중 반영되는 KPI입니다.",
     },
   },
-  variablesTitle: "16개 변수",
+  variablesTitle: "12개 변수",
   variablesDescription:
     "각 카드는 무엇을 재는가 → 산식 → 산식의 의미 순으로 설명합니다. 만점의 의미는 전 변수에서 동일합니다: 1.5°C 정합 수준, 또는 외부 표준의 요구 완전 충족.",
   variables: {
@@ -591,55 +528,30 @@ const KOREAN_COPY: LogicCopy = {
     v2: {
       title: "V2. Scope 3 배출성과",
       description:
-        "가치사슬 배출(통상 총배출의 65~95%)에 동일한 구조를 적용하되, 벤치마크만 SBTi Scope 3 최소 기준인 연 2.5%로 교체합니다.",
+        "동일한 산정경계에서 기업의 Scope 3 절대배출량(통상 총배출의 대부분)이 최근 3년간 실제로 얼마나 감소했는가.",
       bullets: [
-        "경계 일관성(like-for-like) 규칙: 재산정 시계열 우선, 없으면 양 연도 공통 카테고리만 비교, 방법론 변경 후 재산정이 없으면 0점.",
-        "측정을 늘린 회사는 여기서 벌받지 않고(보상은 A2 상승), 카테고리를 슬쩍 뺀 위장 감축은 교집합 규칙으로 무력화됩니다.",
-        "근거: SBTi Near-Term Criteria(Scope 3 최소 야심 연 2.5%), GHG Protocol 일관성·재산정 요건.",
-      ],
-    },
-    v3: {
-      title: "V3. 재생에너지 전환율",
-      description: "총 전력 소비 중 재생에너지 전력의 비중 — 후행지표인 배출량을 보완하는 전환의 선행지표.",
-      bullets: [
-        "비율 그대로가 점수입니다: 재생전력 60%면 60점. 종점 100%는 RE100과 IEA Net Zero 로드맵에서 옵니다.",
-        "직선 매핑이 최소 가정입니다: 재생전력 1MWh의 한계 감축 기여는 동일하며, 곡률을 부여할 외부 근거가 없습니다.",
+        "연평균 절대 감축률을 그대로 점수화합니다(0~100 절사). 감소하지 않거나 증가하면 0점.",
+        "경계 일관성(like-for-like) 규칙: 산정범위·방법론이 변경된 경우 기업이 재산정하여 공시한 과거 수치만 사용합니다.",
+        "카테고리 선정의 적정성, 공시 완전성, 검증 여부, 산정방법 신뢰성은 V2가 아니라 KPI 4에서 별도로 평가합니다. 근거: GHG Protocol Scope 3 Standard(동일 경계 절대배출 추적).",
       ],
     },
     w1: {
-      title: "W1. 목표 야심도",
-      description: "공표한 대표 감축 목표를 연 단위 선형 감축률로 환산해 1.5°C 경로의 자로 잰 값.",
+      title: "W1. 감축목표 설계 수준",
+      description:
+        "공시한 각 감축목표가 범위·기간·수준이 명확하여 외부에서 목표 수준과 이행성과를 평가할 수 있는 구조인지.",
       bullets: [
-        "\"2030년까지 2020년 대비 30% 감축\"은 연 3%p → 3 / 4.2 ≈ 71점.",
-        "원단위 목표만 있으면 분모가 연 7%(SBTi GEVA)로 올라갑니다 — 페널티가 아니라 공정화입니다: 성장만큼 원단위는 더 빨리 개선해야 절대 감축이 나옵니다.",
-        "대표 목표 선정 규칙(S1+2 포함 절대량 목표 중 커버 배출량 최대)을 사전 고정해 평가자 재량을 제거했습니다.",
+        "각 목표는 적용 대상 항목을 모두 공시해야 100점: 기준연도, 목표연도, 정량 목표수준, 목표 경계, 목표유형, 중간목표, 탄소크레딧 정보. 하나라도 빠지면 그 목표는 0점.",
+        "적용 항목은 목표별로 달라집니다: 단기목표는 중간목표 항목을 적용하지 않고, 크레딧 미사용 총량목표는 크레딧 항목을 적용하지 않습니다.",
+        "유효 목표가 여러 개면 단순평균하므로, W1은 기업의 유효 목표 중 완전하게 정의된 목표의 비율입니다. 근거: IFRS S2 §33~36, CDP 감축목표 문항.",
       ],
     },
     w2: {
-      title: "W2. 목표 커버리지",
-      description: "총배출(Scope 1+2+3) 중 유효 목표가 실제로 구속하는 비중 — 체리피킹 목표에 대한 교정 장치.",
-      bullets: [
-        "Scope 단위로 커버리지를 먼저 확정한 뒤 배출량으로 가중 결합합니다(중요성 원칙) — 총배출의 80%인 Scope가 80%의 무게를 갖습니다.",
-        "같은 Scope 안의 중복 목표는 최댓값을 씁니다: 공시만으로 계산 가능한 합집합의 최대 하한으로, 과대평가가 구조적으로 불가능합니다. 서로소가 공시로 확인된 경우에만 합산.",
-        "근거: GHG Protocol 보수성 원칙, SBTi 커버리지 요건(참조점).",
-      ],
-    },
-    w3: {
-      title: "W3. 목표 이행 진척도",
+      title: "W2. 목표 이행 진척도",
       description: "기준연도→목표연도 직선 경로 위에 실제 감축이 있는가.",
       bullets: [
         "분자는 실제 달성 감축률, 분모는 경과기간만큼 기대되는 감축률. 15%를 줄였어야 할 때 12%를 줄였다면 80점.",
         "100에서 절사합니다 — 초과 달성분은 이미 V1·V2의 실측 성과로 보상되므로 이중 계상을 막습니다.",
         "선형 경로는 새 가정이 아니라 CDP 진척도 산식·SBTi 경로 정의와 동일한 가정입니다.",
-      ],
-    },
-    w4: {
-      title: "W4. 목표의 제3자 검증",
-      description: "목표가 적격한 독립 기관의 과학 기반 검증을 통과했는가, 또는 공식 절차에 진입했는가.",
-      bullets: [
-        "1단계는 검증기관의 통과/탈락 게이트입니다: 독립성, 공개된 1.5°C 정합 판정 기준, 공개 등록부. 현행 적격 기관: SBTi.",
-        "2단계는 적격 기관 자신의 공식 상태 서열을 그대로 씁니다 — 승인 100 / 커밋 50 / 미참여 0. 우리가 만든 배점이 아니라 기관의 공식 서열의 등간 정규화입니다.",
-        "미참여의 불이익은 최종 지수 기준 최대 6.25점(1/16) — 동일가중 구조가 페널티를 자체 상한합니다.",
       ],
     },
     c1: {
@@ -659,11 +571,12 @@ const KOREAN_COPY: LogicCopy = {
       ],
     },
     c3: {
-      title: "C3. 내부탄소가격 수준",
-      description: "투자 의사결정에 내재화된 탄소가격 신호의 강도를 USD 100/tCO₂e 기준으로 잰 값.",
+      title: "C3. 내부탄소가격 운영 수준",
+      description: "기업이 내부탄소가격을 운영하며 적용가격을 공시해 외부에서 가격 신호를 확인할 수 있는지.",
       bullets: [
-        "기준가 USD 100은 Stern–Stiglitz 위원회의 2030년 가격 회랑(USD 50~100)의 상단 — 지수 전체의 만점 기준이 1.5°C 정합으로 통일되어 있기 때문입니다(하단 50달러는 2°C 하방).",
-        "미도입 = 0, 그리고 도입 주장 + 가격 비공시 = 0: 확인 불가능한 가격은 신호 부재와 구별할 수 없습니다.",
+        "3단계 판정: 운영 + 적용가격을 통화/tCO₂e 단위로 공시하면 100점, 운영은 명시했으나 가격 미공시면 25점, 미운영·도입 예정·운영 확인 불가면 0점.",
+        "가격의 높낮이는 점수화하지 않고 검증 가능한 신호의 존재만 봅니다 — 유형·목적·적용범위에 따라 가격의 의미가 다르기 때문. 외부 탄소세, 배출권 시장가격, 크레딧 구매가격은 내부탄소가격으로 인정하지 않습니다.",
+        "근거: CDP 탄소가격 응답(1순위 소스), 지속가능경영보고서(보충).",
       ],
     },
     c4: {
@@ -675,11 +588,12 @@ const KOREAN_COPY: LogicCopy = {
       ],
     },
     a1: {
-      title: "A1. 제3자 검증 수준",
-      description: "보고 배출량 중 독립 검증을 받은 비중과 검증 강도 — 커버리지 × 강도를 하나의 숫자로.",
+      title: "A1. 제3자 검증·보증",
+      description: "두 신뢰도 점검의 평균: 목표가 독립 검증을 받았는가(SBTi 상태), 그리고 보고 배출량 중 독립 보증을 받은 비중.",
       bullets: [
-        "0 / 0.5 / 1.0은 ISAE 3410이 정의한 서열(없음 < 제한적 < 합리적)의 등간 정규화입니다. 배출량 가중은 중요성 원칙 — 총배출의 90%인 Scope 3가 미검증이면 S1·2를 아무리 잘 검증해도 점수가 낮습니다.",
-        "배출권거래제 법정 검증(K-ETS, EU ETS — ISO 14064-3 기반, 합리적 보증 수준)은 해당 배출량에 1.0으로 인정합니다.",
+        "a1 — 목표 설정: SBTi 목표 승인(유효) = 100, 공식 커밋 상태(제출기한 내) = 50, 미참여 또는 비적격 기관 검증만 보유 = 0.",
+        "a2 — 배출량 보증: 0 / 0.5 / 1.0은 ISAE 3410 서열(없음 < 제한적 < 합리적)이며 배출량으로 가중 — 총배출의 대부분인 Scope 3가 미보증이면 S1·2를 잘 보증해도 가려지지 않습니다.",
+        "A1 = (a1 + a2) / 2.",
       ],
     },
     a2: {
@@ -695,24 +609,16 @@ const KOREAN_COPY: LogicCopy = {
       title: "A3. 산정 방법론 투명성",
       description: "제3자가 이 숫자를 재현할 수 있는가: 조직경계, 운영경계, 배출계수·GWP 출처, 기준연도 재산정 정책.",
       bullets: [
-        "GHG Protocol Corporate Standard의 필수 보고 정보 4항목의 동일 카운트입니다.",
+        "GHG Protocol Corporate Standard의 필수 보고 정보 4항목(Ch.3~6)의 동일 카운트입니다.",
         "재산정 정책을 공시한 회사는 V2의 like-for-like 규칙에서도 1순위 경로를 탈 수 있습니다 — 변수들이 맞물려 작동합니다.",
       ],
     },
     a4: {
-      title: "A4. 시계열 일관성",
-      description: "이 지수가 성과를 측정하는 데 필요한 비교 가능한 연속 시계열을 제공했는가.",
-      bullets: [
-        "분모 3은 임의값이 아니라 내생적입니다: V1·V2가 3년 창(4개 시점)을 요구하므로, A4는 \"지수 계산에 필요한 데이터를 제공했는가\"의 충족률입니다. 비교 가능한 데이터가 3년치면 약 67점입니다.",
-        "경계가 바뀌어도 재산정 공시가 있으면 연속으로 인정합니다 — 측정 개선을 벌하지 않는 V2와 동일한 철학.",
-      ],
-    },
-    a5: {
-      title: "A5. 기후 공시 체계 정합성",
+      title: "A4. 기후 공시 체계 정합성",
       description: "기후 공시가 TCFD/IFRS S2의 4대 축 — 거버넌스, 전략(시나리오 분석 포함), 위험관리, 지표·목표 — 을 갖추었는가.",
       bullets: [
-        "각 축의 공시 존재만 사실 판정하며, 내용의 질은 나머지 15개 변수가 평가합니다.",
-        "C4와의 분업: A5는 형식의 완비(공시 체계가 서 있는가), C4는 거버넌스 축 내부의 실질적 깊이를 봅니다.",
+        "각 축의 공시 존재만 사실 판정하며(p / 4), 내용의 질은 나머지 11개 변수가 평가합니다.",
+        "C4와의 분업: A4는 형식의 완비(공시 체계가 서 있는가), C4는 거버넌스 축 내부의 실질적 깊이를 봅니다.",
       ],
     },
   },
@@ -722,8 +628,8 @@ const KOREAN_COPY: LogicCopy = {
       title: "결측·비해당 처리",
       bullets: [
         "미공시 = 0점. 공시 인센티브가 이 지수의 존재 이유이며, 결측 대체(imputation)는 어떤 방법이든 자의성이 개입되므로 쓰지 않습니다.",
-        "N/A는 활동이 물리적으로 존재하지 않고(예: 전력 무사용 기업의 V3) 그 부존재가 공시로 확인되는 경우에만 허용 — 해당 변수를 분자·분모에서 모두 제외합니다.",
-        "사전 제외: CDP 직접 연계 문항과 바이오매스·바이오에너지 문항(낮은 공시율, 범용성 결여).",
+        "N/A는 활동이 물리적으로 존재하지 않고(예: 분류할 자본적 지출이 없어 C1이 비해당) 그 부존재가 공시로 확인되는 경우에만 허용 — 해당 변수를 분자·분모에서 모두 제외합니다.",
+        "운영 확인 불가와 명시적 미운영은 모두 0점이되(예: C3), 원자료 상태값은 구분하여 저장합니다.",
       ],
     },
     {
@@ -731,29 +637,29 @@ const KOREAN_COPY: LogicCopy = {
       bullets: [
         "모든 변수가 0~100이고 KPI·지수는 평균이므로 0~100 범위는 수학적으로 보장됩니다(별도 절사 불필요).",
         "만점의 의미는 모든 변수에서 동일합니다: 1.5°C 정합 수준, 또는 외부 표준의 요구 완전 충족.",
-        "모든 기준값 — 4.2%, 2.5%, 7%, USD 100, 15개 카테고리, 4대 축, SBTi 상태 분류 — 은 외부 출처에서 인용된 것이며, 지수가 자체 설정한 수치는 없습니다.",
+        "모든 기준값 — 4.2%, 15개 카테고리, 4대 축, SBTi 상태 분류, ISAE 보증 수준 — 은 외부 출처에서 인용된 것이며, 지수가 자체 설정한 수치는 없습니다.",
       ],
     },
     {
       title: "집계와 등급",
       bullets: [
         "두 단계 모두 동일가중: 차등 가중을 정당화할 외부 근거가 없을 때 동일가중이 유일한 비자의적 선택입니다(불충분 이유의 원리, OECD·EU JRC 핸드북).",
-        "강건성 점검용으로 기하평균 변형을 병행 산출합니다 — 한 차원의 고득점이 다른 차원의 0점을 가리는 기업을 플래그하며, 점수 산정에는 쓰지 않습니다.",
+        "동일가중은 출발점이며, 추후 CDP 또는 한국ESG기준원을 참조하여 가중치와 기업 랭킹을 재산정할 수 있습니다.",
         "등급(A/B/C 등)을 부여할 경우 구간 경계는 유니버스 사분위수 등 분포 기반 통계량으로만 정의합니다 — 손으로 정하지 않습니다.",
       ],
     },
   ],
   checksTitle: "내장된 상호 견제 구조",
   checksDescription:
-    "16개 변수는 서로 견제하는 짝으로 짜여 있어, 한 변수에서 점수를 부풀리는 행동이 짝 변수에서 감점됩니다.",
+    "변수들은 서로 견제하는 짝으로 짜여 있어, 한 변수에서 점수를 부풀리는 행동이 짝 변수에서 감점됩니다.",
   checks: [
     {
       title: "원단위 개선 ↔ 절대량 보정",
-      description: "V1·V2 내부: 성장만으로 얻은 집약도 개선은 절대량 보정으로 깎입니다.",
+      description: "V1 내부: 성장만으로 얻은 집약도 개선은 절대량 보정으로 깎입니다.",
     },
     {
-      title: "야심도 ↔ 커버리지",
-      description: "W1 ↔ W2: 좁은 범위의 야심찬 목표(체리피킹)는 W1이 높아도 W2가 깎습니다.",
+      title: "목표 설계 ↔ 이행",
+      description: "W1 ↔ W2: 완전하게 설계된 목표(W1)도 감축 경로 위에 있어야(W2) 하므로 공시만으로 KPI를 끌고 가지 못합니다.",
     },
     {
       title: "미래 투자 ↔ 현재 매출",
@@ -762,16 +668,16 @@ const KOREAN_COPY: LogicCopy = {
     {
       title: "성과 주장 ↔ 데이터 신뢰성",
       description:
-        "KPI 1~3 ↔ KPI 4: 검증·완전성·투명성이 약하면 성과 숫자의 해석 무게가 줄어듭니다 — 기하평균 플래그가 불균형을 가시화합니다.",
+        "KPI 1~3 ↔ KPI 4: 검증·보증·완전성·투명성이 약하면 성과 숫자의 해석 무게가 줄어듭니다.",
     },
   ],
 };
 
 const JAPANESE_COPY: LogicCopy = {
-  heroEyebrow: "CERs Index 評価方法論 v1.4",
+  heroEyebrow: "CERs Index 評価方法論 v1.5",
   heroTitle: "算式と変数",
   heroDescription:
-    "CERs（Climate-related Emissions & Responsibility Score）Index は、公開資料のみから企業の気候移行を採点します。4つの KPI にまたがる 16 変数で構成され、方法論のすべての基準値は外部標準から引用したもので、指数が独自に設定した数値は存在しません。参照フレームワーク: CDP 2024、IFRS S1/S2、GHG Protocol、SBTi Corporate Net-Zero Standard。",
+    "CERs（Climate-related Emissions & Responsibility Score）Index は、公開資料のみから企業の気候移行を採点します。4つの KPI にまたがる 12 変数で構成され、方法論のすべての基準値は外部標準から引用したもので、指数が独自に設定した数値は存在しません。参照フレームワーク: CDP、IFRS S1/S2、GHG Protocol、SBTi Corporate Net-Zero Standard。",
   principlesTitle: "設計原則 — 恣意的な配点の禁止",
   principlesDescription:
     "すべての変数・算式・集計は以下 5 つのルールのいずれかに基づかなければならず、いかなる数値も結果から逆算した配点であってはなりません。すべての入力値は公開資料から取得可能でなければならず、未開示は 0 点です。",
@@ -780,24 +686,24 @@ const JAPANESE_COPY: LogicCopy = {
       code: "R1",
       title: "外部ベンチマーク正規化",
       description:
-        "スコアの分母（基準値）は国際規範・科学的経路から直接引用します — SBTi 1.5°C の年 4.2% 削減率、Stern–Stiglitz 炭素価格 USD 100 など。",
+        "スコアの分母（基準値）は国際規範・科学的経路から直接引用します — Scope 1・2 の絶対削減に適用する SBTi 1.5°C クロスセクター経路の年 4.2% など。",
     },
     {
       code: "R2",
       title: "比率そのものを使用",
       description:
-        "0〜1 の自然な比率は変換せずそのまま採点します（曲率仮定の排除 = 最小仮定原則）— 再エネ電力比率、目標カバレッジ、グリーン CAPEX 比率。",
+        "0〜1 の自然な比率は変換せずそのまま採点します（曲率仮定の排除 = 最小仮定原則）— グリーン CAPEX 比率、低炭素売上比率。",
     },
     {
       code: "R3",
       title: "標準定義項目の同一カウント",
       description:
-        "チェックリストは外部標準が定義した項目のみで構成し、各項目を同等に数えます — GHG Protocol Scope 3 の 15 カテゴリ、TCFD/ISSB の 4 本柱。",
+        "チェックリストは外部標準が定義した項目のみで構成し、各項目を同等に数えます — GHG Protocol Scope 3 の 15 カテゴリ、TCFD/ISSB の 4 本柱、IFRS S2 の目標設計要素。",
     },
     {
       code: "R4",
       title: "事実の二値判定",
-      description: "外部から検証可能な事実（有/無）のみを 0 または 1 で採点します — SBTi 認定の有無、報酬連動の開示有無。",
+      description: "外部から検証可能な事実（有/無）のみを 0 または 1 で採点します — 目標要素の開示有無、報酬連動の開示有無。",
     },
     {
       code: "R5",
@@ -807,7 +713,7 @@ const JAPANESE_COPY: LogicCopy = {
   ],
   equationsTitle: "集計",
   equationsDescription:
-    "0〜100 の 16 変数を 4 つの KPI スコアに平均し、さらに 4 つの KPI を平均して最終指数を作ります。等加重は便宜ではなく設計の帰結です: 差等加重を正当化する外部根拠がない場合、いかなる重みもそれ自体が恣意的配点になります（不十分理由の原理、OECD・EU JRC 総合指標ハンドブック）。すべての変数が 0〜100 で平均は凸結合のため、指数の 0〜100 範囲は数学的に保証されます。",
+    "0〜100 の 12 変数を 4 つの KPI スコアに平均し、さらに 4 つの KPI を平均して最終指数を作ります。等加重は便宜ではなく設計の帰結です: 差等加重を正当化する外部根拠がない場合、いかなる重みもそれ自体が恣意的配点になります（不十分理由の原理、OECD・EU JRC 総合指標ハンドブック）。すべての変数が 0〜100 で平均は凸結合のため、指数の 0〜100 範囲は数学的に保証されます。",
   equationTitles: {
     kpi: "1. 変数 → KPI スコア（等加重平均）",
     index: "2. KPI スコア → CERs Index（等加重平均）",
@@ -815,7 +721,7 @@ const JAPANESE_COPY: LogicCopy = {
   definitionsTitle: "記号の意味",
   definitions: [
     { key: "V_j,i", label: "KPI j の i 番目の変数、0〜100 の範囲" },
-    { key: "n_j", label: "KPI j の変数数（3 / 4 / 4 / 5）" },
+    { key: "n_j", label: "KPI j の変数数（2 / 2 / 4 / 4）" },
     { key: "K_j", label: "KPI スコア: 所属変数の等加重平均" },
     { key: "CERs", label: "最終指数、0〜100 — 構造的に範囲が保証され、別途のクランプは不要" },
     { key: "clamp(x, 0, 1)", label: "比率を 0〜1 の範囲に収める安全装置" },
@@ -826,15 +732,15 @@ const JAPANESE_COPY: LogicCopy = {
     "4 つの KPI は成果–目標–資本–信頼性という相互に重複しない次元を扱い、どの次元がより重要かという国際的合意がないため等加重です。",
   kpis: {
     kpi1: {
-      title: "KPI 1 — 実質的な脱炭素成果",
+      title: "KPI 1 — 実質的な炭素削減成果",
       tagline: "言葉ではなく実測",
-      description: "排出量とエネルギー構造が 3 年のウィンドウで実際に動いたか。変数 3 つ: V1〜V3。",
+      description: "Scope 1・2 と Scope 3 の排出量が 3 年のウィンドウで実際に減ったか。変数 2 つ: V1〜V2。",
     },
     kpi2: {
-      title: "KPI 2 — 削減目標と履行",
-      tagline: "科学的か、広いか、軌道上か、検証済みか",
+      title: "KPI 2 — 目標と履行成果",
+      tagline: "目標が完全に定義され、守られているか",
       description:
-        "目標への 4 つの問い: 1.5°C に整合するか、十分カバーするか、経路上にあるか、独立検証を受けたか。W1〜W4。",
+        "目標への 2 つの問い: 外部から評価できるほど完全に設計されているか、そして公表した削減経路の上にあるか。W1〜W2。",
     },
     kpi3: {
       title: "KPI 3 — 資本配分",
@@ -845,10 +751,10 @@ const JAPANESE_COPY: LogicCopy = {
       title: "KPI 4 — データ信頼性",
       tagline: "KPI 1〜3 の数値を信頼できるか",
       description:
-        "保証、インベントリ完全性、方法論の透明性、時系列の一貫性、開示体系の整合性。A1〜A5。気候開示規制の要件が集中的に反映される KPI です。",
+        "第三者検証・保証、インベントリ完全性、方法論の透明性、開示体系の整合性。A1〜A4。気候開示規制の要件が集中的に反映される KPI です。",
     },
   },
-  variablesTitle: "16の変数",
+  variablesTitle: "12の変数",
   variablesDescription:
     "各カードは「何を測るか → 算式 → 算式の意味」の順で説明します。満点の意味はすべての変数で同一です: 1.5°C 整合水準、または外部標準の要求の完全充足。",
   variables: {
@@ -865,55 +771,30 @@ const JAPANESE_COPY: LogicCopy = {
     v2: {
       title: "V2. Scope 3 排出実績",
       description:
-        "バリューチェーン排出（通常、総排出の 65〜95%）に同一構造を適用し、ベンチマークのみ SBTi の Scope 3 最低基準である年 2.5% に置き換えます。",
+        "同一の算定境界で、企業の Scope 3 絶対排出量（通常、総排出の大部分）が過去 3 年間に実際にどれだけ減少したか。",
       bullets: [
-        "境界一貫性（like-for-like）ルール: 再算定時系列を優先、なければ両年度共通のカテゴリのみで比較、方法論変更後に再算定がなければ 0 点。",
-        "測定を拡大した企業はここでは罰せられず（報酬は A2 の上昇）、カテゴリをこっそり外した偽装削減は共通部分ルールで無力化されます。",
-        "根拠: SBTi Near-Term Criteria（Scope 3 最低基準 年 2.5%）、GHG Protocol の一貫性・再算定要件。",
-      ],
-    },
-    v3: {
-      title: "V3. 再生可能エネルギー転換率",
-      description: "総電力消費に占める再エネ電力の比率 — 遅行指標である排出量を補完する移行の先行指標。",
-      bullets: [
-        "比率そのものがスコアです: 再エネ電力 60% なら 60 点。終点 100% は RE100 と IEA Net Zero ロードマップに由来します。",
-        "線形マッピングが最小仮定です: 再エネ 1MWh の限界削減寄与は同一で、曲率を与える外部根拠がありません。",
+        "年平均の絶対削減率をそのままスコア化します（0〜100 で切り捨て）。減少しないか増加すれば 0 点。",
+        "境界一貫性（like-for-like）ルール: 算定範囲・方法論が変更された場合、企業が再算定して開示した過去数値のみを使用します。",
+        "カテゴリ選定の適切性、開示の完全性、検証の有無、算定方法の信頼性は V2 ではなく KPI 4 で別途評価します。根拠: GHG Protocol Scope 3 Standard（同一境界の絶対排出追跡）。",
       ],
     },
     w1: {
-      title: "W1. 目標野心度",
-      description: "公表された代表削減目標を年単位の線形削減率に換算し、1.5°C 経路の物差しで測った値。",
+      title: "W1. 削減目標の設計水準",
+      description:
+        "開示された各削減目標が、範囲・期間・水準が明確で、外部から目標水準と履行成果を評価できる構造か。",
       bullets: [
-        "「2030 年までに 2020 年比 30% 削減」は年 3%p → 3 / 4.2 ≈ 71 点。",
-        "原単位目標のみの場合は分母が年 7%（SBTi GEVA）に上がります — ペナルティではなく公平化です: 成長の分だけ原単位はより速く改善しないと絶対削減になりません。",
-        "代表目標の選定ルール（S1+2 を含む絶対量目標のうちカバー排出量最大）を事前固定し、評価者の裁量を排除しました。",
+        "各目標は適用対象項目をすべて開示して初めて 100 点: 基準年、目標年、定量目標水準、目標境界、目標タイプ、中間目標、炭素クレジット情報。一つでも欠ければその目標は 0 点。",
+        "適用項目は目標ごとに変わります: 短期目標は中間目標項目を適用せず、クレジット不使用の総量目標はクレジット項目を適用しません。",
+        "有効な目標が複数あれば単純平均するため、W1 は企業の有効目標のうち完全に定義された目標の比率です。根拠: IFRS S2 §33〜36、CDP 削減目標設問。",
       ],
     },
     w2: {
-      title: "W2. 目標カバレッジ",
-      description: "総排出（Scope 1+2+3）のうち有効な目標が実際に拘束する比率 — チェリーピッキング目標への矯正装置。",
-      bullets: [
-        "Scope 単位でカバレッジを先に確定し、排出量で加重結合します（重要性原則）— 総排出の 80% を占める Scope が 80% の重みを持ちます。",
-        "同一 Scope 内の重複目標は最大値を使用: 開示のみで計算可能な合併集合の最大下限で、過大評価が構造的に不可能です。互いに素であることが開示で確認された場合のみ合算。",
-        "根拠: GHG Protocol の保守性原則、SBTi カバレッジ要件（参照点）。",
-      ],
-    },
-    w3: {
-      title: "W3. 目標履行進捗度",
+      title: "W2. 目標履行進捗度",
       description: "基準年→目標年の直線経路の上に実際の削減があるか。",
       bullets: [
         "分子は実際の達成削減率、分母は経過期間に応じて期待される削減率。15% 減らすべきところ 12% なら 80 点。",
         "100 で切り捨てます — 超過達成分は既に V1・V2 の実測成果で報われるため、二重計上を防ぎます。",
         "線形経路は新しい仮定ではなく、CDP の進捗算式・SBTi の経路定義と同一の仮定です。",
-      ],
-    },
-    w4: {
-      title: "W4. 目標の第三者検証",
-      description: "目標が適格な独立機関の科学的検証を通過したか、または公式手続きに入ったか。",
-      bullets: [
-        "第 1 段階は検証機関の通過/脱落ゲートです: 独立性、公開された 1.5°C 整合の判定基準、公開登録簿。現行の適格機関: SBTi。",
-        "第 2 段階は適格機関自身の公式ステータス序列をそのまま使用 — 承認 100 / コミット 50 / 不参加 0。発明した配点ではなく、機関の公式序列の等間隔正規化です。",
-        "不参加の不利益は最終指数で最大 6.25 点（1/16）— 等加重構造がペナルティを自己制限します。",
       ],
     },
     c1: {
@@ -933,11 +814,12 @@ const JAPANESE_COPY: LogicCopy = {
       ],
     },
     c3: {
-      title: "C3. 内部炭素価格水準",
-      description: "投資意思決定に内在化された炭素価格シグナルの強度を USD 100/tCO₂e 基準で測った値。",
+      title: "C3. 内部炭素価格の運営水準",
+      description: "企業が内部炭素価格を運営し、適用価格を開示して外部から価格シグナルを確認できるか。",
       bullets: [
-        "基準価格 USD 100 は Stern–Stiglitz 委員会の 2030 年価格回廊（USD 50〜100）の上限 — 指数全体の満点基準が 1.5°C 整合に統一されているためです（下限 50 ドルは 2°C 下方）。",
-        "未導入 = 0、さらに導入主張 + 価格非開示 = 0: 確認不可能な価格はシグナル不在と区別できません。",
+        "3 段階判定: 運営 + 適用価格を通貨/tCO₂e 単位で開示すれば 100 点、運営は明示したが価格未開示なら 25 点、未導入・導入予定・運営確認不可なら 0 点。",
+        "価格の高低は採点せず、検証可能なシグナルの存在のみを見ます — 種類・目的・適用範囲により価格の意味が異なるため。外部炭素税、排出枠の市場価格、クレジット購入価格は内部炭素価格として認定しません。",
+        "根拠: CDP 炭素価格回答（第 1 ソース）、サステナビリティ報告書（補足）。",
       ],
     },
     c4: {
@@ -950,11 +832,12 @@ const JAPANESE_COPY: LogicCopy = {
       ],
     },
     a1: {
-      title: "A1. 第三者保証水準",
-      description: "報告排出量のうち独立保証を受けた比率と保証の強度 — カバレッジ × 強度を一つの数字に。",
+      title: "A1. 第三者検証・保証",
+      description: "2 つの信頼性チェックの平均: 目標が独立検証を受けたか（SBTi ステータス）、そして報告排出量のうち独立保証を受けた比率。",
       bullets: [
-        "0 / 0.5 / 1.0 は ISAE 3410 が定義した序列（なし < 限定的 < 合理的）の等間隔正規化です。排出量加重は重要性原則 — 総排出の 90% である Scope 3 が未保証なら、S1・2 をどれだけ保証しても点数は低くなります。",
-        "排出量取引制度の法定検証（K-ETS、EU ETS — ISO 14064-3 ベース、合理的保証水準）は該当排出量に 1.0 として認定します。",
+        "a1 — 目標設定: SBTi 目標承認（有効）= 100、公式コミット状態（提出期限内）= 50、不参加または非適格機関の検証のみ = 0。",
+        "a2 — 排出量保証: 0 / 0.5 / 1.0 は ISAE 3410 の序列（なし < 限定的 < 合理的）で排出量加重 — 総排出の大部分である Scope 3 が未保証なら、S1・2 を保証しても覆い隠せません。",
+        "A1 = (a1 + a2) / 2。",
       ],
     },
     a2: {
@@ -970,24 +853,16 @@ const JAPANESE_COPY: LogicCopy = {
       title: "A3. 算定方法論の透明性",
       description: "第三者がこの数値を再現できるか: 組織境界、運営境界、排出係数・GWP の出所、基準年の再算定方針。",
       bullets: [
-        "GHG Protocol Corporate Standard の必須報告情報 4 項目の同一カウントです。",
+        "GHG Protocol Corporate Standard の必須報告情報 4 項目（Ch.3〜6）の同一カウントです。",
         "再算定方針を開示した企業は V2 の like-for-like ルールでも第 1 優先経路に乗れます — 変数同士が噛み合って機能します。",
       ],
     },
     a4: {
-      title: "A4. 時系列の一貫性",
-      description: "この指数が成果を測定するのに必要な、比較可能な連続時系列を提供したか。",
-      bullets: [
-        "分母 3 は恣意値ではなく内生的です: V1・V2 が 3 年ウィンドウ（4 時点）を要求するため、A4 は「指数計算に必要なデータを提供したか」の充足率です。比較可能なデータが 3 年分なら約 67 点です。",
-        "境界が変わっても再算定の開示があれば連続と認定します — 測定改善を罰しない V2 と同じ哲学です。",
-      ],
-    },
-    a5: {
-      title: "A5. 気候開示体系の整合性",
+      title: "A4. 気候開示体系の整合性",
       description: "気候開示が TCFD/IFRS S2 の 4 本柱 — ガバナンス、戦略（シナリオ分析を含む）、リスク管理、指標・目標 — を備えているか。",
       bullets: [
-        "各柱の開示の存在のみを事実判定し、内容の質は残りの 15 変数が評価します。",
-        "C4 との分業: A5 は形式の完備（開示体系が立っているか）、C4 はガバナンス柱内部の実質的な深さを見ます。",
+        "各柱の開示の存在のみを事実判定し（p / 4）、内容の質は残りの 11 変数が評価します。",
+        "C4 との分業: A4 は形式の完備（開示体系が立っているか）、C4 はガバナンス柱内部の実質的な深さを見ます。",
       ],
     },
   },
@@ -997,8 +872,8 @@ const JAPANESE_COPY: LogicCopy = {
       title: "欠損・非該当の処理",
       bullets: [
         "未開示 = 0 点。開示インセンティブがこの指数の存在理由であり、欠損補完（imputation）はいかなる方法でも恣意性が入るため使いません。",
-        "N/A は活動が物理的に存在せず（例: 電力を使わない企業の V3）、その不存在が開示で確認される場合のみ許容 — 当該変数を分子・分母の両方から除外します。",
-        "事前除外: CDP 直接連携の設問とバイオマス・バイオエネルギー設問（低い開示率、汎用性の欠如）。",
+        "N/A は活動が物理的に存在せず（例: 分類する設備投資がなく C1 が非該当）、その不存在が開示で確認される場合のみ許容 — 当該変数を分子・分母の両方から除外します。",
+        "運営確認不可と明示的な未運営はいずれも 0 点ですが（例: C3）、原データの状態値は区別して保存します。",
       ],
     },
     {
@@ -1006,29 +881,29 @@ const JAPANESE_COPY: LogicCopy = {
       bullets: [
         "すべての変数が 0〜100 で KPI・指数は平均のため、0〜100 範囲は数学的に保証されます（別途の切り捨て不要）。",
         "満点の意味はすべての変数で同一です: 1.5°C 整合水準、または外部標準の要求の完全充足。",
-        "すべての基準値 — 4.2%、2.5%、7%、USD 100、15 カテゴリ、4 本柱、SBTi ステータス分類 — は外部出所からの引用であり、指数が独自に設定した数値はありません。",
+        "すべての基準値 — 4.2%、15 カテゴリ、4 本柱、SBTi ステータス分類、ISAE 保証水準 — は外部出所からの引用であり、指数が独自に設定した数値はありません。",
       ],
     },
     {
       title: "集計と等級",
       bullets: [
         "両段階とも等加重: 差等加重を正当化する外部根拠がない場合、等加重が唯一の非恣意的選択です（不十分理由の原理、OECD・EU JRC ハンドブック）。",
-        "頑健性チェック用に幾何平均バリアントを並行算出します — ある次元の高得点が別の次元の 0 点を覆い隠す企業をフラグし、スコア算定には使いません。",
+        "等加重は出発点であり、今後 CDP または韓国 ESG 基準院を参照して重みと企業ランキングを再算定し得ます。",
         "等級（A/B/C など）を付与する場合、区間境界はユニバースの四分位数など分布ベースの統計量でのみ定義します — 手で決めません。",
       ],
     },
   ],
   checksTitle: "組み込みの相互牽制構造",
   checksDescription:
-    "16 の変数は互いに牽制し合うペアで構成されており、ある変数でスコアを膨らませる行動はペア変数で減点されます。",
+    "変数は互いに牽制し合うペアで構成されており、ある変数でスコアを膨らませる行動はペア変数で減点されます。",
   checks: [
     {
       title: "原単位改善 ↔ 絶対量補正",
-      description: "V1・V2 の内部: 成長だけで得た原単位改善は絶対量補正で削られます。",
+      description: "V1 の内部: 成長だけで得た原単位改善は絶対量補正で削られます。",
     },
     {
-      title: "野心度 ↔ カバレッジ",
-      description: "W1 ↔ W2: 狭い範囲の野心的な目標（チェリーピッキング）は W1 が高くても W2 が削ります。",
+      title: "目標設計 ↔ 履行",
+      description: "W1 ↔ W2: 完全に設計された目標（W1）も削減経路の上になければならず（W2）、開示だけで KPI を牽引できません。",
     },
     {
       title: "未来の投資 ↔ 現在の売上",
@@ -1037,7 +912,7 @@ const JAPANESE_COPY: LogicCopy = {
     {
       title: "成果の主張 ↔ データ信頼性",
       description:
-        "KPI 1〜3 ↔ KPI 4: 保証・完全性・透明性が弱ければ成果数値の解釈上の重みが減ります — 幾何平均フラグが不均衡を可視化します。",
+        "KPI 1〜3 ↔ KPI 4: 検証・保証・完全性・透明性が弱ければ成果数値の解釈上の重みが減ります。",
     },
   ],
 };

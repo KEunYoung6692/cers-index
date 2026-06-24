@@ -1,5 +1,38 @@
 # Claude Progress — cers-index
 
+## 2026-06-24 — CERs Index ver2(v1.5) 12개 변수 화면 반영
+
+### 배경
+`docs/LOGIC/CERs Index for Company_ver2.md`로 로직 업데이트. 16개 변수 →
+12개 변수로 구조 변경(n1=2, n2=2, n3=4, n4=4). 대분류 4 KPI는 유지.
+
+### 변수 구조 변화 (v1.4 → ver2/v1.5)
+- KPI1: V1(S1·2), V2(S3 절대감축, ÷0.025·S_absolute 제거). V3 재생에너지 삭제.
+- KPI2: W1 감축목표 설계 수준(7항목 체크리스트 곱·목표 평균), W2 이행 진척도(구 W3).
+  구 W1 야심도·W2 커버리지 삭제, W4 SBTi 검증은 A1로 이동.
+- KPI3: C1·C2 유지, C3 내부탄소가격 연속→3단계(100/25/0), C4 유지.
+- KPI4: A1 제3자 검증(SBTi a1 + 보증 a2 결합), A2·A3 유지, A4 공시정합(구 A5).
+  구 A4 시계열 일관성 삭제.
+
+### 완료 작업
+- `score-logic-v3.tsx` 전면 재작성: 12개 변수, ko/en/ja, 산식·근거·상호견제 ver2 반영
+- `i18n.ts` ko/en/ja: kpi.items 변수개수·methodLink·proofFramework·scoreMeaning·
+  about(정의 n_j=2/2/4/4·meaningPoints·logicSteps·dimensions) 12개 변수로 전환
+- 방법론 버전 라벨 v1.4 → v1.5 (홈/헤더/리더보드/기업상세/score-logic eyebrow)
+- `fallback-data.ts` 카테고리 라벨을 4 KPI 정식명으로, 가중치 동일가중 0.25
+- 테스트: score-logic-v3.test.tsx(12개 변수 타이틀), public.test.ts(v1.5) 갱신
+- `docs/screen/README.md` 12개 변수 구조·anchor·전환신호·비교표로 갱신
+
+### 검증
+- Node.js 20.19.0, `npm run check:quick` 통과 (harness/lint/typecheck/test)
+- Vitest 4 files, 14 tests 통과
+
+### 잔여/주의
+- `src/components/cers/score-logic.tsx`(1093줄, v1.4 16변수)는 어떤 라우트에도
+  import되지 않는 dead code. README §9에서 제거 후보로 명시됨 — 삭제는 미시행.
+- 소비 화면(홈/기업/비교/섹터)은 4 KPI 카테고리 수준으로만 렌더하므로 12개 변수
+  개별 점수 화면은 batch가 변수별 점수 계약을 제공할 때 Phase 2로 구현.
+
 ## 2026-06-11 — CERs Index v1.4 방법론 화면 전환
 
 ### 완료 작업

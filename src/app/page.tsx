@@ -1,16 +1,15 @@
 import Link from "next/link";
-import { ArrowRight, Target, TrendingDown } from "lucide-react";
+import { ArrowRight, Building2, CalendarDays, Database, Layers3, ShieldCheck, Target, TrendingDown } from "lucide-react";
 import { AppShell } from "@/components/cers/app-shell";
 import { HomeScoreLeaderboard } from "@/components/cers/home-score-leaderboard";
 import { IndustryCard } from "@/components/cers/industry-card";
-import { getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
+import { KpiScoreGrid } from "@/components/cers/kpi-score-grid";
+import { getIntlLocale, getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
 import {
   formatPercent,
-  formatScore,
   getClearTargetCompanies,
   getIndustrySummaries,
   getNetZeroCompanies,
-  getTopScoringCompanies,
 } from "@/lib/cers/public";
 import { getCersDashboardData } from "@/lib/server/cers-dashboard";
 
@@ -20,44 +19,138 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
   const t = getTranslations(locale);
   const data = await getCersDashboardData(locale);
   const industries = getIndustrySummaries(data, locale);
-  const topScorers = getTopScoringCompanies(data, 4);
   const clearTargets = getClearTargetCompanies(data, 3);
   const netZeroCompanies = getNetZeroCompanies(data, 3);
+  const scoredCompanies = data.companies.filter((company) => company.overallScore !== null);
+  const latestScoreYear =
+    scoredCompanies
+      .map((company) => company.scoreFiscalYear)
+      .filter((year): year is number => year !== null)
+      .sort((a, b) => b - a)[0] ?? null;
+  const sectorCount = new Set(
+    data.companies.map((company) => company.sectorCode || company.industryCode).filter(Boolean),
+  ).size;
+  const methodologyVersion = data.methodologyVersion || "v1.5";
+  const refreshedDate = new Intl.DateTimeFormat(getIntlLocale(locale), {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(new Date(data.generatedAt));
+  const coverageStats = [
+    { label: t.home.statCompanies, value: data.companies.length, icon: Building2 },
+    { label: t.home.statScored, value: scoredCompanies.length, icon: Database },
+    { label: t.home.statIndustries, value: sectorCount, icon: Layers3 },
+    { label: t.home.statLatestYear, value: latestScoreYear ?? "—", icon: CalendarDays },
+  ];
 
   return (
     <AppShell source={data.source} issue={data.issue} locale={locale}>
-      <section className="container pt-10">
-        <div className="rounded-[40px] border border-slate-200 bg-white px-8 py-12 shadow-elevated dark:border-slate-800 dark:bg-slate-950/80">
-          <div>
-            <HomeScoreLeaderboard companies={data.companies} categories={data.categories} locale={locale} />
+      <section className="container pt-8">
+        <div className="relative overflow-hidden rounded-[44px] border border-slate-200 bg-white px-7 py-10 text-slate-900 shadow-elevated md:px-10 md:py-14 lg:px-14 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:shadow-[0_24px_70px_-32px_rgba(15,23,42,0.8)]">
+          <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-teal-400/15 blur-3xl" />
+          <div className="absolute bottom-0 left-1/3 h-48 w-96 rounded-full bg-teal-500/5 blur-3xl dark:bg-blue-500/10" />
+          <div className="relative grid gap-10 xl:grid-cols-[1.15fr_0.85fr] xl:items-end">
+            <div className="max-w-4xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-teal-600 dark:text-teal-300">{t.home.eyebrow}</p>
+              <h1 className="mt-5 max-w-4xl text-balance text-4xl font-semibold leading-[1.06] tracking-[-0.045em] sm:text-5xl lg:text-6xl">
+                {t.home.title}
+              </h1>
+              <p className="mt-6 max-w-2xl text-base leading-8 text-slate-600 md:text-lg dark:text-slate-300">{t.home.description}</p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  href={localizedPath(locale, "/companies")}
+                  className="inline-flex items-center gap-2 rounded-full bg-teal-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-teal-700 dark:bg-teal-400 dark:text-slate-950 dark:hover:bg-teal-300"
+                >
+                  {t.home.primaryCta}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href={localizedPath(locale, "/about")}
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-white/20 dark:bg-white/5 dark:text-white dark:hover:border-white/35 dark:hover:bg-white/10"
+                >
+                  {t.home.secondaryCta}
+                </Link>
+              </div>
+            </div>
+
+            <div className="rounded-[30px] border border-slate-200 bg-slate-50 p-5 dark:border-white/10 dark:bg-white/[0.06] dark:backdrop-blur">
+              <div className="flex items-center gap-3 border-b border-slate-200 pb-4 dark:border-white/10">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-100 text-teal-700 dark:bg-teal-400/15 dark:text-teal-300">
+                  <ShieldCheck className="h-5 w-5" />
+                </span>
+                <div>
+                  <div className="text-sm font-semibold">{t.home.statMethodology}</div>
+                  <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{methodologyVersion}</div>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-3 text-sm text-slate-700 dark:text-slate-200">
+                {[t.home.proofPublic, t.home.proofFramework, t.home.proofComparable].map((item) => (
+                  <div key={item} className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 dark:bg-white/[0.05]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-teal-500 dark:bg-teal-300" />
+                    {item}
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 text-xs text-slate-500">{t.home.updatedAt(refreshedDate)}</p>
+            </div>
           </div>
         </div>
       </section>
 
       <section className="container py-8">
-        <div className="mb-6">
-          <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400">{t.home.leaderboardEyebrow}</p>
-          <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.home.leaderboardTitle}</h2>
-        </div>
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-          {topScorers.map((company) => (
-            <Link
-              key={company.id}
-              href={localizedPath(locale, `/companies/${company.id}`)}
-              className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-elevated dark:border-slate-800 dark:bg-slate-950/80 dark:hover:border-teal-500"
-            >
-              <div className="text-2xl font-semibold tracking-tight text-teal-600">{formatScore(company.overallScore)}</div>
-              {company.scoreFiscalYear !== null && (
-                <div className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">{t.common.fiscalYearLabel(company.scoreFiscalYear)}</div>
-              )}
-              <h3 className="mt-3 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">{company.displayName}</h3>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{company.sectorLabel || company.industryLabel}</p>
-            </Link>
-          ))}
+        <div className="rounded-[40px] border border-slate-200 bg-white px-5 py-8 shadow-elevated sm:px-8 md:py-10 dark:border-slate-800 dark:bg-slate-950/80">
+          <HomeScoreLeaderboard
+            companies={data.companies}
+            categories={data.categories}
+            locale={locale}
+            methodologyVersion={methodologyVersion}
+            scoreYear={latestScoreYear}
+          />
         </div>
       </section>
 
-      <section className="container grid gap-6 py-8 xl:grid-cols-2">
+      <section className="container py-5">
+        <div className="mb-6 max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-teal-600 dark:text-teal-300">{t.home.coverageEyebrow}</p>
+          <h2 className="mt-3 text-balance text-2xl font-semibold tracking-tight text-slate-950 md:text-3xl dark:text-white">
+            {t.home.coverageTitle}
+          </h2>
+        </div>
+        <div className="grid overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-card sm:grid-cols-2 xl:grid-cols-4 dark:border-slate-800 dark:bg-slate-950/80">
+          {coverageStats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={stat.label}
+                className={`p-6 ${index > 0 ? "border-t border-slate-200 sm:border-t-0 sm:border-l dark:border-slate-800" : ""} ${index === 2 ? "sm:border-l-0 xl:border-l" : ""}`}
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-sm font-medium text-slate-500 dark:text-slate-400">{stat.label}</span>
+                  <Icon className="h-5 w-5 text-slate-300 dark:text-slate-600" />
+                </div>
+                <div className="metric-number mt-5 text-3xl font-semibold text-slate-950 dark:text-white">{stat.value}</div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="container py-10">
+        <div className="mb-6 max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-teal-600 dark:text-teal-300">{t.home.kpiEyebrow}</p>
+          <h2 className="mt-3 text-balance text-2xl font-semibold tracking-tight text-slate-950 md:text-3xl dark:text-white">{t.home.kpiTitle}</h2>
+          <p className="mt-3 text-base leading-7 text-slate-600 dark:text-slate-300">{t.home.kpiDescription}</p>
+        </div>
+        <KpiScoreGrid locale={locale} showScores={false} showMethodLink />
+      </section>
+
+      <section className="container py-8">
+        <div className="mb-6 max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-teal-600 dark:text-teal-300">{t.home.evidenceEyebrow}</p>
+          <h2 className="mt-3 text-balance text-2xl font-semibold tracking-tight text-slate-950 md:text-3xl dark:text-white">{t.home.evidenceTitle}</h2>
+          <p className="mt-3 text-base leading-7 text-slate-600 dark:text-slate-300">{t.home.evidenceDescription}</p>
+        </div>
+        <div className="grid gap-6 xl:grid-cols-2">
         <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
           <div className="flex items-center gap-3">
             <Target className="h-6 w-6 text-blue-600" />
@@ -80,6 +173,11 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
                 <ArrowRight className="h-4 w-4 text-slate-400 dark:text-slate-500" />
               </Link>
             ))}
+            {clearTargets.length === 0 && (
+              <p className="rounded-3xl bg-slate-50 px-5 py-5 text-sm text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+                {t.companies.noResults}
+              </p>
+            )}
           </div>
         </div>
 
@@ -103,7 +201,13 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{company.targetSummary.scopeLabel || t.home.scopeNotSpecified}</p>
               </Link>
             ))}
+            {netZeroCompanies.length === 0 && (
+              <p className="rounded-3xl bg-white/70 px-5 py-5 text-sm text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+                {t.companies.noResults}
+              </p>
+            )}
           </div>
+        </div>
         </div>
       </section>
 

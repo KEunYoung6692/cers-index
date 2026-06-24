@@ -171,7 +171,6 @@ export type CersIndustrySummary = {
     frameworkCoverage: CersIndustryStatBlock;
   };
   companyCount: number;
-  performanceTag: string;
   companies: CersCompanyProfile[];
   scoreDistribution: Array<{ range: string; count: number }>;
   focusPoints: CersIndustryFocusPoint[];

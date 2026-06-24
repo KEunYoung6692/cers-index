@@ -1,10 +1,20 @@
 # Session Handoff
 
+## Current State — 2026-06-24
+
+### Methodology
+
+- About와 상세 로직 화면은 CERs Index ver2(v1.5) 기준으로 전환됨
+- 4개 KPI와 12개 변수(n1=2, n2=2, n3=4, n4=4), 두 단계 동일가중 평균
+- 변수 구조: KPI1 V1·V2 / KPI2 W1(설계)·W2(이행) / KPI3 C1~C4 / KPI4 A1~A4
+- ko/en/ja 콘텐츠와 12개 변수 렌더링 테스트 갱신, `npm run check:quick` 통과
+- dead code `score-logic.tsx`(v1.4 16변수)는 미import 상태로 남아 있음(제거 후보)
+
 ## Current State — 2026-06-11
 
 ### Methodology
 
-- About와 상세 로직 화면은 CERs Index v1.4 기준으로 전환됨
+- About와 상세 로직 화면은 CERs Index v1.4 기준으로 전환됨(과거 기록)
 - 4개 KPI와 16개 변수, KPI 내부 및 KPI 간 동일가중 평균을 사용
 - 한국어, 영어, 일본어 콘텐츠와 렌더링 테스트가 추가됨
 - 화면 개편 기획서는 `docs/screen/README.md`에 있음
