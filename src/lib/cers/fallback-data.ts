@@ -13,10 +13,10 @@ import type {
 } from "./types";
 
 const CATEGORY_META: CersCategoryMeta[] = [
-  { id: "cat1", code: "cat1", label: "Actual Reduction Performance", weight: 0.4, displayOrder: 1 },
-  { id: "cat2", code: "cat2", label: "Target Clarity", weight: 0.25, displayOrder: 2 },
-  { id: "cat3", code: "cat3", label: "Execution Readiness", weight: 0.2, displayOrder: 3 },
-  { id: "cat4", code: "cat4", label: "Disclosure Level", weight: 0.15, displayOrder: 4 },
+  { id: "cat1", code: "cat1", label: "Realized Decarbonization", weight: 0.25, displayOrder: 1 },
+  { id: "cat2", code: "cat2", label: "Target Design & Delivery", weight: 0.25, displayOrder: 2 },
+  { id: "cat3", code: "cat3", label: "Capital Allocation", weight: 0.25, displayOrder: 3 },
+  { id: "cat4", code: "cat4", label: "Data Credibility", weight: 0.25, displayOrder: 4 },
 ];
 
 function buildCategories(scores: [number, number, number, number]): CersCategoryScore[] {
@@ -183,7 +183,7 @@ function buildCompany(seed: CompanySeed): CersCompanyProfile {
     fiscalYear: metrics.fiscalYear,
     scoreFiscalYear: metrics.fiscalYear,
     scorePeriodId: null,
-    methodologyVersion: "CERs v0.1",
+    methodologyVersion: "CERs v1.5",
     overallScore: seed.overallScore,
     scoreGrade: seed.scoreGrade,
     indexStatus: null,
@@ -504,7 +504,7 @@ const companies: CersCompanyProfile[] = [
     },
     badges: ["Net Zero 2050", "Target Announced"],
     summary: "Large energy transition story with visible targets, but performance and disclosure remain mixed.",
-    interpretation: "Transitioning profile with ambitious ambition statements but more uneven delivery signals.",
+    interpretation: "Public targets are available, while the overall index and KPI profile should be read together.",
   }),
   buildCompany({
     id: "samsung",
@@ -931,7 +931,7 @@ export const fallbackDashboardData: CersDashboardData = {
   source: "fallback",
   issue: "Showing sample data because the live scoring pipeline is unavailable or incomplete.",
   generatedAt: new Date().toISOString(),
-  methodologyVersion: "CERs v0.1",
+  methodologyVersion: "CERs v1.5",
   categories: CATEGORY_META,
   companies,
 };
@@ -1050,4 +1050,3 @@ export const fallbackEmissionHistory: Record<string, CersEmissionHistoryPoint[]>
     { fiscalYear: 2024, scope1Emissions: 210_000, scope2Emissions: 690_000, totalEmissions: 900_000 },
   ],
 };
-

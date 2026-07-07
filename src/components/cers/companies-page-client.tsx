@@ -34,7 +34,7 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
   const [selectedScoreRanges, setSelectedScoreRanges] = useState<string[]>([]);
   const [targetAnnounced, setTargetAnnounced] = useState(false);
   const [netZeroDeclared, setNetZeroDeclared] = useState(false);
-  const [fullIndexOnly, setFullIndexOnly] = useState(false);
+  const [scoredOnly, setScoredOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>("score");
   const deferredQuery = useDeferredValue(query);
 
@@ -102,7 +102,7 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
         );
       const matchesTarget = !targetAnnounced || Boolean(company.targetSummary.targetYear);
       const matchesNetZero = !netZeroDeclared || Boolean(company.targetSummary.netZeroYear);
-      const matchesFullIndex = !fullIndexOnly || deriveCalculationStatus(company) === "full";
+      const matchesScored = !scoredOnly || deriveCalculationStatus(company) === "scored";
 
       const score = company.overallScore ?? -1;
       const matchesScoreRange =
@@ -115,7 +115,7 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
             (selectedScoreRange === "0-59" && score < 60),
         );
 
-      return matchesQuery && matchesSector && matchesCountry && matchesTarget && matchesNetZero && matchesScoreRange && matchesFullIndex;
+      return matchesQuery && matchesSector && matchesCountry && matchesTarget && matchesNetZero && matchesScoreRange && matchesScored;
     })
     .sort((a, b) => {
       if (sortBy === "name") {
@@ -134,12 +134,28 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
 
   return (
     <div className="container py-8">
-      <div className="mb-8 max-w-3xl">
-        <p className="text-xs font-medium uppercase tracking-[0.24em] text-teal-600 dark:text-teal-300">{t.companies.eyebrow}</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.companies.title}</h1>
-        <p className="mt-4 text-base leading-8 text-slate-600 dark:text-slate-300">
-          {t.companies.description}
-        </p>
+      <div className="mb-8 rounded-[36px] border border-slate-200 bg-white p-7 shadow-card md:p-9 dark:border-slate-800 dark:bg-slate-950/80">
+        <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-teal-600 dark:text-teal-300">{t.companies.eyebrow}</p>
+            <h1 className="mt-3 text-balance text-3xl font-semibold tracking-[-0.035em] text-slate-950 md:text-4xl dark:text-white">{t.companies.title}</h1>
+            <p className="mt-4 text-base leading-8 text-slate-600 dark:text-slate-300">
+              {t.companies.description}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-slate-50 px-5 py-4 dark:bg-slate-900">
+              <div className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">{t.home.statCompanies}</div>
+              <div className="metric-number mt-2 text-2xl font-semibold text-slate-950 dark:text-white">{companies.length}</div>
+            </div>
+            <div className="rounded-2xl bg-teal-50 px-5 py-4 dark:bg-teal-950/25">
+              <div className="text-xs font-medium uppercase tracking-[0.16em] text-teal-600 dark:text-teal-300">{t.home.statScored}</div>
+              <div className="metric-number mt-2 text-2xl font-semibold text-teal-700 dark:text-teal-300">
+                {companies.filter((company) => company.overallScore !== null).length}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
@@ -211,11 +227,11 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
               <label className="flex items-center gap-3 rounded-2xl border border-teal-200 bg-teal-50/50 px-4 py-3 text-sm text-slate-700 dark:border-teal-800/50 dark:bg-teal-950/20 dark:text-slate-200">
                 <input
                   type="checkbox"
-                  checked={fullIndexOnly}
-                  onChange={(event) => setFullIndexOnly(event.target.checked)}
+                  checked={scoredOnly}
+                  onChange={(event) => setScoredOnly(event.target.checked)}
                   className="h-4 w-4 rounded border-teal-300 text-teal-600"
                 />
-                {locale === "ko" ? "Full Index 기업만" : "Full Index only"}
+                {t.companies.scoredOnly}
               </label>
             </div>
           </aside>
@@ -249,7 +265,7 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
 
           <div className="mb-6 rounded-[28px] border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
             {t.companies.showing(filtered.length)}
-            {filtered[0]?.overallScore !== null && (
+            {filtered[0]?.overallScore !== null && filtered[0]?.overallScore !== undefined && (
               <>
                 {" "}
                 {t.companies.topResultScore(formatScore(filtered[0]?.overallScore))}

@@ -18,45 +18,11 @@ type ComparePageClientProps = {
   locale?: SupportedLocale;
 };
 
-function getCategoryTone(categoryCode: string) {
-  const normalized = categoryCode.toLowerCase();
-
-  if (normalized === "cat1") {
-    return {
-      dotClass: "bg-teal-500",
-      trackClass: "bg-slate-200 dark:bg-slate-800/90",
-      fillClass: "bg-gradient-to-r from-teal-500 to-emerald-500",
-    };
-  }
-
-  if (normalized === "cat2") {
-    return {
-      dotClass: "bg-cyan-500",
-      trackClass: "bg-slate-200 dark:bg-slate-800/90",
-      fillClass: "bg-gradient-to-r from-cyan-500 to-teal-500",
-    };
-  }
-
-  if (normalized === "cat3") {
-    return {
-      dotClass: "bg-sky-600",
-      trackClass: "bg-slate-200 dark:bg-slate-800/90",
-      fillClass: "bg-gradient-to-r from-sky-600 to-cyan-500",
-    };
-  }
-
-  if (normalized === "cat4") {
-    return {
-      dotClass: "bg-slate-500",
-      trackClass: "bg-slate-200 dark:bg-slate-800/90",
-      fillClass: "bg-gradient-to-r from-slate-500 to-slate-600",
-    };
-  }
-
+function getCategoryTone() {
   return {
-    dotClass: "bg-slate-500",
-    trackClass: "bg-slate-200 dark:bg-slate-800",
-    fillClass: "bg-gradient-to-r from-slate-500 to-slate-600",
+    dotClass: "bg-teal-500",
+    trackClass: "bg-slate-200 dark:bg-slate-800/90",
+    fillClass: "bg-gradient-to-r from-teal-500 to-emerald-500",
   };
 }
 
@@ -128,7 +94,7 @@ export function ComparePageClient({ companies, categories, locale = "en" }: Comp
             <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{t.compare.scoreDimensions}</h2>
             <div className="mt-6 space-y-5">
               {categories.map((category) => {
-                const tone = getCategoryTone(category.code);
+                const tone = getCategoryTone();
 
                 return (
                 <div key={category.code}>

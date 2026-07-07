@@ -1,5 +1,6 @@
 import { Suspense, type ReactNode } from "react";
 import { getTranslations, type SupportedLocale } from "@/lib/cers/i18n";
+import { SiteFooter } from "./site-footer";
 import { SiteHeader } from "./site-header";
 
 type AppShellProps = {
@@ -24,7 +25,7 @@ export function AppShell({ children, source, issue, locale = "en" }: AppShellPro
   const t = getTranslations(locale);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(13,148,136,0.08),_transparent_30%),linear-gradient(180deg,_#ffffff_0%,_#f8fafc_100%)] transition-colors dark:bg-[radial-gradient(circle_at_top,_rgba(45,212,191,0.14),_transparent_24%),linear-gradient(180deg,_#020617_0%,_#0f172a_100%)]">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(13,148,136,0.08),_transparent_28%),linear-gradient(180deg,_#ffffff_0%,_#f8fafc_48%,_#f1f5f9_100%)] transition-colors dark:bg-[radial-gradient(circle_at_top_left,_rgba(45,212,191,0.12),_transparent_24%),linear-gradient(180deg,_#020617_0%,_#0b1220_48%,_#0f172a_100%)]">
       <Suspense fallback={<SiteHeaderFallback locale={locale} />}>
         <SiteHeader locale={locale} />
       </Suspense>
@@ -38,6 +39,7 @@ export function AppShell({ children, source, issue, locale = "en" }: AppShellPro
         )}
         {children}
       </main>
+      <SiteFooter locale={locale} />
     </div>
   );
 }

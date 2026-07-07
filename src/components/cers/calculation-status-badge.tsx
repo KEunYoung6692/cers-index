@@ -4,29 +4,20 @@ import type { SupportedLocale } from "@/lib/cers/i18n";
 
 const STATUS_CONFIG: Record<
   CalculationStatus,
-  { labelEn: string; labelKo: string; classes: string }
+  { labels: Record<SupportedLocale, string>; classes: string }
 > = {
-  full: {
-    labelEn: "Full Index",
-    labelKo: "Full Index",
+  scored: {
+    labels: { en: "Scored", ko: "산정 완료", ja: "算定済み" },
     classes:
       "border-teal-200 bg-teal-50 text-teal-800 dark:border-teal-500/35 dark:bg-teal-950/40 dark:text-teal-300",
   },
-  limited: {
-    labelEn: "Limited",
-    labelKo: "Limited",
+  pending: {
+    labels: { en: "Pending", ko: "산정 대기", ja: "算定待ち" },
     classes:
       "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/35 dark:bg-amber-950/40 dark:text-amber-300",
   },
-  disclosure_only: {
-    labelEn: "Disclosure Only",
-    labelKo: "공시 기반",
-    classes:
-      "border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-400",
-  },
-  universe_only: {
-    labelEn: "Tracked",
-    labelKo: "추적 중",
+  not_scored: {
+    labels: { en: "Not scored", ko: "점수 없음", ja: "スコアなし" },
     classes:
       "border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-500",
   },
@@ -45,7 +36,7 @@ export function CalculationStatusBadge({
 }: CalculationStatusBadgeProps) {
   const status = deriveCalculationStatus(company);
   const config = STATUS_CONFIG[status];
-  const label = locale === "ko" ? config.labelKo : config.labelEn;
+  const label = config.labels[locale];
 
   const sizeClass =
     size === "xs"
