@@ -59,19 +59,19 @@
     "id": "F07",
     "screen": "점수 로직 설명",
     "route": "/about/logic, /score-logic",
-    "behavior": "CERs Index v1.4의 4개 KPI, 16개 변수, 동일가중 집계 방식과 세부 산식을 한국어·영어·일본어로 표시한다.",
+    "behavior": "CERs Index ver2(v1.5)의 4개 KPI, 12개 변수(n_j=2/2/4/4), 두 단계 동일가중 집계 방식과 세부 산식을 한국어·영어·일본어로 표시한다.",
     "verification": "npm run check 성공 후 다국어 로직 렌더링 테스트와 /ko/about/logic 정적 페이지 생성을 확인한다.",
     "state": "passing",
-    "evidence": "다국어 렌더링 테스트에서 3개 언어의 16개 변수와 v1.4 집계 계약을 확인함. DB 의존성 없음."
+    "evidence": "다국어 렌더링 테스트에서 3개 언어의 12개 변수와 v1.5 집계 계약을 확인함. DB 의존성 없음."
   },
   {
     "id": "F08",
     "screen": "About",
     "route": "/about",
-    "behavior": "CERs Index v1.4 소개, 4개 KPI 개요, 동일가중 집계 공식과 해석 기준을 한국어·영어·일본어로 표시한다.",
+    "behavior": "CERs Index ver2(v1.5) 소개, 4개 KPI 개요, 12개 변수 구조와 동일가중 집계 공식·해석 기준을 한국어·영어·일본어로 표시한다.",
     "verification": "npm run check 성공 후 다국어 방법론 계약 테스트와 /ko/about 정적 페이지 생성을 확인한다.",
     "state": "passing",
-    "evidence": "다국어 계약 테스트에서 구 V1-V9, P2, 산업별 가중치 설명이 제거되고 v1.4 집계 공식이 적용됐음을 확인함. DB 의존성 없음."
+    "evidence": "다국어 계약 테스트에서 구 16변수·야심도(ambition) 잔재가 제거되고 12개 변수·v1.5 집계 공식이 적용됐음을 확인함. DB 의존성 없음."
   },
   {
     "id": "F09",

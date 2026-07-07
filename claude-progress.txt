@@ -1,5 +1,37 @@
 # Claude Progress — cers-index
 
+## 2026-06-29 — ver2 문서 기준 전반 정합 (잔재 제거)
+
+### 배경
+`docs/LOGIC/CERs Index for Company_ver2.md`를 단일 기준으로 코드 전반을 재대조.
+방법론 화면(score-logic-v3.tsx)은 이미 12개 변수 산식과 정확히 일치함을 확인.
+나머지 파일에 남아 있던 v1.4 잔재를 제거.
+
+### 완료 작업
+- `score-logic-v3.tsx` 대조: V1(0.042·S_absolute), V2(Scope3 절대량), W1(체크리스트
+  곱·목표 평균), W2(P_t), C3(100/25/0), C4(m/4), A1((a1+a2)/2), A2(¼식),
+  A3·A4(m·p/4), 최종 K_j·CERs 모두 문서와 일치 — 수정 불필요
+- KPI2 라벨 영어 정합: 삭제된 v1.4 "ambition(야심도)" 잔재 제거
+  - `i18n.ts` en 4곳: "Target ambition" → "Target design & delivery"
+    (ko/ja는 이미 "목표 및 이행"/"削減目標と履行"로 정리돼 있었음)
+  - 카테고리 라벨 `public.ts`·`fallback-data.ts`: "Target Ambition & Delivery"
+    → "Target Design & Delivery"
+- 버전 라벨 정합: `fallback-data.ts` methodologyVersion "CERs v0.1" → "CERs v1.5" (2곳)
+- dead code 제거: 미import 확인된 `components/cers/score-logic.tsx`(v1.4 16변수) 삭제
+- `feature_list.json` F07/F08: 설명·evidence를 v1.4/16변수 → ver2(v1.5)/12변수로 갱신
+- 테스트 갱신: `public.test.ts`·`kpi-score-grid.test.tsx`의 옛 "ambition" 라벨 단언 수정
+
+### 검증
+- Node.js 20.19.0, `npm run check:quick` 통과 (harness/lint/typecheck/test)
+- Vitest 4 files, 14 tests 통과
+- src 전수 스캔: v1.4/v0.1/16변수/ambition 라벨 잔재 0건
+
+### 잔여/주의
+- public.ts의 "ambition statements"(607·757), score-logic-v3 v1 설명의 "ambition and
+  delivery"(286)는 일반 영어 표현으로 삭제된 변수와 무관 — 유지
+- 소비 화면(홈/기업/비교/섹터)의 12개 변수 개별 점수 표시는 여전히 batch가 변수별
+  점수 계약을 제공할 때 Phase 2로 구현 (현 상태 4 KPI 카테고리 수준 렌더 유지)
+
 ## 2026-06-24 — CERs Index ver2(v1.5) 12개 변수 화면 반영
 
 ### 배경

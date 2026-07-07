@@ -12,10 +12,7 @@ export function SiteFooter({ locale = "en" }: { locale?: SupportedLocale }) {
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-950 text-sm font-bold text-white dark:bg-white dark:text-slate-950">
               C
             </span>
-            <div>
-              <div className="font-semibold tracking-tight text-slate-950 dark:text-white">CERs Index</div>
-              <div className="text-xs uppercase tracking-[0.18em] text-slate-400">{t.footer.productLabel}</div>
-            </div>
+            <div className="font-semibold tracking-tight text-slate-950 dark:text-white">CERs Index</div>
           </div>
           <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">{t.footer.description}</p>
         </div>

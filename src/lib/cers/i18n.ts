@@ -56,7 +56,7 @@ const ENGLISH_COPY = {
       },
       {
         code: "KPI 2",
-        title: "Target ambition & delivery",
+        title: "Target design & delivery",
         description: "Target design completeness and on-track delivery.",
         variables: "W1-W2 · 2 variables",
       },
@@ -75,7 +75,6 @@ const ENGLISH_COPY = {
     ],
   },
   header: {
-    productLabel: "Climate transition intelligence",
     searchPlaceholder: "Search companies...",
     languageLabel: "Language",
     themeLabel: "Theme",
@@ -83,7 +82,6 @@ const ENGLISH_COPY = {
     lightMode: "Light",
   },
   footer: {
-    productLabel: "Public climate intelligence",
     description:
       "A comparable, evidence-led view of corporate carbon reduction performance built from public disclosures.",
     disclaimer:
@@ -139,7 +137,7 @@ const ENGLISH_COPY = {
     scoreMeaningEyebrow: "What the score means",
     scoreMeaningTitle: "A public view of climate transition reliability",
     scoreMeaningDescription:
-      "Twelve public-evidence variables form four equally weighted KPIs: realized decarbonization, target ambition and delivery, capital allocation, and data credibility.",
+      "Twelve public-evidence variables form four equally weighted KPIs: realized decarbonization, target design and delivery, capital allocation, and data credibility.",
     learnMore: "Learn more about the score",
   },
   companies: {
@@ -341,7 +339,7 @@ const ENGLISH_COPY = {
     eyebrow: "CERs Index Methodology v1.5",
     title: "How the CERs Index is calculated",
     description:
-      "CERs Index evaluates corporate climate transition using public disclosure only. Twelve variables are grouped into four KPIs: realized decarbonization, target ambition and delivery, capital allocation, and data credibility.",
+      "CERs Index evaluates corporate climate transition using public disclosure only. Twelve variables are grouped into four KPIs: realized decarbonization, target design and delivery, capital allocation, and data credibility.",
     logicCta: "View formulas and all 12 variables",
     formulaTitle: "Aggregation at a glance",
     formulaDescription:
@@ -443,7 +441,7 @@ const ENGLISH_COPY = {
         ],
       },
       {
-        title: "KPI 2. Target ambition and delivery",
+        title: "KPI 2. Target design and delivery",
         description:
           "Tests whether the target is completely defined and whether the company is on its declared reduction path.",
         bullets: [
@@ -559,7 +557,6 @@ const KOREAN_COPY: Translation = {
     ],
   },
   header: {
-    productLabel: "기후전환 인텔리전스",
     searchPlaceholder: "기업 검색...",
     languageLabel: "언어",
     themeLabel: "테마",
@@ -567,7 +564,6 @@ const KOREAN_COPY: Translation = {
     lightMode: "라이트",
   },
   footer: {
-    productLabel: "공개 기후 인텔리전스",
     description: "공개 공시를 바탕으로 기업 탄소감축 성과를 비교 가능하고 근거 중심으로 보여줍니다.",
     disclaimer: "CERs Index는 분석 정보 서비스이며 투자 조언이나 ESG 종합등급이 아닙니다.",
   },
@@ -1031,7 +1027,6 @@ const JAPANESE_COPY: Translation = {
     ],
   },
   header: {
-    productLabel: "気候移行インテリジェンス",
     searchPlaceholder: "企業を検索...",
     languageLabel: "言語",
     themeLabel: "テーマ",
@@ -1039,7 +1034,6 @@ const JAPANESE_COPY: Translation = {
     lightMode: "ライト",
   },
   footer: {
-    productLabel: "公開気候インテリジェンス",
     description: "公開開示に基づき、企業の炭素削減実績を比較可能かつ根拠中心で示します。",
     disclaimer: "CERs Index は分析情報サービスであり、投資助言や ESG 総合格付けではありません。",
   },

@@ -8,7 +8,7 @@ import type { CersCompanyProfile } from "./types";
 
 describe("public CERs presentation contract", () => {
   it.each([
-    ["en", ["Realized Decarbonization", "Target Ambition & Delivery", "Capital Allocation", "Data Credibility"]],
+    ["en", ["Realized Decarbonization", "Target Design & Delivery", "Capital Allocation", "Data Credibility"]],
     ["ko", ["실질 탈탄소 성과", "감축 목표 및 이행", "자본배분", "데이터 신뢰성"]],
     ["ja", ["実質的な脱炭素成果", "削減目標と履行", "資本配分", "データ信頼性"]],
   ] as const)("uses the v1.5 KPI labels in %s", (locale, labels) => {

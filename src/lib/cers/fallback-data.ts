@@ -14,7 +14,7 @@ import type {
 
 const CATEGORY_META: CersCategoryMeta[] = [
   { id: "cat1", code: "cat1", label: "Realized Decarbonization", weight: 0.25, displayOrder: 1 },
-  { id: "cat2", code: "cat2", label: "Target Ambition & Delivery", weight: 0.25, displayOrder: 2 },
+  { id: "cat2", code: "cat2", label: "Target Design & Delivery", weight: 0.25, displayOrder: 2 },
   { id: "cat3", code: "cat3", label: "Capital Allocation", weight: 0.25, displayOrder: 3 },
   { id: "cat4", code: "cat4", label: "Data Credibility", weight: 0.25, displayOrder: 4 },
 ];
@@ -183,7 +183,7 @@ function buildCompany(seed: CompanySeed): CersCompanyProfile {
     fiscalYear: metrics.fiscalYear,
     scoreFiscalYear: metrics.fiscalYear,
     scorePeriodId: null,
-    methodologyVersion: "CERs v0.1",
+    methodologyVersion: "CERs v1.5",
     overallScore: seed.overallScore,
     scoreGrade: seed.scoreGrade,
     indexStatus: null,
@@ -931,7 +931,7 @@ export const fallbackDashboardData: CersDashboardData = {
   source: "fallback",
   issue: "Showing sample data because the live scoring pipeline is unavailable or incomplete.",
   generatedAt: new Date().toISOString(),
-  methodologyVersion: "CERs v0.1",
+  methodologyVersion: "CERs v1.5",
   categories: CATEGORY_META,
   companies,
 };

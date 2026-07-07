@@ -21,7 +21,7 @@ describe("KpiScoreGrid", () => {
     const text = container.textContent ?? "";
 
     expect(text).toContain("Realized decarbonization");
-    expect(text).toContain("Target ambition & delivery");
+    expect(text).toContain("Target design & delivery");
     expect(text).toContain("Capital allocation");
     expect(text).toContain("Data credibility");
     expect(text).toContain("68.0");

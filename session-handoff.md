@@ -1,5 +1,23 @@
 # Session Handoff
 
+## Current State — 2026-06-29
+
+### Methodology
+
+- `docs/LOGIC/CERs Index for Company_ver2.md`를 단일 기준으로 코드 전반 재대조 완료
+- score-logic-v3.tsx의 12개 변수 산식은 문서와 정확히 일치 (수정 불필요 확인)
+- 남아 있던 v1.4 잔재 제거: KPI2 영어 라벨 "ambition" → "design & delivery"
+  (i18n en 4곳 + public.ts·fallback-data.ts 카테고리 라벨), fallback methodologyVersion
+  "CERs v0.1" → "CERs v1.5", dead code score-logic.tsx(v1.4 16변수) 삭제
+- feature_list F07/F08 설명을 v1.5/12변수로 동기화, 관련 테스트 단언 갱신
+- `npm run check:quick` 통과, src 전수 스캔 잔재 0건
+
+### Next Work
+
+- 소비 화면(홈/기업/비교/섹터)의 12개 변수 개별 점수 표시는 batch 변수별 점수 계약
+  확정 후 Phase 2로 구현 (현재 4 KPI 카테고리 수준 렌더)
+- F05/F09는 여전히 batch F05 점수 적재 전까지 blocked
+
 ## Current State — 2026-06-24
 
 ### Methodology

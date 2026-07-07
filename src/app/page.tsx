@@ -45,53 +45,51 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
 
   return (
     <AppShell source={data.source} issue={data.issue} locale={locale}>
-      <section className="container pt-8">
-        <div className="relative overflow-hidden rounded-[44px] border border-slate-200 bg-white px-7 py-10 text-slate-900 shadow-elevated md:px-10 md:py-14 lg:px-14 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:shadow-[0_24px_70px_-32px_rgba(15,23,42,0.8)]">
-          <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-teal-400/15 blur-3xl" />
-          <div className="absolute bottom-0 left-1/3 h-48 w-96 rounded-full bg-teal-500/5 blur-3xl dark:bg-blue-500/10" />
-          <div className="relative grid gap-10 xl:grid-cols-[1.15fr_0.85fr] xl:items-end">
-            <div className="max-w-4xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-teal-600 dark:text-teal-300">{t.home.eyebrow}</p>
-              <h1 className="mt-5 max-w-4xl text-balance text-4xl font-semibold leading-[1.06] tracking-[-0.045em] sm:text-5xl lg:text-6xl">
+      <section className="container pt-4">
+        <div className="rounded-3xl border border-slate-200 bg-white px-5 py-5 text-slate-900 shadow-card md:px-7 md:py-6 lg:px-8 dark:border-slate-800 dark:bg-slate-950 dark:text-white">
+          <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr] xl:items-center">
+            <div className="max-w-3xl">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-teal-600 dark:text-teal-300">{t.home.eyebrow}</p>
+              <h1 className="mt-2 max-w-3xl text-balance text-2xl font-semibold leading-tight tracking-tight sm:text-3xl lg:text-4xl">
                 {t.home.title}
               </h1>
-              <p className="mt-6 max-w-2xl text-base leading-8 text-slate-600 md:text-lg dark:text-slate-300">{t.home.description}</p>
-              <div className="mt-8 flex flex-wrap gap-3">
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 md:text-base dark:text-slate-300">{t.home.description}</p>
+              <div className="mt-4 flex flex-wrap gap-2.5">
                 <Link
                   href={localizedPath(locale, "/companies")}
-                  className="inline-flex items-center gap-2 rounded-full bg-teal-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-teal-700 dark:bg-teal-400 dark:text-slate-950 dark:hover:bg-teal-300"
+                  className="inline-flex items-center gap-2 rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-700 dark:bg-teal-400 dark:text-slate-950 dark:hover:bg-teal-300"
                 >
                   {t.home.primaryCta}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href={localizedPath(locale, "/about")}
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-white/20 dark:bg-white/5 dark:text-white dark:hover:border-white/35 dark:hover:bg-white/10"
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-white/20 dark:bg-white/5 dark:text-white dark:hover:border-white/35 dark:hover:bg-white/10"
                 >
                   {t.home.secondaryCta}
                 </Link>
               </div>
             </div>
 
-            <div className="rounded-[30px] border border-slate-200 bg-slate-50 p-5 dark:border-white/10 dark:bg-white/[0.06] dark:backdrop-blur">
-              <div className="flex items-center gap-3 border-b border-slate-200 pb-4 dark:border-white/10">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-100 text-teal-700 dark:bg-teal-400/15 dark:text-teal-300">
-                  <ShieldCheck className="h-5 w-5" />
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/[0.06]">
+              <div className="flex items-center gap-3 border-b border-slate-200 pb-3 dark:border-white/10">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-teal-100 text-teal-700 dark:bg-teal-400/15 dark:text-teal-300">
+                  <ShieldCheck className="h-4 w-4" />
                 </span>
                 <div>
                   <div className="text-sm font-semibold">{t.home.statMethodology}</div>
-                  <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{methodologyVersion}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">{methodologyVersion}</div>
                 </div>
               </div>
-              <div className="mt-4 grid gap-3 text-sm text-slate-700 dark:text-slate-200">
+              <div className="mt-3 grid gap-2 text-sm text-slate-700 dark:text-slate-200">
                 {[t.home.proofPublic, t.home.proofFramework, t.home.proofComparable].map((item) => (
-                  <div key={item} className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 dark:bg-white/[0.05]">
+                  <div key={item} className="flex items-center gap-3 rounded-xl bg-white px-3 py-2 dark:bg-white/[0.05]">
                     <span className="h-1.5 w-1.5 rounded-full bg-teal-500 dark:bg-teal-300" />
                     {item}
                   </div>
                 ))}
               </div>
-              <p className="mt-4 text-xs text-slate-500">{t.home.updatedAt(refreshedDate)}</p>
+              <p className="mt-3 text-xs text-slate-500">{t.home.updatedAt(refreshedDate)}</p>
             </div>
           </div>
         </div>

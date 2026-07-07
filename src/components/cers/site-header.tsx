@@ -51,12 +51,7 @@ export function SiteHeader({ locale = "en" }: SiteHeaderProps) {
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-950 text-sm font-bold text-white shadow-sm dark:bg-white dark:text-slate-950">
               C
             </span>
-            <span>
-              <span className="block text-base font-semibold tracking-tight">CERs Index</span>
-              <span className="hidden text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400 sm:block">
-                {t.header.productLabel}
-              </span>
-            </span>
+            <span className="text-base font-semibold tracking-tight">CERs Index</span>
           </Link>
           <nav className="hidden items-center gap-1 lg:flex">
             {navItems.map((item) => {

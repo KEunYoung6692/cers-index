@@ -18,7 +18,7 @@ type PublicCategorySeed = {
 const PUBLIC_CATEGORY_LABELS: Record<SupportedLocale, PublicCategorySeed[]> = {
   en: [
     { code: "cat1", label: "Realized Decarbonization" },
-    { code: "cat2", label: "Target Ambition & Delivery" },
+    { code: "cat2", label: "Target Design & Delivery" },
     { code: "cat3", label: "Capital Allocation" },
     { code: "cat4", label: "Data Credibility" },
   ],
