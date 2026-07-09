@@ -213,12 +213,12 @@ export function HomeScoreLeaderboard({
                   <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                     {t.companies.scoreListColumns.company}
                   </th>
-                  {sortedCategories.map((category) => (
+                  {sortedCategories.map((category, index) => (
                     <th
                       key={category.code}
                       className="px-3 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400"
                     >
-                      {category.label}
+                      KPI{index + 1}
                     </th>
                   ))}
                   <th className="px-4 py-3 text-right text-[11px] font-semibold tracking-[0.18em] text-slate-500 dark:text-slate-400">

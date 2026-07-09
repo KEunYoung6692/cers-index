@@ -1,5 +1,49 @@
 # Claude Progress — cers-index
 
+## 2026-07-09 — 홈 상단 소개 숨김 및 KPI 표 헤더 단순화
+
+### 완료 작업
+- 홈 최상단 소개·방법론 위젯을 JSX 주석 처리해 화면에서 숨김
+- 홈과 `/companies/score-list`의 CERs Index List 카테고리 헤더를
+  미확정 영문 명칭 대신 `KPI1`~`KPI4`로 표시
+- 카테고리 데이터와 방법론/About 화면의 정식 명칭은 유지
+
+### 검증
+- Node.js 20.19.0, `npm run check` 통과
+- dev 홈 HTML에서 숨긴 소개 문구가 렌더링되지 않음을 확인
+- 실제 DB 점수가 0건이라 KPI 표 헤더 런타임 분기는 렌더링되지 않았으며,
+  두 표 구현과 production build로 변경을 검증
+
+## 2026-07-08 — 홈 하이드레이션 경고 수정
+
+### 배경
+브라우저에서 `/` 홈 진입 시 `AppShell` 루트 주변에
+`Hydration failed because the server rendered HTML didn't match the client` 경고가 발생.
+첨부 스택은 서버 쪽 `<Suspense>`와 클라이언트 쪽 `AppShell` `<div>`가 맞지 않는
+형태를 가리킴.
+
+### 완료 작업
+- `AppShell`에서 `SiteHeader` 전체를 감싸던 Suspense fallback 제거
+- `SiteHeader`의 `useSearchParams()` 의존 제거
+  - 검색어와 query string은 mount 후 `window.location.search`에서 동기화
+  - 검색 input은 controlled state로 전환
+- `/`와 `/ko` dev HTML에서 `AppShell` `<div>` 다음에 실제 `<header>`가 바로
+  렌더되고, 헤더 앞 Suspense fallback 마커가 사라진 것 확인
+
+### 검증
+- Node.js 20.19.0, `npm run check` 통과
+  - harness/lint/typecheck/Vitest 4 files, 14 tests 통과
+  - production build 통과
+- `npm run dev` on `127.0.0.1:3001`
+  - `curl -s http://127.0.0.1:3001/`
+  - `curl -s http://127.0.0.1:3001/ko`
+  - 두 응답 모두 `AppShell` root `<div>` 다음 실제 `header` 확인
+
+### 잔여/주의
+- 현재 환경에는 Playwright/브라우저 런타임 패키지가 없어 실제 브라우저 콘솔까지
+  자동 검증하지는 못함.
+- F01은 여전히 active 유지. 홈 전체 passing 전환은 실제 브라우저 사용자 흐름 확인 후 진행.
+
 ## 2026-06-29 — ver2 문서 기준 전반 정합 (잔재 제거)
 
 ### 배경

@@ -1,5 +1,46 @@
 # Session Handoff
 
+## Current State — 2026-07-09
+
+### Home UI
+
+- 홈 최상단 소개·방법론 위젯은 JSX 주석 처리되어 렌더링되지 않음
+- 홈과 `/companies/score-list`의 CERs Index List 헤더는 `KPI1`~`KPI4`로 표시
+- 카테고리 데이터 및 방법론/About 화면의 정식 명칭은 변경하지 않음
+
+### Verification
+
+- `npm run check` 통과
+- dev 홈 HTML에서 숨긴 소개 문구 미노출 확인
+- DB 점수 0건으로 KPI 표 자체는 런타임 미노출 상태
+
+## Current State — 2026-07-08
+
+### Runtime Hydration
+
+- `/` 홈에서 발생하던 React recoverable hydration warning 대응 완료
+- 원인으로 보이는 구조: `AppShell` 내부 첫 자식인 `SiteHeader` 전체가
+  `useSearchParams()` 때문에 Suspense fallback으로 서버 렌더됨
+- 수정:
+  - `src/components/cers/app-shell.tsx`: 헤더 전체 Suspense fallback 제거
+  - `src/components/cers/site-header.tsx`: `useSearchParams()` 제거, mount 후
+    `window.location.search`를 읽어 query string/search input 상태 동기화
+- 검증:
+  - `npm run check` 통과
+  - dev 서버 `127.0.0.1:3001`에서 `/`와 `/ko` HTML 확인
+  - 두 응답 모두 `AppShell` root `<div>` 다음 실제 `<header>`가 바로 렌더됨
+
+### Product State
+
+- F01 홈 검증은 계속 유일한 `active` 항목
+- 점수 적재는 아직 0건이며 F05/F09는 batch F05 결과 전까지 blocked 유지
+- 현재 환경에 Playwright/브라우저 런타임이 없어 브라우저 콘솔 자동 검증은 미수행
+
+### Next Work
+
+- 브라우저에서 `/` 또는 `/ko`를 열어 hydration warning이 사라졌는지 최종 확인
+- 이후 F01 완료 조건 전체를 실제 DB 화면 흐름으로 검증하고 evidence/state 갱신
+
 ## Current State — 2026-06-29
 
 ### Methodology

@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, Building2, CalendarDays, Database, Layers3, ShieldCheck, Target, TrendingDown } from "lucide-react";
+import { ArrowRight, Building2, CalendarDays, Database, Layers3, Target, TrendingDown } from "lucide-react";
 import { AppShell } from "@/components/cers/app-shell";
 import { HomeScoreLeaderboard } from "@/components/cers/home-score-leaderboard";
 import { IndustryCard } from "@/components/cers/industry-card";
 import { KpiScoreGrid } from "@/components/cers/kpi-score-grid";
-import { getIntlLocale, getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
+import { getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
 import {
   formatPercent,
   getClearTargetCompanies,
@@ -31,11 +31,6 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
     data.companies.map((company) => company.sectorCode || company.industryCode).filter(Boolean),
   ).size;
   const methodologyVersion = data.methodologyVersion || "v1.5";
-  const refreshedDate = new Intl.DateTimeFormat(getIntlLocale(locale), {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }).format(new Date(data.generatedAt));
   const coverageStats = [
     { label: t.home.statCompanies, value: data.companies.length, icon: Building2 },
     { label: t.home.statScored, value: scoredCompanies.length, icon: Database },
@@ -45,7 +40,7 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
 
   return (
     <AppShell source={data.source} issue={data.issue} locale={locale}>
-      <section className="container pt-4">
+      {/* <section className="container pt-4">
         <div className="rounded-3xl border border-slate-200 bg-white px-5 py-5 text-slate-900 shadow-card md:px-7 md:py-6 lg:px-8 dark:border-slate-800 dark:bg-slate-950 dark:text-white">
           <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr] xl:items-center">
             <div className="max-w-3xl">
@@ -93,7 +88,7 @@ export async function renderHomePage(locale: SupportedLocale = "en") {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <section className="container py-8">
         <div className="rounded-[40px] border border-slate-200 bg-white px-5 py-8 shadow-elevated sm:px-8 md:py-10 dark:border-slate-800 dark:bg-slate-950/80">

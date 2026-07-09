@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Menu, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -20,12 +20,12 @@ type SiteHeaderProps = {
 
 export function SiteHeader({ locale = "en" }: SiteHeaderProps) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const t = getTranslations(locale);
-  const currentQuery = searchParams.get("q") || "";
   const unlocalizedPathname = stripLocalePrefix(pathname);
   const activeLocale = detectLocaleFromPathname(pathname) || locale;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [queryString, setQueryString] = useState("");
+  const [currentQuery, setCurrentQuery] = useState("");
 
   const navItems = [
     { href: "/", label: t.nav.home },
@@ -38,6 +38,12 @@ export function SiteHeader({ locale = "en" }: SiteHeaderProps) {
   useEffect(() => {
     document.documentElement.lang = locale;
   }, [locale]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setQueryString(params.toString());
+    setCurrentQuery(params.get("q") || "");
+  }, [pathname]);
 
   useEffect(() => {
     setIsMenuOpen(false);
@@ -88,7 +94,6 @@ export function SiteHeader({ locale = "en" }: SiteHeaderProps) {
           <div className="hidden items-center gap-1 rounded-full border border-slate-200 bg-slate-50 p-1 md:flex dark:border-slate-700 dark:bg-slate-900">
             {(["en", "ko", "ja"] as const).map((targetLocale) => {
               const nextHref = localizedPath(targetLocale, unlocalizedPathname === "" ? "/" : unlocalizedPathname);
-              const queryString = searchParams.toString();
 
               return (
                 <Link
@@ -113,7 +118,8 @@ export function SiteHeader({ locale = "en" }: SiteHeaderProps) {
             <input
               type="search"
               name="q"
-              defaultValue={currentQuery}
+              value={currentQuery}
+              onChange={(event) => setCurrentQuery(event.target.value)}
               placeholder={t.header.searchPlaceholder}
               className="h-10 w-full rounded-full border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-900 outline-none transition focus:border-teal-400 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-500 dark:focus:bg-slate-950"
             />
@@ -139,7 +145,8 @@ export function SiteHeader({ locale = "en" }: SiteHeaderProps) {
               <input
                 type="search"
                 name="q"
-                defaultValue={currentQuery}
+                value={currentQuery}
+                onChange={(event) => setCurrentQuery(event.target.value)}
                 placeholder={t.header.searchPlaceholder}
                 className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
               />
@@ -170,7 +177,6 @@ export function SiteHeader({ locale = "en" }: SiteHeaderProps) {
               <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 p-1 dark:border-slate-700 dark:bg-slate-900">
                 {(["en", "ko", "ja"] as const).map((targetLocale) => {
                   const nextHref = localizedPath(targetLocale, unlocalizedPathname === "" ? "/" : unlocalizedPathname);
-                  const queryString = searchParams.toString();
 
                   return (
                     <Link
