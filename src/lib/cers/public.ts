@@ -17,82 +17,22 @@ type PublicCategorySeed = {
 
 const PUBLIC_CATEGORY_LABELS: Record<SupportedLocale, PublicCategorySeed[]> = {
   en: [
-    { code: "cat1", label: "Actual Reduction Performance" },
-    { code: "cat2", label: "Target Clarity" },
-    { code: "cat3", label: "Execution Readiness" },
-    { code: "cat4", label: "Disclosure Level" },
+    { code: "cat1", label: "Realized Decarbonization" },
+    { code: "cat2", label: "Target Design & Delivery" },
+    { code: "cat3", label: "Capital Allocation" },
+    { code: "cat4", label: "Data Credibility" },
   ],
   ko: [
-    { code: "cat1", label: "실질 감축 성과" },
-    { code: "cat2", label: "목표 명확성" },
-    { code: "cat3", label: "실행 준비도" },
-    { code: "cat4", label: "공시 수준" },
+    { code: "cat1", label: "실질 탈탄소 성과" },
+    { code: "cat2", label: "감축 목표 및 이행" },
+    { code: "cat3", label: "자본배분" },
+    { code: "cat4", label: "데이터 신뢰성" },
   ],
   ja: [
-    { code: "cat1", label: "実際の削減実績" },
-    { code: "cat2", label: "目標の明確さ" },
-    { code: "cat3", label: "実行準備度" },
-    { code: "cat4", label: "開示水準" },
-  ],
-};
-
-const V_CATEGORY_LABELS: Record<SupportedLocale, Record<string, string>> = {
-  en: {
-    v1: "Scope 1·2 Emission Performance",
-    v2: "Scope 3 Disclosure & Management",
-    v3: "Target Design Quality",
-    v4: "Implementation Progress",
-    v5: "Climate Risk & Transition Plan",
-    v6: "Governance & Compensation",
-    v7: "Capital Allocation (CapEx)",
-    v8: "Reporting Boundary Transparency",
-    v9: "Third-Party Verification",
-  },
-  ko: {
-    v1: "Scope 1·2 배출성과",
-    v2: "Scope 3 공개·관리",
-    v3: "감축목표 품질",
-    v4: "목표 이행률",
-    v5: "기후 리스크·전환계획",
-    v6: "거버넌스·보상 연계",
-    v7: "자본배분 (CapEx)",
-    v8: "보고경계 투명성",
-    v9: "제3자 검증",
-  },
-  ja: {
-    v1: "Scope 1·2 排出実績",
-    v2: "Scope 3 開示・管理",
-    v3: "目標設計品質",
-    v4: "目標達成進捗",
-    v5: "気候リスク・移行計画",
-    v6: "ガバナンス・報酬連携",
-    v7: "資本配分 (CapEx)",
-    v8: "報告境界透明性",
-    v9: "第三者検証",
-  },
-};
-
-const SCORE_BUCKETS: Record<SupportedLocale, Array<{ min: number; label: string }>> = {
-  en: [
-    { min: 80, label: "Leading Performance" },
-    { min: 70, label: "Strong Performance" },
-    { min: 60, label: "Moderate Performance" },
-    { min: 50, label: "Early Transition" },
-    { min: 0, label: "Limited Action" },
-  ],
-  ko: [
-    { min: 80, label: "선도 수준" },
-    { min: 70, label: "강한 성과" },
-    { min: 60, label: "보통 수준" },
-    { min: 50, label: "초기 전환 단계" },
-    { min: 0, label: "제한적 대응" },
-  ],
-  ja: [
-    { min: 80, label: "先行水準" },
-    { min: 70, label: "高いパフォーマンス" },
-    { min: 60, label: "中程度のパフォーマンス" },
-    { min: 50, label: "初期移行段階" },
-    { min: 0, label: "限定的な対応" },
+    { code: "cat1", label: "実質的な脱炭素成果" },
+    { code: "cat2", label: "削減目標と履行" },
+    { code: "cat3", label: "資本配分" },
+    { code: "cat4", label: "データ信頼性" },
   ],
 };
 
@@ -332,41 +272,44 @@ export function getPublicCategoryLabel(
   const normalizedCode = (code || "").toLowerCase().trim();
   const normalizedName = (name || "").toLowerCase();
   const labels = PUBLIC_CATEGORY_LABELS[locale];
-  const vLabels = V_CATEGORY_LABELS[locale];
-
-  // V1-V9 variable codes
-  const vMatch = normalizedCode.match(/^v([1-9])$/);
-  if (vMatch) {
-    return vLabels[normalizedCode] || humanizeCode(name || code);
-  }
 
   if (
+    normalizedCode === "kpi1" ||
+    normalizedCode === "k1" ||
     normalizedCode.includes("cat1") ||
-    normalizedName.includes("실질") ||
-    normalizedName.includes("performance")
+    normalizedName.includes("탈탄소") ||
+    normalizedName.includes("decarbon") ||
+    normalizedName.includes("脱炭素")
   ) {
     return labels[0].label;
   }
   if (
+    normalizedCode === "kpi2" ||
+    normalizedCode === "k2" ||
     normalizedCode.includes("cat2") ||
     normalizedName.includes("목표") ||
-    normalizedName.includes("target")
+    normalizedName.includes("target") ||
+    normalizedName.includes("目標")
   ) {
     return labels[1].label;
   }
   if (
+    normalizedCode === "kpi3" ||
+    normalizedCode === "k3" ||
     normalizedCode.includes("cat3") ||
-    normalizedName.includes("거버넌스") ||
     normalizedName.includes("capital") ||
-    normalizedName.includes("execution")
+    normalizedName.includes("자본") ||
+    normalizedName.includes("資本")
   ) {
     return labels[2].label;
   }
   if (
+    normalizedCode === "kpi4" ||
+    normalizedCode === "k4" ||
     normalizedCode.includes("cat4") ||
-    normalizedName.includes("무결성") ||
-    normalizedName.includes("risk") ||
-    normalizedName.includes("disclosure")
+    normalizedName.includes("신뢰") ||
+    normalizedName.includes("credib") ||
+    normalizedName.includes("信頼")
   ) {
     return labels[3].label;
   }
@@ -374,161 +317,12 @@ export function getPublicCategoryLabel(
   return labels[index]?.label || humanizeCode(name || code);
 }
 
-export type CalculationStatus = "full" | "limited" | "disclosure_only" | "universe_only";
+export type CalculationStatus = "scored" | "pending" | "not_scored";
 
 export function deriveCalculationStatus(company: CersCompanyProfile): CalculationStatus {
-  if (company.indexStatus) {
-    if (company.indexStatus === "full_index") return "full";
-    if (company.indexStatus === "limited_index") return "limited";
-    if (company.indexStatus === "disclosure_only") return "disclosure_only";
-    if (company.indexStatus === "universe_only") return "universe_only";
-  }
-  if (company.overallScore === null) {
-    const hasDisclosure =
-      Boolean(company.targetSummary.targetYear) ||
-      Boolean(company.disclosure.hasThirdPartyAssurance) ||
-      company.disclosure.scope3DisclosedCategories > 0;
-    return hasDisclosure ? "disclosure_only" : "universe_only";
-  }
-  const scoredCategories = company.categories.filter((c) => c.rawScore !== null);
-  if (scoredCategories.length >= company.categories.length && company.categories.length > 0) {
-    return "full";
-  }
-  return "limited";
-}
-
-export type V3SubComponent = {
-  key: string;
-  labelEn: string;
-  labelKo: string;
-  score: 1 | 0.5 | 0 | null;
-  note: string | null;
-};
-
-export function deriveV3Quality(company: CersCompanyProfile): V3SubComponent[] {
-  const primary = company.targets.find(
-    (t) =>
-      t.disclosed !== false &&
-      t.targetType !== "netzero" &&
-      t.targetType !== "residual_neutralization",
-  );
-  const netZero = company.targets.find(
-    (t) => t.targetType === "netzero" && t.disclosed !== false,
-  );
-  const currentYear = company.targetSummary.currentYear ?? new Date().getFullYear();
-
-  const scopeNorm = (primary?.scopeCode ?? "").toLowerCase().replace(/[\s_-]/g, "");
-  let scopeScore: 1 | 0.5 | 0 = 0;
-  if (scopeNorm.includes("123")) scopeScore = 1;
-  else if (scopeNorm.includes("12")) scopeScore = 0.5;
-  else if (scopeNorm.includes("1") || scopeNorm.includes("2")) scopeScore = 0.5;
-
-  const targetTypeNorm = (primary?.targetType ?? "").toLowerCase();
-  let targetTypeScore: 1 | 0.5 | 0 = 0;
-  if (targetTypeNorm === "absolute") targetTypeScore = 1;
-  else if (targetTypeNorm === "intensity") targetTypeScore = 0.5;
-
-  const targetYear = primary?.targetYear ?? null;
-  let nearMidScore: 1 | 0.5 | 0 = 0;
-  if (targetYear !== null) {
-    const yearsOut = targetYear - currentYear;
-    if (yearsOut > 0 && yearsOut <= 10) nearMidScore = 1;
-    else if (netZero?.targetYear) nearMidScore = 0.5;
-  } else if (netZero?.targetYear) {
-    nearMidScore = 0.5;
-  }
-
-  const hasNetZero = Boolean(netZero?.targetYear);
-  let creditScore: 1 | 0.5 | 0 = 1;
-  if (hasNetZero) {
-    if (primary?.offsetUsage === false) creditScore = 1;
-    else if (primary?.offsetDependencyRatio !== null && primary?.offsetDependencyRatio !== undefined) {
-      creditScore = 0.5;
-    } else if (primary?.offsetUsage === true && !primary?.carbonRemovalPlan) {
-      creditScore = 0;
-    } else {
-      creditScore = 0;
-    }
-  }
-
-  let grossNetScore: 1 | 0.5 | 0 = 0;
-  if (!hasNetZero) {
-    grossNetScore = 1;
-  } else if (primary?.residualDefined === true) {
-    grossNetScore = 1;
-  } else if (primary?.residualDefined === false) {
-    grossNetScore = 0;
-  } else {
-    grossNetScore = 0.5;
-  }
-
-  return [
-    {
-      key: "base_year",
-      labelEn: "Base year",
-      labelKo: "기준연도",
-      score: primary?.baseYear ? 1 : 0,
-      note: primary?.baseYear ? String(primary.baseYear) : null,
-    },
-    {
-      key: "target_year",
-      labelEn: "Target year",
-      labelKo: "목표연도",
-      score: targetYear ? 1 : netZero?.targetYear ? 0.5 : 0,
-      note: targetYear ? String(targetYear) : netZero?.targetYear ? `Net Zero ${netZero.targetYear}` : null,
-    },
-    {
-      key: "reduction_rate",
-      labelEn: "Reduction rate",
-      labelKo: "감축률",
-      score: primary?.targetReductionPct !== null && primary?.targetReductionPct !== undefined ? 1 : 0,
-      note: primary?.targetReductionPct !== null && primary?.targetReductionPct !== undefined
-        ? `${primary.targetReductionPct.toFixed(0)}%`
-        : null,
-    },
-    {
-      key: "scope_coverage",
-      labelEn: "Scope coverage",
-      labelKo: "Scope 범위",
-      score: scopeScore,
-      note: primary?.scopeCode ? humanizeCode(primary.scopeCode) : null,
-    },
-    {
-      key: "target_type",
-      labelEn: "Target type",
-      labelKo: "목표유형",
-      score: targetTypeScore,
-      note: primary?.targetType ? humanizeCode(primary.targetType) : null,
-    },
-    {
-      key: "near_mid_term",
-      labelEn: "Near/mid-term",
-      labelKo: "단·중기 목표",
-      score: nearMidScore,
-      note: nearMidScore === 1 ? `${targetYear}` : nearMidScore === 0.5 ? "Long-term only" : null,
-    },
-    {
-      key: "gross_net_separation",
-      labelEn: "Gross/net separation",
-      labelKo: "총/순배출 구분",
-      score: grossNetScore,
-      note: grossNetScore === 1 && !hasNetZero ? "Not applicable" : null,
-    },
-    {
-      key: "credit_transparency",
-      labelEn: "Carbon credit transparency",
-      labelKo: "탄소크레딧 투명성",
-      score: creditScore,
-      note: creditScore === 1 && !hasNetZero ? "Not applicable" : null,
-    },
-  ];
-}
-
-export function scoreToBand(score: number | null | undefined, locale: SupportedLocale = "en") {
-  if (score === null || score === undefined || !Number.isFinite(score)) {
-    return locale === "ko" ? "미평가" : locale === "ja" ? "未評価" : "Not Scored";
-  }
-  return SCORE_BUCKETS[locale].find((bucket) => score >= bucket.min)?.label || SCORE_BUCKETS[locale].at(-1)?.label || "Not Scored";
+  if (company.overallScore !== null) return "scored";
+  if (company.scorePeriodId !== null || company.scoreFiscalYear !== null) return "pending";
+  return "not_scored";
 }
 
 function translateTargetTypeLabel(
@@ -594,53 +388,33 @@ export function buildCompanyInterpretation(
   company: Pick<CersCompanyProfile, "targetSummary" | "disclosure">,
   locale: SupportedLocale = "en",
 ) {
-  const band = scoreToBand(score, locale);
+  const scoreLabel = score === null || score === undefined ? null : score.toFixed(1);
+  const hasAssurance = company.disclosure.hasThirdPartyAssurance;
 
   if (locale === "ko") {
-    if ((score ?? 0) >= 80 && company.targetSummary.netZeroYear) {
-      return `${band}으로 평가되며 ${company.targetSummary.netZeroYear}년 넷제로 경로의 신뢰도가 높습니다.`;
+    if (scoreLabel && company.targetSummary.targetYear) {
+      return `CERs Index ${scoreLabel}점이며 ${company.targetSummary.targetYear}년 감축 목표${hasAssurance ? "와 제3자 검증 근거" : ""}가 공개되어 있습니다.`;
     }
-    if ((score ?? 0) >= 70 && company.targetSummary.targetYear) {
-      return `${company.targetSummary.targetYear}년 전환 목표가 비교적 분명하게 제시된 ${band} 프로필입니다.`;
-    }
-    if ((score ?? 0) >= 60 && company.disclosure.scope3DisclosedCategories > 0) {
-      return `${band} 수준이지만 공시 품질이 여전히 중요한 구간입니다.`;
-    }
-    if (company.targetSummary.targetYear) {
-      return "공개 목표는 있지만 실행 근거는 더 보강될 필요가 있는 초기 전환 프로필입니다.";
-    }
-    return "전환 실행과 장기 목표 신뢰도에 대한 공개 가시성이 제한적입니다.";
+    if (scoreLabel) return `CERs Index ${scoreLabel}점입니다. 총점과 4개 KPI 구성을 함께 확인해야 합니다.`;
+    if (company.targetSummary.targetYear) return `${company.targetSummary.targetYear}년 감축 목표는 공개되어 있으나 CERs Index 산정 결과는 아직 없습니다.`;
+    return "공개 자료는 추적 중이며 CERs Index 산정 결과는 아직 없습니다.";
   }
 
   if (locale === "ja") {
-    if ((score ?? 0) >= 80 && company.targetSummary.netZeroYear) {
-      return `${band}で、${company.targetSummary.netZeroYear}年のネットゼロ経路にも一定の信頼感があります。`;
+    if (scoreLabel && company.targetSummary.targetYear) {
+      return `CERs Index は ${scoreLabel} 点で、${company.targetSummary.targetYear}年の削減目標${hasAssurance ? "と第三者保証の根拠" : ""}が開示されています。`;
     }
-    if ((score ?? 0) >= 70 && company.targetSummary.targetYear) {
-      return `${company.targetSummary.targetYear}年に向けた移行目標が比較的明確な${band}プロファイルです。`;
-    }
-    if ((score ?? 0) >= 60 && company.disclosure.scope3DisclosedCategories > 0) {
-      return `${band}ですが、開示品質がなお重要な領域です。`;
-    }
-    if (company.targetSummary.targetYear) {
-      return "公開目標はあるものの、実行の裏付けはまだ不均一な初期移行プロファイルです。";
-    }
-    return "移行実行と長期目標の信頼性に関する公開可視性が限定的です。";
+    if (scoreLabel) return `CERs Index は ${scoreLabel} 点です。総合点と 4 つの KPI 構成を合わせて確認してください。`;
+    if (company.targetSummary.targetYear) return `${company.targetSummary.targetYear}年の削減目標は開示されていますが、CERs Index の算定結果はまだありません。`;
+    return "公開資料を追跡中で、CERs Index の算定結果はまだありません。";
   }
 
-  if ((score ?? 0) >= 80 && company.targetSummary.netZeroYear) {
-    return `${band} with a credible route to net zero by ${company.targetSummary.netZeroYear}.`;
+  if (scoreLabel && company.targetSummary.targetYear) {
+    return `CERs Index score of ${scoreLabel}, with a ${company.targetSummary.targetYear} reduction target${hasAssurance ? " and third-party assurance evidence" : ""} in the public record.`;
   }
-  if ((score ?? 0) >= 70 && company.targetSummary.targetYear) {
-    return `${band} backed by a visible transition target for ${company.targetSummary.targetYear}.`;
-  }
-  if ((score ?? 0) >= 60 && company.disclosure.scope3DisclosedCategories > 0) {
-    return `${band} with some evidence of progress, but disclosure quality still matters.`;
-  }
-  if (company.targetSummary.targetYear) {
-    return "Early transition profile with public targets that still need stronger delivery evidence.";
-  }
-  return "Limited visibility on transition execution and long-term target credibility.";
+  if (scoreLabel) return `CERs Index score of ${scoreLabel}. Read the total together with the four-KPI profile.`;
+  if (company.targetSummary.targetYear) return `A ${company.targetSummary.targetYear} reduction target is public, but no CERs Index result is available yet.`;
+  return "Public evidence is being tracked, but no CERs Index result is available yet.";
 }
 
 export function buildCompanySummary(
@@ -648,50 +422,20 @@ export function buildCompanySummary(
   locale: SupportedLocale = "en",
 ) {
   if (locale === "ko") {
-    if ((company.overallScore ?? 0) >= 80 && company.targetSummary.targetYear) {
-      return "명확한 감축 목표와 이를 뒷받침하는 공시가 함께 보이는 상위 프로필입니다.";
-    }
-    if ((company.overallScore ?? 0) >= 70 && company.targetSummary.netZeroYear) {
-      return "의미 있는 진전과 넷제로 경로가 함께 제시됩니다.";
-    }
-    if ((company.overallScore ?? 0) >= 60 && company.disclosure.scope3DisclosedCategories > 0) {
-      return "측정 가능한 진전이 보이며 가치사슬 공시도 일부 포함됩니다.";
-    }
-    if (company.targetSummary.targetYear) {
-      return "공개 목표는 있지만 실행 근거의 밀도는 아직 고르지 않습니다.";
-    }
-    return "동종사 대비 공개된 기후 데이터가 아직 제한적입니다.";
+    if (company.overallScore !== null) return "공개 근거를 바탕으로 종합점수와 4개 KPI가 산정된 기업입니다.";
+    if (company.targetSummary.targetYear) return "감축 목표와 공개 근거를 추적 중이며 점수 산정 결과는 아직 없습니다.";
+    return "공개 기후 자료를 추적 중인 기업입니다.";
   }
 
   if (locale === "ja") {
-    if ((company.overallScore ?? 0) >= 80 && company.targetSummary.targetYear) {
-      return "明確な削減目標と、それを支える開示がそろった高評価プロファイルです。";
-    }
-    if ((company.overallScore ?? 0) >= 70 && company.targetSummary.netZeroYear) {
-      return "着実な進捗とネットゼロへの道筋が示されています。";
-    }
-    if ((company.overallScore ?? 0) >= 60 && company.disclosure.scope3DisclosedCategories > 0) {
-      return "測定可能な進捗があり、バリューチェーン開示も一部確認できます。";
-    }
-    if (company.targetSummary.targetYear) {
-      return "公開目標はありますが、実行の裏付けはまだ均一ではありません。";
-    }
-    return "同業他社と比べて公開されている気候データはまだ限定的です。";
+    if (company.overallScore !== null) return "公開根拠に基づき、総合点と 4 つの KPI が算定された企業です。";
+    if (company.targetSummary.targetYear) return "削減目標と公開根拠を追跡中で、スコア結果はまだありません。";
+    return "公開されている気候資料を追跡中の企業です。";
   }
 
-  if ((company.overallScore ?? 0) >= 80 && company.targetSummary.targetYear) {
-    return "High-scoring profile with a clear reduction target and strong supporting disclosure.";
-  }
-  if ((company.overallScore ?? 0) >= 70 && company.targetSummary.netZeroYear) {
-    return "Shows solid progress and a stated path toward net zero.";
-  }
-  if ((company.overallScore ?? 0) >= 60 && company.disclosure.scope3DisclosedCategories > 0) {
-    return "Demonstrates measurable progress with partial value-chain disclosure.";
-  }
-  if (company.targetSummary.targetYear) {
-    return "Has a public target, but execution evidence is still uneven.";
-  }
-  return "Public climate data is still limited relative to peers.";
+  if (company.overallScore !== null) return "Overall and four-KPI scores are available from the public evidence set.";
+  if (company.targetSummary.targetYear) return "A reduction target and public evidence are tracked, but no score result is available yet.";
+  return "Public climate evidence is currently being tracked for this company.";
 }
 
 export function getFeaturedCompanies(data: CersDashboardData, limit = 3) {
@@ -804,15 +548,6 @@ function buildIndustrySummaryText(
   if (locale === "ko") return `${label} 섹터는 점수 보유율 ${coverageText}, 중앙값 ${medianScore.toFixed(1)}점을 기록하고 있습니다.`;
   if (locale === "ja") return `${label} セクターはスコア保有率 ${coverageText}、中央値 ${medianScore.toFixed(1)} を記録しています。`;
   return `${label} shows ${coverageText} score coverage with a median score of ${medianScore.toFixed(1)}.`;
-}
-
-function getPerformanceTag(averageScore: number | null, locale: SupportedLocale) {
-  if (averageScore === null) return locale === "ko" ? "데이터 부족" : locale === "ja" ? "データ不足" : "Insufficient Data";
-  if (averageScore >= 75) return locale === "ko" ? "상위 섹터" : locale === "ja" ? "高パフォーマンス" : "High Performer";
-  if (averageScore >= 68) {
-    return locale === "ko" ? "중간 수준 섹터" : locale === "ja" ? "中程度" : "Moderate Performer";
-  }
-  return locale === "ko" ? "전환 중 섹터" : locale === "ja" ? "移行中" : "Transitioning";
 }
 
 function getIndustryFocusPoints(
@@ -1075,8 +810,6 @@ export function getIndustrySummaries(data: CersDashboardData, locale: SupportedL
         .sort((a, b) => (b.rawScore || 0) - (a.rawScore || 0));
       const strongestCategory = rankedCategories[0]?.label ?? null;
       const weakestCategory = rankedCategories[rankedCategories.length - 1]?.label ?? null;
-      const performanceTag = getPerformanceTag(medianScore ?? averageScore, locale);
-
       const targetCompanies = companies.filter((company) => company.targetSummary.targetYear !== null);
       const netZeroCompanies = companies.filter((company) => company.targetSummary.netZeroYear !== null);
       const sbtiCompanies = companies.filter((company) => company.targetSummary.sbtiApproved === true);
@@ -1165,7 +898,6 @@ export function getIndustrySummaries(data: CersDashboardData, locale: SupportedL
           },
         },
         companyCount: companies.length,
-        performanceTag,
         companies: [...companies].sort(companyScoreSort),
         scoreDistribution: buildScoreDistribution(companies),
         focusPoints: getIndustryFocusPoints(industryCode, label, locale),

@@ -16,7 +16,7 @@ const ENGLISH_COPY = {
     companies: "Companies",
     compare: "Compare",
     industries: "Sectors",
-    about: "About the Score",
+    about: "Methodology",
     scoreLogic: "Score Logic",
   },
   alerts: {
@@ -42,6 +42,38 @@ const ENGLISH_COPY = {
     no: "No",
     companiesLabel: (count: number) => `${count} companies`,
   },
+  kpi: {
+    title: "Four KPI profile",
+    description:
+      "The total score is the equal-weighted mean of four distinct decision-useful dimensions.",
+    methodLink: "View all 12 variables and formulas",
+    items: [
+      {
+        code: "KPI 1",
+        title: "Realized decarbonization",
+        description: "Measured change in Scope 1·2 and Scope 3 emissions.",
+        variables: "V1-V2 · 2 variables",
+      },
+      {
+        code: "KPI 2",
+        title: "Target design & delivery",
+        description: "Target design completeness and on-track delivery.",
+        variables: "W1-W2 · 2 variables",
+      },
+      {
+        code: "KPI 3",
+        title: "Capital allocation",
+        description: "Investment, revenue, carbon pricing, and governance alignment.",
+        variables: "C1-C4 · 4 variables",
+      },
+      {
+        code: "KPI 4",
+        title: "Data credibility",
+        description: "Validation, assurance, completeness, and disclosure alignment.",
+        variables: "A1-A4 · 4 variables",
+      },
+    ],
+  },
   header: {
     searchPlaceholder: "Search companies...",
     languageLabel: "Language",
@@ -49,11 +81,38 @@ const ENGLISH_COPY = {
     darkMode: "Dark",
     lightMode: "Light",
   },
+  footer: {
+    description:
+      "A comparable, evidence-led view of corporate carbon reduction performance built from public disclosures.",
+    disclaimer:
+      "CERs Index is an analytical information service, not investment advice or an overall ESG rating.",
+  },
   home: {
     eyebrow: "Public Carbon Reduction Dashboard",
     title: "Understand corporate carbon reduction at a glance",
     description:
       "CERs Index helps non-experts see whether a company is actually reducing emissions, how credible its targets look, and how it compares with peers in the same sector.",
+    primaryCta: "Explore companies",
+    secondaryCta: "Review methodology",
+    proofPublic: "Public evidence only",
+    proofFramework: "12 variables · 4 KPIs",
+    proofComparable: "Comparable 0-100 index",
+    coverageEyebrow: "Coverage & confidence",
+    coverageTitle: "Know the evidence universe before reading the ranking",
+    statScored: "Companies scored",
+    statLatestYear: "Latest score year",
+    statMethodology: "Methodology",
+    kpiEyebrow: "Decision framework",
+    kpiTitle: "Four lenses on transition quality",
+    kpiDescription:
+      "Performance, targets, capital decisions, and data credibility remain separate so one strength cannot hide another weakness.",
+    evidenceEyebrow: "Public evidence signals",
+    evidenceTitle: "What companies have put on the public record",
+    evidenceDescription:
+      "Targets and net-zero statements are shown as disclosed facts. They do not replace measured performance or the full CERs Index.",
+    noScoredData:
+      "The company universe is live, but the current scoring run has not produced publishable index results yet.",
+    updatedAt: (date: string) => `Data refreshed ${date}`,
     snapshotEyebrow: "Snapshot",
     snapshotTitle: "Quick market view",
     snapshotDescription: "A compact view of the current disclosure universe used in this dashboard.",
@@ -78,7 +137,7 @@ const ENGLISH_COPY = {
     scoreMeaningEyebrow: "What the score means",
     scoreMeaningTitle: "A public view of climate transition reliability",
     scoreMeaningDescription:
-      "The score turns public climate evidence into a 1-100 view of transition reliability, combining emissions performance, target quality, governance, capital-allocation traceability, reporting boundaries, and assurance.",
+      "Twelve public-evidence variables form four equally weighted KPIs: realized decarbonization, target design and delivery, capital allocation, and data credibility.",
     learnMore: "Learn more about the score",
   },
   companies: {
@@ -86,7 +145,7 @@ const ENGLISH_COPY = {
     title: "Browse corporate carbon reduction profiles",
     description:
       "Search and compare companies using the latest CERs Index, reduction targets, and disclosure signals.",
-    scoreListCta: "CERs Index List 보기",
+    scoreListCta: "View full index table",
     scoreListTitle: "CERs Index List",
     scoreListDescription: "A score-sorted table of all companies currently available in the CERs dashboard.",
     scoreListCount: (count: number) => `${count} companies in score order`,
@@ -111,6 +170,7 @@ const ENGLISH_COPY = {
     below60: "Below 60",
     targetAnnounced: "Target announced",
     netZeroDeclared: "Net zero declared",
+    scoredOnly: "Scored companies only",
     sortBy: "Sort by",
     sortScore: "Score",
     sortName: "Name",
@@ -124,7 +184,7 @@ const ENGLISH_COPY = {
     eyebrow: "Compare",
     title: "Compare two to three companies side by side",
     description:
-      "See how overall score, reduction dimensions, and roadmap indicators line up across companies.",
+      "Compare the overall index, four KPI profile, emissions, targets, and assurance evidence across companies.",
     selectCompanies: "Select companies",
     selectCompany: "Select a company",
     scoreDimensions: "Score dimensions",
@@ -148,9 +208,13 @@ const ENGLISH_COPY = {
       "Use sector context to understand where a company stands relative to peers facing similar transition conditions.",
     searchPlaceholder: "Search sectors...",
     filterAll: "All sectors",
-    filterHigh: "High performers",
-    filterModerate: "Moderate performers",
-    filterTransitioning: "Transitioning",
+    filterScored: "Scored sectors",
+    filterRobust: "30+ companies",
+    filterLimited: "Limited sample",
+    medianScore: "Median score",
+    scoreCoverage: "Score coverage",
+    limitedSample: "Limited sample",
+    robustSample: "Robust sample",
     noResults: "No sectors match the current filters.",
   },
   industryDetail: {
@@ -165,7 +229,7 @@ const ENGLISH_COPY = {
     limitedSample: "Below 30 companies",
     categoryOverview: "Category profile",
     categoryOverviewDescription:
-      "Averages across the four public score dimensions show where this sector is comparatively strong or uneven.",
+      "The four KPI profile shows where this sector is comparatively strong or uneven.",
     strongestDimension: "Strongest dimension",
     weakestDimension: "Weakest dimension",
     transitionSignals: "Target and transition signals",
@@ -191,6 +255,17 @@ const ENGLISH_COPY = {
   },
   companyDetail: {
     cersScore: "CERs Index",
+    kpiProfile: "Four KPI profile",
+    kpiProfileDescription:
+      "These scores come from the same scoring run as the overall index. The frontend does not estimate missing values.",
+    methodologyBasis: "Methodology",
+    scoreBasisYear: "Score basis",
+    latestEvidence: "Latest evidence",
+    evidenceOverview: "Evidence overview",
+    evidenceOverviewDescription:
+      "Read the disclosed target, emissions, assurance, and source document together with the KPI profile.",
+    companyScoreLabel: "Company score",
+    sectorAverageLabel: "Sector average",
     roadmapTitle: "Carbon Reduction Roadmap",
     roadmapDescription:
       "Current values use the latest reported company data. Target and net zero milestones use public targets and scenario assumptions from the latest available disclosure.",
@@ -261,11 +336,11 @@ const ENGLISH_COPY = {
     total: "Total",
   },
   about: {
-    eyebrow: "CERs Index Methodology v1.4",
+    eyebrow: "CERs Index Methodology v1.5",
     title: "How the CERs Index is calculated",
     description:
-      "CERs Index evaluates corporate climate transition using public disclosure only. Sixteen variables are grouped into four KPIs: realized decarbonization, target ambition and delivery, capital allocation, and data credibility.",
-    logicCta: "View formulas and all 16 variables",
+      "CERs Index evaluates corporate climate transition using public disclosure only. Twelve variables are grouped into four KPIs: realized decarbonization, target design and delivery, capital allocation, and data credibility.",
+    logicCta: "View formulas and all 12 variables",
     formulaTitle: "Aggregation at a glance",
     formulaDescription:
       "Every variable is scored from 0 to 100. Variables are averaged equally within their KPI, then the four KPI scores are averaged equally. The result is already bounded from 0 to 100, so no separate display conversion is applied.",
@@ -284,7 +359,7 @@ const ENGLISH_COPY = {
     formulaDefinitionsTitle: "What the symbols mean",
     formulaDefinitions: [
       { key: "V_j,i", label: "Variable i in KPI j, scored from 0 to 100" },
-      { key: "n_j", label: "Number of applicable variables in KPI j; normally 3 / 4 / 4 / 5" },
+      { key: "n_j", label: "Number of applicable variables in KPI j; normally 2 / 2 / 4 / 4" },
       { key: "K_j", label: "KPI score, the equal-weighted mean of its applicable variables" },
       { key: "CERs", label: "Final 0-100 index, the equal-weighted mean of the four KPI scores" },
     ],
@@ -297,7 +372,7 @@ const ENGLISH_COPY = {
     meaningPoints: [
       "Uses public financial filings, annual and sustainability reports, CDP responses, governance reports, and assurance statements",
       "Measures four distinct dimensions: performance, targets, capital allocation, and data credibility",
-      "Takes benchmarks such as 4.2%, 2.5%, USD 100, 15 Scope 3 categories, and four disclosure pillars from external standards",
+      "Takes benchmarks such as 4.2%/yr, the 15 Scope 3 categories, four disclosure pillars, and the SBTi status ladder from external standards",
       "Treats non-disclosure as zero rather than filling gaps with estimated values",
       "Uses no industry-specific formula weights in the final score; both aggregation stages use equal weighting",
     ],
@@ -311,14 +386,14 @@ const ENGLISH_COPY = {
           "Use disclosed emissions, revenue, energy, targets, investment, governance, methodology, and assurance data. No private questionnaire response is required.",
       },
       {
-        title: "Score 16 variables",
+        title: "Score 12 variables",
         description:
           "Apply an external benchmark, a raw ratio, a standard-defined checklist, a verifiable fact, or an externally defined ordinal scale. Each variable ends on 0-100.",
       },
       {
         title: "Average within each KPI",
         description:
-          "V1-V3, W1-W4, C1-C4, and A1-A5 are averaged separately to produce the four KPI scores.",
+          "V1-V2, W1-W2, C1-C4, and A1-A4 are averaged separately to produce the four KPI scores.",
       },
       {
         title: "Average the four KPIs",
@@ -328,7 +403,7 @@ const ENGLISH_COPY = {
     ],
     dimensionsTitle: "The four score dimensions",
     dimensionsDescription:
-      "The 16 variables are organized by what they are intended to test. The detailed page gives every formula, interpretation rule, and external basis.",
+      "The 12 variables are organized by what they are intended to test. The detailed page gives every formula, interpretation rule, and external basis.",
     industryTitle: "Why both stages use equal weights",
     industryDescription:
       "There is no external consensus that one variable or one of the four dimensions deserves a larger fixed weight. A differential weight would therefore become an arbitrary score allocation. Sector percentiles may be shown as context, but they do not alter the formula.",
@@ -359,20 +434,19 @@ const ENGLISH_COPY = {
       {
         title: "KPI 1. Realized decarbonization",
         description:
-          "Tests whether emissions and the energy mix actually changed over the three-year measurement window.",
+          "Tests whether measured emissions actually fell over the three-year measurement window.",
         bullets: [
           "V1: Scope 1 and 2 emissions performance",
           "V2: Scope 3 emissions performance",
-          "V3: renewable electricity share",
         ],
       },
       {
-        title: "KPI 2. Target ambition and delivery",
+        title: "KPI 2. Target design and delivery",
         description:
-          "Tests whether the target is science-aligned, broad enough, on track, and independently validated.",
+          "Tests whether the target is completely defined and whether the company is on its declared reduction path.",
         bullets: [
-          "W1: ambition; W2: coverage",
-          "W3: on-track performance; W4: validation",
+          "W1: target design completeness",
+          "W2: on-track performance",
         ],
       },
       {
@@ -387,10 +461,10 @@ const ENGLISH_COPY = {
       {
         title: "KPI 4. Data credibility",
         description:
-          "Tests whether the figures behind KPI 1-3 are assured, complete, reproducible, comparable, and aligned with disclosure standards.",
+          "Tests whether the figures behind KPI 1-3 are validated, assured, complete, reproducible, and aligned with disclosure standards.",
         bullets: [
-          "A1-A2: assurance and inventory completeness",
-          "A3-A5: methodology, time series, and disclosure alignment",
+          "A1: third-party validation & assurance; A2: inventory completeness",
+          "A3: methodology transparency; A4: disclosure framework alignment",
         ],
       },
     ],
@@ -425,7 +499,7 @@ const KOREAN_COPY: Translation = {
     companies: "기업",
     compare: "비교",
     industries: "섹터",
-    about: "점수 소개",
+    about: "방법론",
     scoreLogic: "점수 로직",
   },
   alerts: {
@@ -451,6 +525,37 @@ const KOREAN_COPY: Translation = {
     no: "아니오",
     companiesLabel: (count: number) => `${count}개 기업`,
   },
+  kpi: {
+    title: "4개 KPI 프로필",
+    description: "종합점수는 의사결정에 필요한 서로 다른 4개 차원을 동일가중 평균한 값입니다.",
+    methodLink: "12개 변수와 전체 수식 보기",
+    items: [
+      {
+        code: "KPI 1",
+        title: "실질 탈탄소 성과",
+        description: "Scope 1·2와 Scope 3 배출량이 실제로 얼마나 줄었는지 봅니다.",
+        variables: "V1~V2 · 2개 변수",
+      },
+      {
+        code: "KPI 2",
+        title: "감축 목표 및 이행",
+        description: "목표 설계의 완전성과 이행 진척도를 봅니다.",
+        variables: "W1~W2 · 2개 변수",
+      },
+      {
+        code: "KPI 3",
+        title: "자본배분",
+        description: "투자, 매출, 탄소가격, 거버넌스의 정렬을 봅니다.",
+        variables: "C1~C4 · 4개 변수",
+      },
+      {
+        code: "KPI 4",
+        title: "데이터 신뢰성",
+        description: "검증·보증, 완전성, 투명성, 공시 정합성을 봅니다.",
+        variables: "A1~A4 · 4개 변수",
+      },
+    ],
+  },
   header: {
     searchPlaceholder: "기업 검색...",
     languageLabel: "언어",
@@ -458,11 +563,35 @@ const KOREAN_COPY: Translation = {
     darkMode: "다크",
     lightMode: "라이트",
   },
+  footer: {
+    description: "공개 공시를 바탕으로 기업 탄소감축 성과를 비교 가능하고 근거 중심으로 보여줍니다.",
+    disclaimer: "CERs Index는 분석 정보 서비스이며 투자 조언이나 ESG 종합등급이 아닙니다.",
+  },
   home: {
     eyebrow: "공개 탄소감축 대시보드",
     title: "기업의 탄소감축 수준을 한눈에 파악하세요",
     description:
       "CERs Index는 비전문가도 기업이 실제로 배출을 줄이고 있는지, 목표가 얼마나 신뢰할 만한지, 같은 섹터 내 경쟁사와 비교해 어떤 위치인지 빠르게 이해할 수 있도록 돕습니다.",
+    primaryCta: "기업 살펴보기",
+    secondaryCta: "방법론 검토하기",
+    proofPublic: "공개 근거만 사용",
+    proofFramework: "12개 변수 · 4개 KPI",
+    proofComparable: "비교 가능한 0~100 지수",
+    coverageEyebrow: "커버리지와 신뢰 범위",
+    coverageTitle: "순위를 읽기 전에 평가 유니버스를 확인하세요",
+    statScored: "점수 보유 기업",
+    statLatestYear: "최신 점수 연도",
+    statMethodology: "방법론",
+    kpiEyebrow: "의사결정 프레임",
+    kpiTitle: "기후전환 품질을 보는 4개의 렌즈",
+    kpiDescription:
+      "성과, 목표, 자본 의사결정, 데이터 신뢰성을 분리해 한 영역의 강점이 다른 영역의 약점을 가리지 않게 합니다.",
+    evidenceEyebrow: "공개 근거 신호",
+    evidenceTitle: "기업이 공개 기록에 남긴 내용",
+    evidenceDescription:
+      "감축 목표와 넷제로 선언은 공개된 사실로 보여줍니다. 선언 자체가 실측 성과나 CERs Index를 대신하지는 않습니다.",
+    noScoredData: "기업 유니버스는 공개되어 있지만 현재 scoring run의 게시 가능한 지수 결과는 아직 없습니다.",
+    updatedAt: (date: string) => `데이터 갱신 ${date}`,
     snapshotEyebrow: "스냅샷",
     snapshotTitle: "빠른 현황 보기",
     snapshotDescription: "이 대시보드가 현재 추적 중인 공개 공시 범위를 압축해 보여줍니다.",
@@ -487,7 +616,7 @@ const KOREAN_COPY: Translation = {
     scoreMeaningEyebrow: "점수 해석",
     scoreMeaningTitle: "기후전환 신뢰도를 보는 공개 지표",
     scoreMeaningDescription:
-      "이 점수는 공개된 기후 근거를 1~100 범위의 전환 신뢰도 지표로 바꿔 보여주며, 배출 성과, 목표 품질, 거버넌스, 자본배분 추적성, 보고경계, 검증 수준을 함께 반영합니다.",
+      "공개 근거 기반 12개 변수를 실질 탈탄소 성과, 감축 목표 및 이행, 자본배분, 데이터 신뢰성의 4개 KPI로 동일가중 집계합니다.",
     learnMore: "점수 더 알아보기",
   },
   companies: {
@@ -519,6 +648,7 @@ const KOREAN_COPY: Translation = {
     below60: "60 미만",
     targetAnnounced: "감축 목표 공표",
     netZeroDeclared: "넷제로 선언",
+    scoredOnly: "점수 보유 기업만",
     sortBy: "정렬",
     sortScore: "점수순",
     sortName: "이름순",
@@ -531,7 +661,7 @@ const KOREAN_COPY: Translation = {
   compare: {
     eyebrow: "비교",
     title: "기업 2~3개를 나란히 비교하세요",
-    description: "종합 점수, 감축 차원, 로드맵 지표를 기업별로 한 번에 비교할 수 있습니다.",
+    description: "종합지수, 4개 KPI, 배출량, 목표, 검증 근거를 기업별로 한 번에 비교할 수 있습니다.",
     selectCompanies: "기업 선택",
     selectCompany: "기업을 선택하세요",
     scoreDimensions: "점수 차원 비교",
@@ -554,9 +684,13 @@ const KOREAN_COPY: Translation = {
     description: "같은 전환 환경을 가진 동종 기업과 비교해 기업의 위치를 이해할 수 있습니다.",
     searchPlaceholder: "섹터 검색...",
     filterAll: "전체 섹터",
-    filterHigh: "상위 섹터",
-    filterModerate: "중간 수준 섹터",
-    filterTransitioning: "전환 중 섹터",
+    filterScored: "점수 보유 섹터",
+    filterRobust: "30개 이상 표본",
+    filterLimited: "제한 표본",
+    medianScore: "중앙값 점수",
+    scoreCoverage: "점수 커버리지",
+    limitedSample: "제한 표본",
+    robustSample: "충분한 표본",
     noResults: "현재 필터에 맞는 섹터가 없습니다.",
   },
   industryDetail: {
@@ -571,7 +705,7 @@ const KOREAN_COPY: Translation = {
     limitedSample: "30개 미만 표본",
     categoryOverview: "카테고리 프로필",
     categoryOverviewDescription:
-      "4개 공개 점수 차원의 평균을 통해 이 섹터가 어디에서 상대적으로 강하고 불균형한지 보여줍니다.",
+      "4개 KPI 프로필을 통해 이 섹터가 어디에서 상대적으로 강하고 불균형한지 보여줍니다.",
     strongestDimension: "상대 강점",
     weakestDimension: "보완 필요",
     transitionSignals: "목표 및 전환 신호",
@@ -597,6 +731,17 @@ const KOREAN_COPY: Translation = {
   },
   companyDetail: {
     cersScore: "CERs Index",
+    kpiProfile: "4개 KPI 프로필",
+    kpiProfileDescription:
+      "4개 점수는 종합지수와 동일한 scoring run에서 제공됩니다. 프론트엔드는 결측값을 추정하지 않습니다.",
+    methodologyBasis: "방법론",
+    scoreBasisYear: "점수 기준",
+    latestEvidence: "최신 근거",
+    evidenceOverview: "근거 개요",
+    evidenceOverviewDescription:
+      "공개된 목표, 배출량, 검증, 원문 문서를 KPI 프로필과 함께 확인하세요.",
+    companyScoreLabel: "기업 점수",
+    sectorAverageLabel: "섹터 평균",
     roadmapTitle: "탄소감축 로드맵",
     roadmapDescription:
       "현재 값은 최신 공시 기준 회사 데이터를 사용합니다. 목표와 넷제로 시점은 최신 공시에 공개된 목표와 가정에 기반합니다.",
@@ -667,11 +812,11 @@ const KOREAN_COPY: Translation = {
     total: "합계",
   },
   about: {
-    eyebrow: "CERs Index 평가방법론 v1.4",
+    eyebrow: "CERs Index 평가방법론 v1.5",
     title: "CERs Index는 어떻게 계산되나",
     description:
-      "CERs Index는 공개 자료만으로 기업의 기후전환을 평가합니다. 16개 변수를 실질 탈탄소 성과, 감축 목표와 이행, 자본배분, 데이터 신뢰성의 4개 KPI로 구성합니다.",
-    logicCta: "전체 수식과 16개 변수 보기",
+      "CERs Index는 공개 자료만으로 기업의 기후전환을 평가합니다. 12개 변수를 실질 탈탄소 성과, 감축 목표와 이행, 자본배분, 데이터 신뢰성의 4개 KPI로 구성합니다.",
+    logicCta: "전체 수식과 12개 변수 보기",
     formulaTitle: "집계 구조 한눈에 보기",
     formulaDescription:
       "모든 변수는 0~100점입니다. 먼저 각 KPI 안에서 변수를 동일가중 평균하고, 다시 4개 KPI를 동일가중 평균합니다. 결과가 이미 0~100 범위이므로 별도의 표시 점수 변환은 없습니다.",
@@ -690,7 +835,7 @@ const KOREAN_COPY: Translation = {
     formulaDefinitionsTitle: "기호 설명",
     formulaDefinitions: [
       { key: "V_j,i", label: "KPI j에 속한 i번째 변수, 0~100점" },
-      { key: "n_j", label: "KPI j에서 적용되는 변수 수, 기본 구성은 3 / 4 / 4 / 5" },
+      { key: "n_j", label: "KPI j에서 적용되는 변수 수, 기본 구성은 2 / 2 / 4 / 4" },
       { key: "K_j", label: "KPI 점수, 적용 변수의 동일가중 평균" },
       { key: "CERs", label: "4개 KPI 점수의 동일가중 평균인 최종 0~100 지수" },
     ],
@@ -703,7 +848,7 @@ const KOREAN_COPY: Translation = {
     meaningPoints: [
       "재무제표·사업보고서·연차보고서·지속가능경영보고서·CDP 공개응답·거버넌스 보고서·검증성명서를 사용합니다",
       "성과, 목표, 자본배분, 데이터 신뢰성이라는 서로 다른 4개 차원을 평가합니다",
-      "4.2%, 2.5%, USD 100, Scope 3 15개 카테고리, 공시 4대 축 등의 기준값은 외부 표준에서 인용합니다",
+      "연 4.2%, Scope 3 15개 카테고리, 공시 4대 축, SBTi 상태 분류 등의 기준값은 외부 표준에서 인용합니다",
       "결측값을 추정해 채우지 않고, 공시하지 않은 정보는 0점 처리합니다",
       "최종 산식에 산업별 가중치는 없으며 변수→KPI와 KPI→지수 모두 동일가중입니다",
     ],
@@ -717,14 +862,14 @@ const KOREAN_COPY: Translation = {
           "배출량, 매출, 에너지, 목표, 투자, 거버넌스, 산정 방법론, 검증 데이터를 공개 자료에서 확보합니다. 비공개 설문 응답은 요구하지 않습니다.",
       },
       {
-        title: "16개 변수를 채점합니다",
+        title: "12개 변수를 채점합니다",
         description:
           "외부 벤치마크, 자연 비율, 표준 정의 체크리스트, 검증 가능한 사실, 외부 서수 척도 중 하나를 적용해 각 변수를 0~100점으로 만듭니다.",
       },
       {
         title: "KPI별로 평균합니다",
         description:
-          "V1~V3, W1~W4, C1~C4, A1~A5를 각각 평균해 4개 KPI 점수를 산출합니다.",
+          "V1~V2, W1~W2, C1~C4, A1~A4를 각각 평균해 4개 KPI 점수를 산출합니다.",
       },
       {
         title: "4개 KPI를 평균합니다",
@@ -734,7 +879,7 @@ const KOREAN_COPY: Translation = {
     ],
     dimensionsTitle: "4개 평가 차원",
     dimensionsDescription:
-      "16개 변수는 검증하려는 대상에 따라 4개 KPI로 묶입니다. 상세 페이지에서 각 변수의 수식, 의미, 외부 근거를 모두 확인할 수 있습니다.",
+      "12개 변수는 검증하려는 대상에 따라 4개 KPI로 묶입니다. 상세 페이지에서 각 변수의 수식, 의미, 외부 근거를 모두 확인할 수 있습니다.",
     industryTitle: "왜 두 단계 모두 동일가중인가",
     industryDescription:
       "특정 변수나 KPI가 더 중요하다는 외부 합의가 없으므로 차등 가중치 자체가 임의 배점이 됩니다. 섹터 내 백분위는 해석 정보로 제공할 수 있지만 최종 산식은 바꾸지 않습니다.",
@@ -764,19 +909,18 @@ const KOREAN_COPY: Translation = {
     dimensions: [
       {
         title: "KPI 1. 실질 탈탄소 성과",
-        description: "3년 측정 창에서 배출량과 에너지 구조가 실제로 움직였는지를 평가합니다.",
+        description: "3년 측정 창에서 배출량이 실제로 감소했는지를 평가합니다.",
         bullets: [
           "V1: Scope 1·2 배출성과",
           "V2: Scope 3 배출성과",
-          "V3: 재생에너지 전환율",
         ],
       },
       {
         title: "KPI 2. 감축 목표 및 이행",
-        description: "목표가 과학적이고 충분히 넓으며 실제 경로 위에 있고 독립 검증을 받았는지 평가합니다.",
+        description: "목표가 완전하게 설계되었고 공표한 감축 경로 위에 있는지 평가합니다.",
         bullets: [
-          "W1: 야심도, W2: 커버리지",
-          "W3: 이행 진척도, W4: 제3자 검증",
+          "W1: 감축목표 설계 수준",
+          "W2: 목표 이행 진척도",
         ],
       },
       {
@@ -789,10 +933,10 @@ const KOREAN_COPY: Translation = {
       },
       {
         title: "KPI 4. 데이터 신뢰성",
-        description: "KPI 1~3의 수치가 검증되고 완전하며 재현·비교 가능하고 공시 기준과 정합하는지 평가합니다.",
+        description: "KPI 1~3의 수치가 검증·보증되고 완전하며 재현 가능하고 공시 기준과 정합하는지 평가합니다.",
         bullets: [
-          "A1~A2: 검증 수준과 인벤토리 완전성",
-          "A3~A5: 방법론, 시계열, 공시 체계",
+          "A1: 제3자 검증·보증, A2: 인벤토리 완전성",
+          "A3: 산정 방법론 투명성, A4: 공시 체계 정합성",
         ],
       },
     ],
@@ -825,7 +969,7 @@ const JAPANESE_COPY: Translation = {
     companies: "企業",
     compare: "比較",
     industries: "セクター",
-    about: "スコアについて",
+    about: "方法論",
     scoreLogic: "スコアロジック",
   },
   alerts: {
@@ -851,6 +995,37 @@ const JAPANESE_COPY: Translation = {
     no: "いいえ",
     companiesLabel: (count: number) => `${count}社`,
   },
+  kpi: {
+    title: "4つの KPI プロファイル",
+    description: "総合スコアは、意思決定に必要な異なる4次元を等加重平均した値です。",
+    methodLink: "12変数と全算式を見る",
+    items: [
+      {
+        code: "KPI 1",
+        title: "実質的な脱炭素成果",
+        description: "Scope 1・2 と Scope 3 の排出量が実際にどれだけ減ったかを見ます。",
+        variables: "V1〜V2 · 2変数",
+      },
+      {
+        code: "KPI 2",
+        title: "削減目標と履行",
+        description: "目標設計の完全性と履行進捗を見ます。",
+        variables: "W1〜W2 · 2変数",
+      },
+      {
+        code: "KPI 3",
+        title: "資本配分",
+        description: "投資、売上、炭素価格、ガバナンスの整合を見ます。",
+        variables: "C1〜C4 · 4変数",
+      },
+      {
+        code: "KPI 4",
+        title: "データ信頼性",
+        description: "検証・保証、完全性、透明性、開示整合性を見ます。",
+        variables: "A1〜A4 · 4変数",
+      },
+    ],
+  },
   header: {
     searchPlaceholder: "企業を検索...",
     languageLabel: "言語",
@@ -858,11 +1033,35 @@ const JAPANESE_COPY: Translation = {
     darkMode: "ダーク",
     lightMode: "ライト",
   },
+  footer: {
+    description: "公開開示に基づき、企業の炭素削減実績を比較可能かつ根拠中心で示します。",
+    disclaimer: "CERs Index は分析情報サービスであり、投資助言や ESG 総合格付けではありません。",
+  },
   home: {
     eyebrow: "公開カーボン削減ダッシュボード",
     title: "企業の炭素削減状況をひと目で把握",
     description:
       "CERs Index は、企業が実際に排出量を減らしているか、目標にどの程度信頼性があるか、同じセクターの同業他社と比べてどこに位置するかを、非専門家でもすばやく理解できるようにします。",
+    primaryCta: "企業を見る",
+    secondaryCta: "方法論を確認",
+    proofPublic: "公開根拠のみ使用",
+    proofFramework: "12変数 · 4 KPI",
+    proofComparable: "比較可能な0〜100指数",
+    coverageEyebrow: "カバレッジと信頼範囲",
+    coverageTitle: "ランキングの前に評価ユニバースを確認",
+    statScored: "スコア保有企業",
+    statLatestYear: "最新スコア年",
+    statMethodology: "方法論",
+    kpiEyebrow: "意思決定フレーム",
+    kpiTitle: "気候移行の質を見る4つの視点",
+    kpiDescription:
+      "実績、目標、資本判断、データ信頼性を分け、一つの強みが別の弱みを隠さない構造にしています。",
+    evidenceEyebrow: "公開根拠シグナル",
+    evidenceTitle: "企業が公開記録に示した内容",
+    evidenceDescription:
+      "削減目標とネットゼロ表明は公開事実として示します。表明だけで実測実績や CERs Index を代替するものではありません。",
+    noScoredData: "企業ユニバースは公開されていますが、現在の scoring run には公開可能な指数結果がまだありません。",
+    updatedAt: (date: string) => `データ更新 ${date}`,
     snapshotEyebrow: "スナップショット",
     snapshotTitle: "クイックビュー",
     snapshotDescription: "このダッシュボードが現在カバーしている公開開示の範囲を簡潔に示します。",
@@ -887,7 +1086,7 @@ const JAPANESE_COPY: Translation = {
     scoreMeaningEyebrow: "スコアの見方",
     scoreMeaningTitle: "気候移行信頼性を見る公開指標",
     scoreMeaningDescription:
-      "このスコアは公開された気候根拠を 1 から 100 の移行信頼性指標に変換し、排出実績、目標品質、ガバナンス、資本配分の追跡可能性、報告境界、保証水準を合わせて示します。",
+      "公開根拠に基づく12変数を、実質的な脱炭素成果、削減目標と履行、資本配分、データ信頼性の4つの KPI に等加重で集約します。",
     learnMore: "スコアの詳細を見る",
   },
   companies: {
@@ -919,6 +1118,7 @@ const JAPANESE_COPY: Translation = {
     below60: "60未満",
     targetAnnounced: "削減目標を公表",
     netZeroDeclared: "ネットゼロを表明",
+    scoredOnly: "スコア保有企業のみ",
     sortBy: "並び順",
     sortScore: "スコア順",
     sortName: "名称順",
@@ -931,7 +1131,7 @@ const JAPANESE_COPY: Translation = {
   compare: {
     eyebrow: "比較",
     title: "2〜3社を並べて比較",
-    description: "総合スコア、削減軸、ロードマップ指標を企業ごとに並べて確認できます。",
+    description: "総合指数、4つの KPI、排出量、目標、保証根拠を企業ごとに比較できます。",
     selectCompanies: "企業を選択",
     selectCompany: "企業を選択してください",
     scoreDimensions: "スコア軸比較",
@@ -954,9 +1154,13 @@ const JAPANESE_COPY: Translation = {
     description: "似た移行条件にある同業他社との比較を通じて、企業の位置づけを理解できます。",
     searchPlaceholder: "セクターを検索...",
     filterAll: "すべてのセクター",
-    filterHigh: "高パフォーマンス",
-    filterModerate: "中程度",
-    filterTransitioning: "移行中",
+    filterScored: "スコア保有セクター",
+    filterRobust: "30社以上",
+    filterLimited: "限定サンプル",
+    medianScore: "中央値スコア",
+    scoreCoverage: "スコアカバレッジ",
+    limitedSample: "限定サンプル",
+    robustSample: "十分なサンプル",
     noResults: "現在の条件に一致するセクターはありません。",
   },
   industryDetail: {
@@ -971,7 +1175,7 @@ const JAPANESE_COPY: Translation = {
     limitedSample: "30社未満サンプル",
     categoryOverview: "カテゴリープロファイル",
     categoryOverviewDescription:
-      "4つの公開スコア次元の平均から、このセクターの相対的な強みとばらつきを見ます。",
+      "4つの KPI プロファイルから、このセクターの相対的な強みとばらつきを見ます。",
     strongestDimension: "相対的な強み",
     weakestDimension: "補強余地",
     transitionSignals: "目標と移行シグナル",
@@ -997,6 +1201,17 @@ const JAPANESE_COPY: Translation = {
   },
   companyDetail: {
     cersScore: "CERs Index",
+    kpiProfile: "4つの KPI プロファイル",
+    kpiProfileDescription:
+      "4つのスコアは総合指数と同じ scoring run から提供されます。フロントエンドは欠損値を推計しません。",
+    methodologyBasis: "方法論",
+    scoreBasisYear: "スコア基準",
+    latestEvidence: "最新根拠",
+    evidenceOverview: "根拠概要",
+    evidenceOverviewDescription:
+      "公開目標、排出量、保証、原文資料を KPI プロファイルと合わせて確認してください。",
+    companyScoreLabel: "企業スコア",
+    sectorAverageLabel: "セクター平均",
     roadmapTitle: "炭素削減ロードマップ",
     roadmapDescription:
       "現在値は最新の開示に基づく会社データを使用しています。目標年とネットゼロ時点は、最新開示の公開目標と前提に基づいています。",
@@ -1067,11 +1282,11 @@ const JAPANESE_COPY: Translation = {
     total: "合計",
   },
   about: {
-    eyebrow: "CERs Index 評価方法論 v1.4",
+    eyebrow: "CERs Index 評価方法論 v1.5",
     title: "CERs Index はどう計算されるか",
     description:
-      "CERs Index は公開資料のみで企業の気候移行を評価します。16 の変数を、実質的な脱炭素成果、削減目標と履行、資本配分、データ信頼性の 4 つの KPI にまとめます。",
-    logicCta: "全算式と 16 変数を見る",
+      "CERs Index は公開資料のみで企業の気候移行を評価します。12 の変数を、実質的な脱炭素成果、削減目標と履行、資本配分、データ信頼性の 4 つの KPI にまとめます。",
+    logicCta: "全算式と 12 変数を見る",
     formulaTitle: "集計構造の概要",
     formulaDescription:
       "すべての変数は 0〜100 点です。まず各 KPI 内の変数を等加重平均し、次に 4 つの KPI を等加重平均します。結果はすでに 0〜100 の範囲にあるため、表示用の別変換は行いません。",
@@ -1090,7 +1305,7 @@ const JAPANESE_COPY: Translation = {
     formulaDefinitionsTitle: "記号の意味",
     formulaDefinitions: [
       { key: "V_j,i", label: "KPI j に属する i 番目の変数、0〜100 点" },
-      { key: "n_j", label: "KPI j で適用される変数数、通常は 3 / 4 / 4 / 5" },
+      { key: "n_j", label: "KPI j で適用される変数数、通常は 2 / 2 / 4 / 4" },
       { key: "K_j", label: "適用変数の等加重平均である KPI スコア" },
       { key: "CERs", label: "4 つの KPI スコアの等加重平均である最終 0〜100 指数" },
     ],
@@ -1103,7 +1318,7 @@ const JAPANESE_COPY: Translation = {
     meaningPoints: [
       "財務諸表、法定開示、年次・サステナビリティ報告書、CDP 公開回答、ガバナンス報告、保証声明を使用します",
       "成果、目標、資本配分、データ信頼性という異なる 4 次元を評価します",
-      "4.2%、2.5%、USD 100、Scope 3 の 15 カテゴリ、開示の 4 本柱などの基準値は外部標準から引用します",
+      "年 4.2%、Scope 3 の 15 カテゴリ、開示の 4 本柱、SBTi ステータス分類などの基準値は外部標準から引用します",
       "欠損値を推計で補完せず、開示されていない情報は 0 点とします",
       "最終算式に業種別重みはなく、変数→KPI と KPI→指数の両段階で等加重です",
     ],
@@ -1117,14 +1332,14 @@ const JAPANESE_COPY: Translation = {
           "排出量、売上、エネルギー、目標、投資、ガバナンス、算定方法論、保証データを公開資料から取得します。非公開アンケートは必要としません。",
       },
       {
-        title: "16 変数を採点する",
+        title: "12 変数を採点する",
         description:
           "外部ベンチマーク、自然比率、標準定義チェックリスト、検証可能な事実、外部の順序尺度のいずれかを使い、各変数を 0〜100 点にします。",
       },
       {
         title: "KPI ごとに平均する",
         description:
-          "V1〜V3、W1〜W4、C1〜C4、A1〜A5 をそれぞれ平均し、4 つの KPI スコアを算出します。",
+          "V1〜V2、W1〜W2、C1〜C4、A1〜A4 をそれぞれ平均し、4 つの KPI スコアを算出します。",
       },
       {
         title: "4 つの KPI を平均する",
@@ -1134,7 +1349,7 @@ const JAPANESE_COPY: Translation = {
     ],
     dimensionsTitle: "4 つの評価次元",
     dimensionsDescription:
-      "16 の変数は検証対象に応じて 4 つの KPI に整理されます。詳細ページでは各変数の算式、意味、外部根拠を確認できます。",
+      "12 の変数は検証対象に応じて 4 つの KPI に整理されます。詳細ページでは各変数の算式、意味、外部根拠を確認できます。",
     industryTitle: "なぜ両段階とも等加重なのか",
     industryDescription:
       "特定の変数や KPI がより重要だという外部合意がないため、差等加重そのものが恣意的配点になります。セクター内パーセンタイルは解釈情報として示せますが、最終算式は変更しません。",
@@ -1164,19 +1379,18 @@ const JAPANESE_COPY: Translation = {
     dimensions: [
       {
         title: "KPI 1. 実質的な脱炭素成果",
-        description: "3 年の測定期間で排出量とエネルギー構造が実際に動いたかを評価します。",
+        description: "3 年の測定期間で排出量が実際に減少したかを評価します。",
         bullets: [
           "V1: Scope 1・2 排出実績",
           "V2: Scope 3 排出実績",
-          "V3: 再生可能エネルギー転換率",
         ],
       },
       {
         title: "KPI 2. 削減目標と履行",
-        description: "目標が科学的で十分に広く、実際の経路上にあり、独立検証を受けているかを評価します。",
+        description: "目標が完全に設計され、公表した削減経路の上にあるかを評価します。",
         bullets: [
-          "W1: 野心度、W2: カバレッジ",
-          "W3: 履行進捗、W4: 第三者検証",
+          "W1: 削減目標の設計水準",
+          "W2: 目標履行進捗度",
         ],
       },
       {
@@ -1189,10 +1403,10 @@ const JAPANESE_COPY: Translation = {
       },
       {
         title: "KPI 4. データ信頼性",
-        description: "KPI 1〜3 の数値が保証され、完全で、再現・比較可能であり、開示基準と整合しているかを評価します。",
+        description: "KPI 1〜3 の数値が検証・保証され、完全で、再現可能であり、開示基準と整合しているかを評価します。",
         bullets: [
-          "A1〜A2: 保証水準とインベントリ完全性",
-          "A3〜A5: 方法論、時系列、開示体系",
+          "A1: 第三者検証・保証、A2: インベントリ完全性",
+          "A3: 算定方法論の透明性、A4: 開示体系の整合性",
         ],
       },
     ],

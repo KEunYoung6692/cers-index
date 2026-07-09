@@ -23,7 +23,11 @@ export function IndustriesPageClient({ industries, locale = "en" }: IndustriesPa
       industry.label.toLowerCase().includes(deferredQuery.trim().toLowerCase()) ||
       industry.summary.toLowerCase().includes(deferredQuery.trim().toLowerCase());
 
-    const matchesTag = tag === "all" || industry.performanceTag.toLowerCase() === tag;
+    const matchesTag =
+      tag === "all" ||
+      (tag === "scored" && industry.scoredCompanyCount > 0) ||
+      (tag === "robust" && industry.sampleBucket === "robust") ||
+      (tag === "limited" && industry.sampleBucket === "limited");
     return matchesQuery && matchesTag;
   });
 
@@ -51,9 +55,9 @@ export function IndustriesPageClient({ industries, locale = "en" }: IndustriesPa
         <div className="mt-4 flex flex-wrap gap-2">
           {[
             { value: "all", label: t.industries.filterAll },
-            { value: locale === "ko" ? "상위 섹터" : locale === "ja" ? "高パフォーマンス" : "high performer", label: t.industries.filterHigh },
-            { value: locale === "ko" ? "중간 수준 섹터" : locale === "ja" ? "中程度" : "moderate performer", label: t.industries.filterModerate },
-            { value: locale === "ko" ? "전환 중 섹터" : locale === "ja" ? "移行中" : "transitioning", label: t.industries.filterTransitioning },
+            { value: "scored", label: t.industries.filterScored },
+            { value: "robust", label: t.industries.filterRobust },
+            { value: "limited", label: t.industries.filterLimited },
           ].map((option) => (
             <button
               key={option.value}

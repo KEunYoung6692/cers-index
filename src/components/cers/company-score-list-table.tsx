@@ -170,12 +170,12 @@ export function CompanyScoreListTable({ companies, categories, locale = "en" }: 
                     <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                       {t.companies.scoreListColumns.company}
                     </th>
-                    {sortedCategories.map((category) => (
+                    {sortedCategories.map((category, index) => (
                       <th
                         key={category.code}
                         className="px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400"
                       >
-                        {category.label}
+                        KPI{index + 1}
                       </th>
                     ))}
                     <th className="px-4 py-4 text-right text-xs font-semibold tracking-[0.18em] text-slate-500 dark:text-slate-400">

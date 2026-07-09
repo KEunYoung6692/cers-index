@@ -15,6 +15,8 @@ type HomeScoreLeaderboardProps = {
   companies: CersCompanyProfile[];
   categories: CersCategoryMeta[];
   locale?: SupportedLocale;
+  methodologyVersion?: string | null;
+  scoreYear?: number | null;
 };
 
 function chunkCompanies(companies: CersCompanyProfile[], size: number) {
@@ -37,7 +39,13 @@ function getRankBadgeClass(rank: number) {
   return "border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300";
 }
 
-export function HomeScoreLeaderboard({ companies, categories, locale = "en" }: HomeScoreLeaderboardProps) {
+export function HomeScoreLeaderboard({
+  companies,
+  categories,
+  locale = "en",
+  methodologyVersion,
+  scoreYear,
+}: HomeScoreLeaderboardProps) {
   const t = getTranslations(locale);
   const [pageIndex, setPageIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -128,7 +136,17 @@ export function HomeScoreLeaderboard({ companies, categories, locale = "en" }: H
         <h1 className="mt-4 max-w-2xl text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 md:text-3xl">
           {t.companies.scoreListTitle}
         </h1>
-        <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">{t.companies.noResults}</p>
+        <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">{t.home.noScoredData}</p>
+        <div className="mt-5 flex flex-wrap gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 dark:border-slate-700 dark:bg-slate-900">
+            {methodologyVersion || "v1.5"}
+          </span>
+          {scoreYear !== null && scoreYear !== undefined && (
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 dark:border-slate-700 dark:bg-slate-900">
+              {t.common.fiscalYearLabel(scoreYear)}
+            </span>
+          )}
+        </div>
       </div>
     );
   }
@@ -152,6 +170,16 @@ export function HomeScoreLeaderboard({ companies, categories, locale = "en" }: H
             {t.companies.scoreListTitle}
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">{t.companies.scoreListDescription}</p>
+          <div className="mt-4 flex flex-wrap gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 dark:border-slate-700 dark:bg-slate-900">
+              {methodologyVersion || "v1.5"}
+            </span>
+            {scoreYear !== null && scoreYear !== undefined && (
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 dark:border-slate-700 dark:bg-slate-900">
+                {t.common.fiscalYearLabel(scoreYear)}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-col items-start gap-3 md:items-end">
@@ -185,12 +213,12 @@ export function HomeScoreLeaderboard({ companies, categories, locale = "en" }: H
                   <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                     {t.companies.scoreListColumns.company}
                   </th>
-                  {sortedCategories.map((category) => (
+                  {sortedCategories.map((category, index) => (
                     <th
                       key={category.code}
                       className="px-3 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400"
                     >
-                      {category.label}
+                      KPI{index + 1}
                     </th>
                   ))}
                   <th className="px-4 py-3 text-right text-[11px] font-semibold tracking-[0.18em] text-slate-500 dark:text-slate-400">

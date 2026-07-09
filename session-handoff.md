@@ -1,10 +1,79 @@
 # Session Handoff
 
+## Current State — 2026-07-09
+
+### Home UI
+
+- 홈 최상단 소개·방법론 위젯은 JSX 주석 처리되어 렌더링되지 않음
+- 홈과 `/companies/score-list`의 CERs Index List 헤더는 `KPI1`~`KPI4`로 표시
+- 카테고리 데이터 및 방법론/About 화면의 정식 명칭은 변경하지 않음
+
+### Verification
+
+- `npm run check` 통과
+- dev 홈 HTML에서 숨긴 소개 문구 미노출 확인
+- DB 점수 0건으로 KPI 표 자체는 런타임 미노출 상태
+
+## Current State — 2026-07-08
+
+### Runtime Hydration
+
+- `/` 홈에서 발생하던 React recoverable hydration warning 대응 완료
+- 원인으로 보이는 구조: `AppShell` 내부 첫 자식인 `SiteHeader` 전체가
+  `useSearchParams()` 때문에 Suspense fallback으로 서버 렌더됨
+- 수정:
+  - `src/components/cers/app-shell.tsx`: 헤더 전체 Suspense fallback 제거
+  - `src/components/cers/site-header.tsx`: `useSearchParams()` 제거, mount 후
+    `window.location.search`를 읽어 query string/search input 상태 동기화
+- 검증:
+  - `npm run check` 통과
+  - dev 서버 `127.0.0.1:3001`에서 `/`와 `/ko` HTML 확인
+  - 두 응답 모두 `AppShell` root `<div>` 다음 실제 `<header>`가 바로 렌더됨
+
+### Product State
+
+- F01 홈 검증은 계속 유일한 `active` 항목
+- 점수 적재는 아직 0건이며 F05/F09는 batch F05 결과 전까지 blocked 유지
+- 현재 환경에 Playwright/브라우저 런타임이 없어 브라우저 콘솔 자동 검증은 미수행
+
+### Next Work
+
+- 브라우저에서 `/` 또는 `/ko`를 열어 hydration warning이 사라졌는지 최종 확인
+- 이후 F01 완료 조건 전체를 실제 DB 화면 흐름으로 검증하고 evidence/state 갱신
+
+## Current State — 2026-06-29
+
+### Methodology
+
+- `docs/LOGIC/CERs Index for Company_ver2.md`를 단일 기준으로 코드 전반 재대조 완료
+- score-logic-v3.tsx의 12개 변수 산식은 문서와 정확히 일치 (수정 불필요 확인)
+- 남아 있던 v1.4 잔재 제거: KPI2 영어 라벨 "ambition" → "design & delivery"
+  (i18n en 4곳 + public.ts·fallback-data.ts 카테고리 라벨), fallback methodologyVersion
+  "CERs v0.1" → "CERs v1.5", dead code score-logic.tsx(v1.4 16변수) 삭제
+- feature_list F07/F08 설명을 v1.5/12변수로 동기화, 관련 테스트 단언 갱신
+- `npm run check:quick` 통과, src 전수 스캔 잔재 0건
+
+### Next Work
+
+- 소비 화면(홈/기업/비교/섹터)의 12개 변수 개별 점수 표시는 batch 변수별 점수 계약
+  확정 후 Phase 2로 구현 (현재 4 KPI 카테고리 수준 렌더)
+- F05/F09는 여전히 batch F05 점수 적재 전까지 blocked
+
+## Current State — 2026-06-24
+
+### Methodology
+
+- About와 상세 로직 화면은 CERs Index ver2(v1.5) 기준으로 전환됨
+- 4개 KPI와 12개 변수(n1=2, n2=2, n3=4, n4=4), 두 단계 동일가중 평균
+- 변수 구조: KPI1 V1·V2 / KPI2 W1(설계)·W2(이행) / KPI3 C1~C4 / KPI4 A1~A4
+- ko/en/ja 콘텐츠와 12개 변수 렌더링 테스트 갱신, `npm run check:quick` 통과
+- dead code `score-logic.tsx`(v1.4 16변수)는 미import 상태로 남아 있음(제거 후보)
+
 ## Current State — 2026-06-11
 
 ### Methodology
 
-- About와 상세 로직 화면은 CERs Index v1.4 기준으로 전환됨
+- About와 상세 로직 화면은 CERs Index v1.4 기준으로 전환됨(과거 기록)
 - 4개 KPI와 16개 변수, KPI 내부 및 KPI 간 동일가중 평균을 사용
 - 한국어, 영어, 일본어 콘텐츠와 렌더링 테스트가 추가됨
 - 화면 개편 기획서는 `docs/screen/README.md`에 있음
