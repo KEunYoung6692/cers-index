@@ -22,9 +22,6 @@ export function SiteFooter({ locale = "en" }: { locale?: SupportedLocale }) {
             <Link className="text-sm text-slate-600 hover:text-teal-700 dark:text-slate-300 dark:hover:text-teal-300" href={localizedPath(locale, "/companies")}>
               {t.nav.companies}
             </Link>
-            <Link className="text-sm text-slate-600 hover:text-teal-700 dark:text-slate-300 dark:hover:text-teal-300" href={localizedPath(locale, "/compare")}>
-              {t.nav.compare}
-            </Link>
             <Link className="text-sm text-slate-600 hover:text-teal-700 dark:text-slate-300 dark:hover:text-teal-300" href={localizedPath(locale, "/industries")}>
               {t.nav.industries}
             </Link>

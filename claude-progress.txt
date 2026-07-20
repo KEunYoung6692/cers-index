@@ -1,5 +1,52 @@
 # Claude Progress — cers-index
 
+## 2026-07-20 — 최신 batch 스키마 compatibility views 반영
+
+### 완료 작업
+- `docs/views.sql`을 최신 `CERsIndex-batch` 계약에 맞게 갱신하고 실 DB에 적용
+- 공개 정제값을 `is_cur AND is_found AND data_state = 'reported'` 및
+  `org_unit_id IS NULL`인 회사 단위 값으로 제한
+- `boundary_type` 공개 필터를 제거해 승인된 `mixed`·`unknown` 일본 값 누락 방지
+- Scope 2를 MB > 일반 > LB 우선순위로 회사·연도당 한 값으로 결정
+- 목표를 최신 변수명과 `record_key` 기준으로 재구성하고 연도는 `val_year`에서 조회
+- `co_scope3`, `doc_assur_stmt` 뷰를 추가해 Scope 3 카테고리와 검증 수준을 노출
+- 기존 `method_ver` 컬럼 타입 계약(`varchar(120)`, `date`)을 명시적으로 보존
+
+### 실 DB 검수
+- 트랜잭션 롤백 검증 후 동일 SQL을 원자적으로 적용
+- `co_metric` 39행, `co_target` 79행, `co_scope3` 30행,
+  `doc_assur_stmt` 13행
+- 일본 기업 11개, 일본 지표 20행, 일본 목표 50행 노출
+- 지표 회사·연도·코드 중복 0건, 목표 ID 중복 0건, 미승인/조직 단위 지표 원본 0건
+
+### 웹 검증
+- Node.js 20.19.0에서 `npm run check` 통과
+  - harness, lint, typecheck, Vitest 4 files/14 tests, production build
+- production 서버 `/ja/companies/23922`와 보고서 API HTTP 200
+- 히타치 일본어·영문 회사명 렌더링 및 DB 오류 없음 확인
+
+## 2026-07-20 — 화면 이동 성능 1차 개선
+
+### 완료 작업
+- 전체 대시보드 DB 조회·조립 결과를 locale별 5분 서버 메모리 캐시로 공유
+  - 같은 서버 인스턴스에서 메뉴 이동 시 반복 DB 쿼리 제거
+  - 동시에 들어온 동일 locale 요청은 같은 Promise를 공유
+- 기업 목록에 전체 기업 상세 객체 대신 목록 전용 경량 데이터만 전달
+- 기업 검색·필터 결과를 24개 단위로 렌더링하는 페이지네이션 추가
+- `deriveCalculationStatus`와 카드 타입을 목록용 최소 계약에도 사용할 수 있게 축소
+
+### 검증
+- Node.js 20.19.0, `npm run check` 통과
+- 실제 DB dev 런타임 `/ko` → `/ko/companies` → `/ko/industries` 확인
+- warm 응답: 홈 0.25초, 기업 0.17초, 업종 0.23초
+- 기업 목록 응답 크기: 약 16.6MB → 3.7MB (약 77% 감소)
+- Next 데이터 캐시의 2MB 제한을 확인해 대용량 객체는 프로세스 메모리 TTL 캐시로 전환
+
+### 잔여/주의
+- 서버 인스턴스 재시작 또는 5분 TTL 만료 후 첫 요청은 실제 DB를 다시 조회함
+- 홈·업종·비교 응답은 아직 약 6MB로 커서 화면별 경량 데이터 계약 분리가 후속 최적화 대상
+- F01은 실제 브라우저 전체 흐름 검증이 남아 active 유지
+
 ## 2026-07-09 — 홈 상단 소개 숨김 및 KPI 표 헤더 단순화
 
 ### 완료 작업

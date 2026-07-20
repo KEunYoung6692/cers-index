@@ -1,7 +1,6 @@
 "use client";
 
-import { useDeferredValue, useState } from "react";
-import { Search } from "lucide-react";
+import { useState } from "react";
 import { IndustryCard } from "./industry-card";
 import { getTranslations, type SupportedLocale } from "@/lib/cers/i18n";
 import type { CersIndustrySummary } from "@/lib/cers/types";
@@ -13,22 +12,18 @@ type IndustriesPageClientProps = {
 
 export function IndustriesPageClient({ industries, locale = "en" }: IndustriesPageClientProps) {
   const t = getTranslations(locale);
-  const [query, setQuery] = useState("");
+  const [selectedIndustry, setSelectedIndustry] = useState("all");
   const [tag, setTag] = useState("all");
-  const deferredQuery = useDeferredValue(query);
 
   const filtered = industries.filter((industry) => {
-    const matchesQuery =
-      deferredQuery.trim() === "" ||
-      industry.label.toLowerCase().includes(deferredQuery.trim().toLowerCase()) ||
-      industry.summary.toLowerCase().includes(deferredQuery.trim().toLowerCase());
+    const matchesIndustry = selectedIndustry === "all" || industry.industryCode === selectedIndustry;
 
     const matchesTag =
       tag === "all" ||
       (tag === "scored" && industry.scoredCompanyCount > 0) ||
       (tag === "robust" && industry.sampleBucket === "robust") ||
       (tag === "limited" && industry.sampleBucket === "limited");
-    return matchesQuery && matchesTag;
+    return matchesIndustry && matchesTag;
   });
 
   return (
@@ -42,16 +37,21 @@ export function IndustriesPageClient({ industries, locale = "en" }: IndustriesPa
       </div>
 
       <div className="mb-6 rounded-[32px] border border-slate-200 bg-white p-6 shadow-card dark:border-slate-800 dark:bg-slate-950/80">
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-          <input
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={t.industries.searchPlaceholder}
-            className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-500"
-          />
-        </div>
+        <label className="block">
+          <span className="sr-only">{t.industries.selectSector}</span>
+          <select
+            value={selectedIndustry}
+            onChange={(event) => setSelectedIndustry(event.target.value)}
+            className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-500"
+          >
+            <option value="all">{t.industries.filterAll}</option>
+            {industries.map((industry) => (
+              <option key={industry.industryCode} value={industry.industryCode}>
+                {industry.label}
+              </option>
+            ))}
+          </select>
+        </label>
         <div className="mt-4 flex flex-wrap gap-2">
           {[
             { value: "all", label: t.industries.filterAll },

@@ -30,7 +30,6 @@ export function SiteHeader({ locale = "en" }: SiteHeaderProps) {
   const navItems = [
     { href: "/", label: t.nav.home },
     { href: "/companies", label: t.nav.companies },
-    { href: "/compare", label: t.nav.compare },
     { href: "/industries", label: t.nav.industries },
     { href: "/about", label: t.nav.about },
   ];

@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
+import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -19,9 +20,13 @@ type MultiSelectDropdownProps = {
   triggerClassName?: string;
   contentClassName?: string;
   align?: "start" | "center" | "end";
+  searchPlaceholder?: string;
+  applyLabel?: string;
+  resetLabel?: string;
+  multipleSelectionLabel?: (count: number) => string;
 };
 
-function getSelectionLabel(allLabel: string, options: MultiSelectOption[], selectedValues: string[]) {
+function getSelectionLabel(allLabel: string, options: MultiSelectOption[], selectedValues: string[], multipleSelectionLabel?: (count: number) => string) {
   if (selectedValues.length === 0) {
     return allLabel;
   }
@@ -38,7 +43,7 @@ function getSelectionLabel(allLabel: string, options: MultiSelectOption[], selec
     return selectedOptions[0].label;
   }
 
-  return `${selectedOptions[0].label} +${selectedOptions.length - 1}`;
+  return multipleSelectionLabel?.(selectedOptions.length) ?? `${selectedOptions[0].label} +${selectedOptions.length - 1}`;
 }
 
 export function MultiSelectDropdown({
@@ -50,20 +55,44 @@ export function MultiSelectDropdown({
   triggerClassName,
   contentClassName,
   align = "start",
+  searchPlaceholder,
+  applyLabel,
+  resetLabel,
+  multipleSelectionLabel,
 }: MultiSelectDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [draftValues, setDraftValues] = useState(selectedValues);
+  const [query, setQuery] = useState("");
+  const staged = Boolean(applyLabel);
+  const activeValues = staged ? draftValues : selectedValues;
   const toggleValue = (value: string) => {
-    if (selectedValues.includes(value)) {
-      onChange(selectedValues.filter((selectedValue) => selectedValue !== value));
+    if (activeValues.includes(value)) {
+      const next = activeValues.filter((selectedValue) => selectedValue !== value);
+      if (staged) setDraftValues(next);
+      else onChange(next);
       return;
     }
 
-    onChange([...selectedValues, value]);
+    const next = [...activeValues, value];
+    if (staged) setDraftValues(next);
+    else onChange(next);
   };
 
-  const summaryLabel = getSelectionLabel(allLabel, options, selectedValues);
+  const summaryLabel = getSelectionLabel(allLabel, options, selectedValues, multipleSelectionLabel);
+  const filteredOptions = options.filter((option) => option.label.toLowerCase().includes(query.trim().toLowerCase()));
 
   return (
-    <DropdownMenu modal={false}>
+    <DropdownMenu
+      modal={false}
+      open={isOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        if (open) {
+          setDraftValues(selectedValues);
+          setQuery("");
+        }
+      }}
+    >
       <DropdownMenuTrigger asChild>
         <button
           type="button"
@@ -83,15 +112,28 @@ export function MultiSelectDropdown({
         sideOffset={8}
         className={cn("max-h-[320px] w-72 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border-slate-200 p-2 dark:border-slate-700", contentClassName)}
       >
+        {searchPlaceholder && (
+          <div className="relative mb-2 px-1" onKeyDown={(event) => event.stopPropagation()}>
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={searchPlaceholder}
+              className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-teal-500 dark:border-slate-700 dark:bg-slate-950"
+            />
+          </div>
+        )}
         <DropdownMenuItem
           onSelect={(event) => {
             event.preventDefault();
-            onChange([]);
+            if (staged) setDraftValues([]);
+            else onChange([]);
           }}
           className="gap-3 rounded-xl px-3 py-2.5"
         >
           <Checkbox
-            checked={selectedValues.length === 0}
+            checked={activeValues.length === 0}
             className="pointer-events-none border-slate-300 data-[state=checked]:border-teal-600 data-[state=checked]:bg-teal-600 data-[state=checked]:text-white dark:border-slate-600"
           />
           <span className="truncate">{allLabel}</span>
@@ -99,7 +141,7 @@ export function MultiSelectDropdown({
 
         <DropdownMenuSeparator className="mx-0 my-2" />
 
-        {options.map((option) => (
+        {filteredOptions.map((option) => (
           <DropdownMenuItem
             key={option.value}
             onSelect={(event) => {
@@ -109,12 +151,21 @@ export function MultiSelectDropdown({
             className="gap-3 rounded-xl px-3 py-2.5"
           >
             <Checkbox
-              checked={selectedValues.includes(option.value)}
+              checked={activeValues.includes(option.value)}
               className="pointer-events-none border-slate-300 data-[state=checked]:border-teal-600 data-[state=checked]:bg-teal-600 data-[state=checked]:text-white dark:border-slate-600"
             />
             <span className="truncate">{option.label}</span>
           </DropdownMenuItem>
         ))}
+        {staged && (
+          <>
+            <DropdownMenuSeparator className="mx-0 my-2" />
+            <div className="flex items-center justify-between gap-2 px-1 py-1">
+              <button type="button" onClick={() => setDraftValues([])} className="rounded-lg px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">{resetLabel}</button>
+              <button type="button" onClick={() => { onChange(draftValues); setIsOpen(false); }} className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white dark:bg-white dark:text-slate-950">{applyLabel}</button>
+            </div>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

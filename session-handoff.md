@@ -1,5 +1,49 @@
 # Session Handoff
 
+## Current State — 2026-07-20 (Batch Schema Sync)
+
+### Database Compatibility
+
+- `docs/views.sql` 최신 정의를 실 DB에 적용 완료
+- 공개 정제값은 reported/current/found/company-level만 사용하며 조직 단위 값은 제외
+- Scope 2는 MB > 일반 > LB 순으로 단일 표시값 선택
+- 복수 감축목표는 `record_key`별로 분리되고 `baseline_year`/`target_year`는
+  `val_year`를 사용
+- 신규 `co_scope3`, `doc_assur_stmt` 뷰가 실제 DB에 존재
+- 원본 batch 테이블과 적재 데이터는 변경하지 않음
+
+### Verification
+
+- 뷰 행 수: metric 39, target 79, scope3 30, assurance 13
+- 일본: 회사 11, metric 20, target 50
+- 공개 지표 중복 0, 목표 ID 중복 0, 미승인·조직 단위 지표 유입 0
+- `npm run check` 통과
+- `/ja/companies/23922`, `/api/companies/23922/report` HTTP 200
+
+### Follow-up
+
+- `published_date`는 원본에 발행일 계약이 없어 NULL 유지 (`down_at`은 다운로드 시각)
+- `assur_provider`는 batch 변수에 검증기관명이 없어 NULL 유지
+- 위 두 필드의 원천 계약은 현재 저장소 기준 `확인 안 됨`
+
+## Current State — 2026-07-20
+
+### Navigation Performance
+
+- `getCersDashboardData`는 locale별 5분 서버 메모리 TTL 캐시를 사용함
+- 기업 목록은 목록 전용 경량 객체만 Client Component에 전달함
+- 기업 검색·필터 결과는 한 화면에 24개씩 렌더링함
+- 실제 DB dev warm 측정: `/ko` 0.25초, `/ko/companies` 0.17초,
+  `/ko/industries` 0.23초
+- 기업 목록 응답 크기는 약 16.6MB에서 3.7MB로 감소
+- `npm run check` 통과
+
+### Next Work
+
+- 홈·업종·비교도 전용 경량 서버 계약으로 분리해 약 6MB 응답을 추가 축소
+- 기업 목록의 URL 공유 가능한 서버 페이지네이션은 필터를 서버 계약으로 옮길 때 검토
+- F01 브라우저 전체 흐름과 hydration console 최종 확인
+
 ## Current State — 2026-07-09
 
 ### Home UI

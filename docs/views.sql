@@ -51,96 +51,172 @@ SELECT DISTINCT
     (data_year || '-12-31')::date                    AS period_end,
     NULL::date                                       AS assessment_date
 FROM clean_val
-WHERE data_year IS NOT NULL;
+WHERE is_cur
+  AND is_found
+  AND data_state = 'reported'
+  AND org_unit_id IS NULL
+  AND data_year IS NOT NULL;
 
 -- ─── 4. co_metric ← clean_val ──────────────────────────────────────────────
--- 배출·에너지 수치 (연결/별도기준). metric_code 를 프론트 alias 로 변환.
+-- 승인된 회사 단위 수치. Scope 2는 MB > 일반 > LB 순으로 하나만 노출한다.
 CREATE OR REPLACE VIEW co_metric AS
+WITH candidates AS (
+    SELECT
+        cv.id,
+        cv.company_id,
+        cv.data_year,
+        cv.val_num,
+        COALESCE(cv.unit_txt, v.unit_std) AS unit,
+        CASE v.code
+            WHEN 'scope1_total_tco2e'           THEN 'scope1_emissions'
+            WHEN 'scope2_total_tco2e'           THEN 'scope2_emissions'
+            WHEN 'scope2_lb_total_tco2e'        THEN 'scope2_emissions'
+            WHEN 'scope2_mb_total_tco2e'        THEN 'scope2_emissions'
+            WHEN 'scope12_combined_tco2e'       THEN 'scope12_emissions'
+            WHEN 'total_energy_consumption'     THEN 'total_energy'
+            WHEN 'renewable_energy_consumption' THEN 'renewable_energy'
+            ELSE v.code
+        END AS metric_code,
+        CASE v.code
+            WHEN 'scope2_mb_total_tco2e' THEN 1
+            WHEN 'scope2_total_tco2e'    THEN 2
+            WHEN 'scope2_lb_total_tco2e' THEN 3
+            ELSE 1
+        END AS source_priority
+    FROM clean_val cv
+    JOIN variable v ON v.id = cv.variable_id
+    WHERE cv.is_cur
+      AND cv.is_found
+      AND cv.data_state = 'reported'
+      AND cv.org_unit_id IS NULL
+      AND cv.data_year IS NOT NULL
+      AND cv.val_num IS NOT NULL
+      AND v.code IN (
+          'scope1_total_tco2e',
+          'scope2_total_tco2e',
+          'scope2_lb_total_tco2e',
+          'scope2_mb_total_tco2e',
+          'scope12_combined_tco2e',
+          'total_energy_consumption',
+          'renewable_energy_consumption',
+          'revenue',
+          'green_capex',
+          'capex_total',
+          'total_capex',
+          'ebitda'
+      )
+), ranked AS (
+    SELECT
+        candidates.*,
+        ROW_NUMBER() OVER (
+            PARTITION BY company_id, data_year, metric_code
+            ORDER BY source_priority, id DESC
+        ) AS rn
+    FROM candidates
+)
 SELECT
-    cv.id                                                            AS co_metric_id,
-    cv.company_id,
-    (cv.company_id::bigint * 10000 + cv.data_year)::bigint           AS period_id,
-    CASE v.code
-        WHEN 'scope1_total_tco2e'           THEN 'scope1_emissions'
-        WHEN 'scope2_total_tco2e'           THEN 'scope2_emissions'
-        WHEN 'scope12_combined_tco2e'       THEN 'scope12_emissions'
-        WHEN 'total_energy_consumption'     THEN 'total_energy'
-        WHEN 'renewable_energy_consumption' THEN 'renewable_energy'
-        ELSE v.code
-    END                                                              AS metric_code,
-    cv.val_num                                                       AS metric_val,
-    COALESCE(cv.unit_txt, v.unit_std)                                AS unit,
-    CASE WHEN cv.is_found THEN 'reported' ELSE 'missing' END         AS data_status
-FROM clean_val cv
-JOIN variable v ON v.id = cv.variable_id
-WHERE cv.is_cur
-  AND cv.data_year IS NOT NULL
-  AND cv.val_num IS NOT NULL
-  AND cv.boundary_type IN ('consolidated', 'standalone')
-  AND v.code IN (
-      'scope1_total_tco2e',
-      'scope2_total_tco2e',
-      'scope12_combined_tco2e',
-      'total_energy_consumption',
-      'renewable_energy_consumption'
-  );
+    id                                                      AS co_metric_id,
+    company_id,
+    (company_id::bigint * 10000 + data_year)::bigint        AS period_id,
+    metric_code,
+    val_num                                                 AS metric_val,
+    unit,
+    'reported'::text                                        AS data_status
+FROM ranked
+WHERE rn = 1;
 
 -- ─── 5. co_target ← clean_val ──────────────────────────────────────────────
--- 절대감축목표(target_year 있는 기업) + 넷제로 선언 각각 1행씩
+-- record_key별 감축목표. 파싱 원문을 프론트 표시 계약으로만 분류하며 점수화하지 않는다.
 CREATE OR REPLACE VIEW co_target AS
--- 절대감축목표
+WITH target_values AS (
+    SELECT
+        cv.id,
+        cv.company_id,
+        cv.data_year,
+        COALESCE(NULLIF(cv.record_key, ''), 'target-' || cv.id::text) AS record_key,
+        v.code,
+        cv.val_num,
+        cv.val_txt,
+        cv.val_year
+    FROM clean_val cv
+    JOIN variable v ON v.id = cv.variable_id
+    WHERE cv.is_cur
+      AND cv.is_found
+      AND cv.data_state = 'reported'
+      AND cv.org_unit_id IS NULL
+      AND v.code IN (
+          'target_type',
+          'baseline_year',
+          'baseline_emissions_tco2e',
+          'baseline_intensity',
+          'target_year',
+          'reduction_rate_pct',
+          'target_emissions_tco2e',
+          'target_intensity',
+          'target_scope1_coverage_pct',
+          'target_scope2_coverage_pct',
+          'target_scope3_coverage_pct',
+          'sbti_target_status'
+      )
+), targets AS (
+    SELECT
+        company_id,
+        data_year,
+        record_key,
+        MIN(id) AS source_id,
+        MAX(CASE WHEN code = 'target_type'                  THEN val_txt END)       AS target_text,
+        MAX(CASE WHEN code = 'baseline_year'                THEN val_year END)      AS base_year,
+        MAX(CASE WHEN code = 'baseline_emissions_tco2e'     THEN val_num END)       AS baseline_emissions,
+        MAX(CASE WHEN code = 'baseline_intensity'           THEN val_num END)       AS baseline_intensity,
+        MAX(CASE WHEN code = 'target_year'                  THEN val_year END)      AS target_year,
+        MAX(CASE WHEN code = 'reduction_rate_pct'           THEN val_num END)       AS target_red_pct,
+        MAX(CASE WHEN code = 'target_emissions_tco2e'       THEN val_num END)       AS target_emissions,
+        MAX(CASE WHEN code = 'target_intensity'             THEN val_num END)       AS target_intensity,
+        MAX(CASE WHEN code = 'target_scope1_coverage_pct'   THEN val_num END)       AS scope1_pct,
+        MAX(CASE WHEN code = 'target_scope2_coverage_pct'   THEN val_num END)       AS scope2_pct,
+        MAX(CASE WHEN code = 'target_scope3_coverage_pct'   THEN val_num END)       AS scope3_pct,
+        MAX(CASE WHEN code = 'sbti_target_status'           THEN val_txt END)       AS sbti_status
+    FROM target_values
+    GROUP BY company_id, data_year, record_key
+)
 SELECT
-    (co.id * 10 + 1)::bigint                                                       AS co_target_id,
-    co.id                                                                          AS company_id,
-    'absolute'::text                                                               AS target_type,
-    'absolute'::text                                                               AS metric_type,
-    MAX(CASE WHEN v.code = 'base_year'              THEN cv.val_year::integer END) AS base_year,
-    MAX(CASE WHEN v.code = 'target_year'            THEN cv.val_num::integer  END) AS target_year,
-    MAX(CASE WHEN v.code = 'scope_coverage'         THEN cv.val_txt           END) AS target_scope,
-    MAX(CASE WHEN v.code = 'target_emissions_tco2e' THEN cv.val_num           END) AS target_val,
-    'tCO2e'::text                                                                  AS target_unit,
-    MAX(CASE WHEN v.code = 'reduction_rate_pct'     THEN cv.val_num           END) AS target_red_pct,
+    source_id::bigint                                                              AS co_target_id,
+    company_id,
+    CASE
+        WHEN target_text ~* 'net.?zero|carbon neutral|넷.?제로|탄소.?중립|実質ゼロ|カーボンニュートラル'
+            THEN 'netzero'
+        WHEN target_text ~* 'intensity|per unit|원단위|原単位'
+            THEN 'intensity'
+        ELSE 'absolute'
+    END                                                                            AS target_type,
+    CASE
+        WHEN target_text ~* 'intensity|per unit|원단위|原単位' OR target_intensity IS NOT NULL
+            THEN 'intensity'
+        ELSE 'absolute'
+    END                                                                            AS metric_type,
+    base_year::integer,
+    target_year::integer,
+    NULLIF(CONCAT_WS(', ',
+        CASE WHEN scope1_pct IS NOT NULL THEN 'Scope 1 ' || scope1_pct || '%' END,
+        CASE WHEN scope2_pct IS NOT NULL THEN 'Scope 2 ' || scope2_pct || '%' END,
+        CASE WHEN scope3_pct IS NOT NULL THEN 'Scope 3 ' || scope3_pct || '%' END
+    ), '')                                                                         AS target_scope,
+    COALESCE(target_emissions, target_intensity)                                   AS target_val,
+    CASE WHEN target_emissions IS NOT NULL THEN 'tCO2e' ELSE NULL::text END         AS target_unit,
+    target_red_pct,
     NULL::text    AS scen_align_cd,
-    NULL::boolean AS sbti_ok,
+    CASE
+        WHEN sbti_status ~* 'approved|validated|승인|인증|認定|承認' THEN true
+        WHEN sbti_status IS NOT NULL THEN false
+        ELSE NULL::boolean
+    END             AS sbti_ok,
     NULL::boolean AS residual_def,
     NULL::boolean AS offset_use,
     NULL::numeric AS offset_dep_ratio,
     NULL::boolean AS removal_plan,
     true          AS disclosed_flag
-FROM company co
-JOIN clean_val cv ON cv.company_id = co.id AND cv.is_cur
-JOIN variable v   ON v.id = cv.variable_id
-    AND v.code IN ('base_year','target_year','reduction_rate_pct','target_emissions_tco2e','scope_coverage')
-GROUP BY co.id
-HAVING MAX(CASE WHEN v.code = 'target_year' THEN cv.val_num END) IS NOT NULL
-
-UNION ALL
-
--- 넷제로 선언
-SELECT
-    (co.id * 10 + 2)::bigint                                                          AS co_target_id,
-    co.id                                                                             AS company_id,
-    'netzero'::text                                                                   AS target_type,
-    'absolute'::text                                                                  AS metric_type,
-    NULL::integer                                                                     AS base_year,
-    MAX(CASE WHEN v.code = 'net_zero_target_year'    THEN cv.val_year::integer END)   AS target_year,
-    MAX(CASE WHEN v.code = 'net_zero_scope_coverage' THEN cv.val_txt           END)   AS target_scope,
-    NULL::numeric AS target_val,
-    NULL::text    AS target_unit,
-    NULL::numeric AS target_red_pct,
-    NULL::text    AS scen_align_cd,
-    NULL::boolean AS sbti_ok,
-    NULL::boolean AS residual_def,
-    NULL::boolean AS offset_use,
-    NULL::numeric AS offset_dep_ratio,
-    NULL::boolean AS removal_plan,
-    true          AS disclosed_flag
-FROM company co
-JOIN clean_val cv ON cv.company_id = co.id AND cv.is_cur
-JOIN variable v   ON v.id = cv.variable_id
-    AND v.code IN ('net_zero_target_year','net_zero_scope_coverage')
-GROUP BY co.id
-HAVING MAX(CASE WHEN v.code = 'net_zero_target_year' THEN cv.val_year END) IS NOT NULL;
+FROM targets
+WHERE target_year IS NOT NULL;
 
 -- ─── 6. doc_fw_adopt ← report.frame_json ───────────────────────────────────
 -- 채택 프레임워크 배지 (GRI/TCFD/IFRS S2 등)
@@ -154,9 +230,66 @@ FROM report r,
 WHERE r.frame_json IS NOT NULL
   AND jsonb_typeof(r.frame_json) = 'array';
 
+-- ─── 7. co_scope3 ← scope3_category_status JSON ────────────────────────────
+CREATE OR REPLACE VIEW co_scope3 AS
+SELECT
+    (cv.id::bigint * 100 + item.ordinality)::bigint         AS co_scope3_id,
+    cv.company_id,
+    (cv.company_id::bigint * 10000 + cv.data_year)::bigint AS period_id,
+    COALESCE(item.value->>'category', item.ordinality::text) AS category_code,
+    COALESCE(item.value->>'status', '') ~* '^(보고|reported|disclosed|공시|報告|開示)$'
+                                                            AS disclosed_flag,
+    CASE
+        WHEN COALESCE(item.value->>'primary_data_ratio', item.value->>'primary_ratio')
+             ~ '^[0-9]+([.][0-9]+)?%?$'
+        THEN REPLACE(
+            COALESCE(item.value->>'primary_data_ratio', item.value->>'primary_ratio'),
+            '%', ''
+        )::numeric
+        ELSE NULL::numeric
+    END                                                     AS primary_ratio
+FROM clean_val cv
+JOIN variable v ON v.id = cv.variable_id
+CROSS JOIN LATERAL jsonb_array_elements(
+    CASE
+        WHEN jsonb_typeof(cv.val_json) = 'array' THEN cv.val_json
+        ELSE '[]'::jsonb
+    END
+) WITH ORDINALITY AS item(value, ordinality)
+WHERE cv.is_cur
+  AND cv.is_found
+  AND cv.data_state = 'reported'
+  AND cv.org_unit_id IS NULL
+  AND cv.data_year IS NOT NULL
+  AND v.code = 'scope3_category_status'
+  AND jsonb_typeof(cv.val_json) = 'array';
+
+-- ─── 8. doc_assur_stmt ← 보고서별 배출량 검증 수준 ─────────────────────────
+-- 검증기관명은 현재 배치 변수에 없으므로 확인 가능한 수준만 노출한다.
+CREATE OR REPLACE VIEW doc_assur_stmt AS
+SELECT
+    MIN(cv.id)::bigint AS doc_assur_stmt_id,
+    rv.report_id       AS document_id,
+    NULL::text         AS assur_provider,
+    STRING_AGG(DISTINCT cv.val_txt, '; ' ORDER BY cv.val_txt) AS assur_type_cd
+FROM clean_val cv
+JOIN raw_val rv ON rv.id = cv.raw_id
+JOIN variable v ON v.id = cv.variable_id
+WHERE cv.is_cur
+  AND cv.is_found
+  AND cv.data_state = 'reported'
+  AND cv.org_unit_id IS NULL
+  AND cv.val_txt IS NOT NULL
+  AND v.code IN (
+      'scope1_assurance_level',
+      'scope2_assurance_level',
+      'scope3_assurance_level'
+  )
+GROUP BY rv.report_id;
+
 -- ─── 스코어링 views  (F05 실행 후 데이터 채워짐) ────────────────────────────
 
--- 7. score_categories ← kpi  (KPI 4개 → category 역할)
+-- 9. score_categories ← kpi  (KPI 4개 → category 역할)
 CREATE OR REPLACE VIEW score_categories AS
 SELECT
     id            AS category_id,
@@ -166,17 +299,17 @@ SELECT
     sort_no       AS display_order
 FROM kpi;
 
--- 8. method_ver ← score_run
+-- 10. method_ver ← score_run
 CREATE OR REPLACE VIEW method_ver AS
 SELECT
     id                         AS method_ver_id,
-    name                       AS version_name,
+    name::varchar(120)         AS version_name,
     spec_ver,
     (run_stat::text = 'done')  AS is_active,
-    started_at                 AS effective_from
+    started_at::date           AS effective_from
 FROM score_run;
 
--- 9. scoring_runs ← final_score  (기업×연도별 최신 run 1행)
+-- 11. scoring_runs ← final_score  (기업×연도별 최신 run 1행)
 CREATE OR REPLACE VIEW scoring_runs AS
 SELECT DISTINCT ON (fs.company_id, fs.rpt_year)
     (fs.company_id::bigint * 10000 + fs.rpt_year)::bigint AS scoring_run_id,
@@ -189,7 +322,7 @@ FROM final_score fs
 JOIN score_run sr ON sr.id = fs.run_id
 ORDER BY fs.company_id, fs.rpt_year, fs.run_id DESC;
 
--- 10. cers_score ← final_score  (0–1 → 1–100 변환)
+-- 12. cers_score ← final_score  (0–1 → 1–100 변환)
 CREATE OR REPLACE VIEW cers_score AS
 SELECT DISTINCT ON (fs.company_id, fs.rpt_year)
     (fs.company_id::bigint * 10000 + fs.rpt_year)::bigint AS scoring_run_id,
@@ -206,7 +339,7 @@ SELECT DISTINCT ON (fs.company_id, fs.rpt_year)
 FROM final_score fs
 ORDER BY fs.company_id, fs.rpt_year, fs.run_id DESC;
 
--- 11. category_scores ← kpi_score  (기업×연도×KPI 최신 run)
+-- 13. category_scores ← kpi_score  (기업×연도×KPI 최신 run)
 CREATE OR REPLACE VIEW category_scores AS
 SELECT DISTINCT ON (ks.company_id, ks.rpt_year, ks.kpi_id)
     (ks.company_id::bigint * 10000 + ks.rpt_year)::bigint AS scoring_run_id,
