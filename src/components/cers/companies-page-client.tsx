@@ -8,14 +8,16 @@ import { CompanyCard } from "./company-card";
 import { MultiSelectDropdown, type MultiSelectOption } from "./multi-select-dropdown";
 import { deriveCalculationStatus, formatScore } from "@/lib/cers/public";
 import { getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
-import type { CersCompanyProfile } from "@/lib/cers/types";
+import type { CersCompanyListItem } from "@/lib/cers/types";
 
 type CompaniesPageClientProps = {
-  companies: CersCompanyProfile[];
+  companies: CersCompanyListItem[];
   locale?: SupportedLocale;
 };
 
 type SortOption = "score" | "name" | "target";
+
+const PAGE_SIZE = 24;
 
 function getInitialSelectedValues(value: string | null) {
   if (!value || value === "all") {
@@ -36,6 +38,7 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
   const [netZeroDeclared, setNetZeroDeclared] = useState(false);
   const [scoredOnly, setScoredOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>("score");
+  const [currentPage, setCurrentPage] = useState(1);
   const deferredQuery = useDeferredValue(query);
 
   useEffect(() => {
@@ -131,6 +134,13 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
       if (scoreA !== scoreB) return scoreB - scoreA;
       return a.name.localeCompare(b.name, "en", { sensitivity: "base" });
     });
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, pageCount);
+  const visibleCompanies = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [deferredQuery, selectedSectors, selectedCountries, selectedScoreRanges, targetAnnounced, netZeroDeclared, scoredOnly, sortBy]);
 
   return (
     <div className="container py-8">
@@ -279,10 +289,34 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
             </div>
           ) : (
             <div className="grid gap-5 xl:grid-cols-2">
-              {filtered.map((company) => (
+              {visibleCompanies.map((company) => (
                 <CompanyCard key={company.id} company={company} locale={locale} showSectorMeta />
               ))}
             </div>
+          )}
+
+          {filtered.length > PAGE_SIZE && (
+            <nav className="mt-8 flex items-center justify-center gap-3" aria-label={t.companies.paginationLabel}>
+              <button
+                type="button"
+                disabled={safePage === 1}
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                className="rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+              >
+                {t.companies.previousPage}
+              </button>
+              <span className="text-sm tabular-nums text-slate-500 dark:text-slate-400">
+                {t.companies.pageStatus(safePage, pageCount)}
+              </span>
+              <button
+                type="button"
+                disabled={safePage === pageCount}
+                onClick={() => setCurrentPage((page) => Math.min(pageCount, page + 1))}
+                className="rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+              >
+                {t.companies.nextPage}
+              </button>
+            </nav>
           )}
         </div>
       </div>

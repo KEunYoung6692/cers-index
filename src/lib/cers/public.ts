@@ -319,7 +319,9 @@ export function getPublicCategoryLabel(
 
 export type CalculationStatus = "scored" | "pending" | "not_scored";
 
-export function deriveCalculationStatus(company: CersCompanyProfile): CalculationStatus {
+export function deriveCalculationStatus(
+  company: Pick<CersCompanyProfile, "overallScore" | "scorePeriodId" | "scoreFiscalYear">,
+): CalculationStatus {
   if (company.overallScore !== null) return "scored";
   if (company.scorePeriodId !== null || company.scoreFiscalYear !== null) return "pending";
   return "not_scored";

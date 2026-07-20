@@ -121,6 +121,28 @@ export type CersCompanyProfile = {
   interpretation: string;
 };
 
+export type CersCompanyListItem = Pick<
+  CersCompanyProfile,
+  | "id"
+  | "name"
+  | "displayName"
+  | "stockCode"
+  | "countryCode"
+  | "countryLabel"
+  | "marketLabel"
+  | "sectorCode"
+  | "sectorLabel"
+  | "industryLabel"
+  | "fiscalYear"
+  | "scoreFiscalYear"
+  | "scorePeriodId"
+  | "overallScore"
+  | "categories"
+  | "targetSummary"
+  | "badges"
+  | "summary"
+>;
+
 export type CersDashboardData = {
   source: "db" | "fallback";
   issue: string | null;

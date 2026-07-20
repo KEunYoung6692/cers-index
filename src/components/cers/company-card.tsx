@@ -2,11 +2,11 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { formatScore } from "@/lib/cers/public";
 import { getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
-import type { CersCompanyProfile } from "@/lib/cers/types";
+import type { CersCompanyListItem } from "@/lib/cers/types";
 import { CalculationStatusBadge } from "./calculation-status-badge";
 
 type CompanyCardProps = {
-  company: CersCompanyProfile;
+  company: CersCompanyListItem;
   compact?: boolean;
   locale?: SupportedLocale;
   showSectorMeta?: boolean;

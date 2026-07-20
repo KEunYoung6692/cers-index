@@ -1,5 +1,5 @@
 import { type CalculationStatus, deriveCalculationStatus } from "@/lib/cers/public";
-import type { CersCompanyProfile } from "@/lib/cers/types";
+import type { CersCompanyListItem } from "@/lib/cers/types";
 import type { SupportedLocale } from "@/lib/cers/i18n";
 
 const STATUS_CONFIG: Record<
@@ -24,7 +24,7 @@ const STATUS_CONFIG: Record<
 };
 
 type CalculationStatusBadgeProps = {
-  company: CersCompanyProfile;
+  company: CersCompanyListItem;
   locale?: SupportedLocale;
   size?: "sm" | "xs";
 };

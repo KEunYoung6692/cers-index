@@ -364,7 +364,7 @@ function makeIssueMessage(message: string, locale: SupportedLocale) {
   return `${message} Falling back to sample content.`;
 }
 
-export const getCersDashboardData = cache(async (locale: SupportedLocale = "en"): Promise<CersDashboardData> => {
+async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<CersDashboardData> {
   try {
     const existingTables = await getExistingTableNames([...DASHBOARD_TABLES]);
     const schema = resolveDashboardSchema(existingTables);
@@ -979,7 +979,27 @@ export const getCersDashboardData = cache(async (locale: SupportedLocale = "en")
     const message = error instanceof Error ? error.message : "Unknown database error";
     return localizeDashboardData({ ...fallbackDashboardData, issue: makeIssueMessage(message, locale) }, locale);
   }
-});
+}
+
+const DASHBOARD_CACHE_TTL_MS = 5 * 60 * 1_000;
+const dashboardCache = new Map<
+  SupportedLocale,
+  { expiresAt: number; promise: Promise<CersDashboardData> }
+>();
+
+function getCachedCersDashboardData(locale: SupportedLocale = "en") {
+  const now = Date.now();
+  const cached = dashboardCache.get(locale);
+  if (cached && cached.expiresAt > now) return cached.promise;
+
+  const promise = loadCersDashboardData(locale);
+  dashboardCache.set(locale, { expiresAt: now + DASHBOARD_CACHE_TTL_MS, promise });
+  return promise;
+}
+
+export const getCersDashboardData = cache(
+  (locale: SupportedLocale = "en") => getCachedCersDashboardData(locale),
+);
 
 export const getCompanyEmissionHistory = cache(async (companyId: string): Promise<CersEmissionHistoryPoint[]> => {
   const numericCompanyId = Number(companyId);
