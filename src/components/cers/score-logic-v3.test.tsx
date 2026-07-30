@@ -1,15 +1,14 @@
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import type { SupportedLocale } from "@/lib/cers/i18n";
+import { SUPPORTED_LOCALES } from "@/lib/cers/i18n";
 import ScoreLogicV3 from "./score-logic-v3";
 
-const LOCALES: SupportedLocale[] = ["en", "ko", "ja"];
 const VARIABLE_CODES = ["E1.", "E2.", "T1.", "T2.", "C1.", "C2.", "C3.", "C4.", "C5.", "R1.", "R2.", "R3.", "R4."];
 
 afterEach(cleanup);
 
 describe("CERs methodology page", () => {
-  it.each(LOCALES)("renders the current 13-variable methodology in %s", (locale) => {
+  it.each(SUPPORTED_LOCALES)("renders the current 13-variable methodology in %s", (locale) => {
     const { container } = render(<ScoreLogicV3 locale={locale} />);
     const text = container.textContent ?? "";
 

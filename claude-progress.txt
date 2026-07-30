@@ -1,5 +1,26 @@
 # Claude Progress — cers-index
 
+## 2026-07-30 — 공개 대시보드 10개 locale 확장
+
+### 완료 작업
+- 지원 locale을 `ko`, `en`, `zh`, `ja`, `vi`, `ru`, `id`, `th`, `bn`, `es`로 확장
+- 기본 영어 비지역화 URL과 공유 `/[locale]` wrapper 구조 유지
+- 헤더의 3개 언어 pill을 10개 언어용 compact selector로 전환
+  - 현재 path와 query string을 보존해 언어 전환
+  - 페이지의 `html[lang]`을 선택 locale과 동기화
+- 핵심 대시보드, 기업 목록, 비교, 섹터, KPI, 상태 배지, About 문구를 새 locale로 확장
+- KPI 및 섹터 표시명과 `Intl` 숫자·날짜 locale을 10개 언어에 맞춤
+- 미지원 locale은 기존처럼 404 처리
+
+### 검증
+- Node.js 20.19.0에서 `npm run check` 통과
+  - harness, lint, typecheck, Vitest 5 files/37 tests, production build
+- dev 실제 DB 런타임에서 `/ko`, `/en`, `/zh`, `/ja`, `/vi`, `/ru`, `/id`,
+  `/th`, `/bn`, `/es` 모두 HTTP 200과 locale별 홈 문구 확인
+- 새 7개 locale의 `/[locale]/about`, `/[locale]/companies` 모두 HTTP 200과
+  번역 문구 확인
+- 미지원 `/fr` HTTP 404 확인
+
 ## 2026-07-20 — 최신 batch 스키마 compatibility views 반영
 
 ### 완료 작업

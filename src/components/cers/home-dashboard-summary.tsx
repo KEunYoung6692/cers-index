@@ -9,7 +9,14 @@ type Props = {
 const COPY = {
   ko: { title: "전체 현황 요약", completed: "평가 완료 기업", unit: "개", year: "최신 평가연도", distribution: "점수 분포", noData: "공개된 평가 결과가 없습니다." },
   en: { title: "Overall snapshot", completed: "Companies assessed", unit: "", year: "Latest assessment year", distribution: "Score distribution", noData: "No assessment results have been published." },
+  zh: { title: "总体概览", completed: "已评估企业", unit: " 家", year: "最新评估年份", distribution: "评分分布", noData: "尚无已发布的评估结果。" },
   ja: { title: "全体状況の概要", completed: "評価完了企業", unit: "社", year: "最新評価年度", distribution: "スコア分布", noData: "公開済みの評価結果はありません。" },
+  vi: { title: "Tổng quan", completed: "Doanh nghiệp đã đánh giá", unit: "", year: "Năm đánh giá mới nhất", distribution: "Phân bố điểm", noData: "Chưa có kết quả đánh giá được công bố." },
+  ru: { title: "Общий обзор", completed: "Оценено компаний", unit: "", year: "Последний год оценки", distribution: "Распределение оценок", noData: "Опубликованных результатов оценки пока нет." },
+  id: { title: "Ringkasan keseluruhan", completed: "Perusahaan dinilai", unit: "", year: "Tahun penilaian terbaru", distribution: "Distribusi skor", noData: "Belum ada hasil penilaian yang dipublikasikan." },
+  th: { title: "ภาพรวมทั้งหมด", completed: "บริษัทที่ประเมินแล้ว", unit: " บริษัท", year: "ปีประเมินล่าสุด", distribution: "การกระจายคะแนน", noData: "ยังไม่มีผลการประเมินที่เผยแพร่" },
+  bn: { title: "সামগ্রিক চিত্র", completed: "মূল্যায়িত কোম্পানি", unit: "টি", year: "সর্বশেষ মূল্যায়ন বছর", distribution: "স্কোর বণ্টন", noData: "কোনো মূল্যায়ন ফল এখনও প্রকাশিত হয়নি।" },
+  es: { title: "Resumen general", completed: "Empresas evaluadas", unit: "", year: "Último año evaluado", distribution: "Distribución de puntuaciones", noData: "Aún no se han publicado resultados de evaluación." },
 } as const;
 
 const BANDS = [

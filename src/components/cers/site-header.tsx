@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Menu, Search, X } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Globe2, Menu, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -10,6 +10,7 @@ import {
   getTranslations,
   localizedPath,
   stripLocalePrefix,
+  SUPPORTED_LOCALES,
   type SupportedLocale,
 } from "@/lib/cers/i18n";
 import { ThemeToggle } from "./theme-toggle";
@@ -20,6 +21,7 @@ type SiteHeaderProps = {
 
 export function SiteHeader({ locale = "en" }: SiteHeaderProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const t = getTranslations(locale);
   const unlocalizedPathname = stripLocalePrefix(pathname);
   const activeLocale = detectLocaleFromPathname(pathname) || locale;
@@ -47,6 +49,11 @@ export function SiteHeader({ locale = "en" }: SiteHeaderProps) {
   useEffect(() => {
     setIsMenuOpen(false);
   }, [pathname]);
+
+  const changeLocale = (targetLocale: SupportedLocale) => {
+    const nextHref = localizedPath(targetLocale, unlocalizedPathname === "" ? "/" : unlocalizedPathname);
+    router.push(queryString ? `${nextHref}?${queryString}` : nextHref);
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/88 backdrop-blur-xl transition-colors dark:border-slate-800/80 dark:bg-slate-950/82">
@@ -90,26 +97,20 @@ export function SiteHeader({ locale = "en" }: SiteHeaderProps) {
           </Link>
           <ThemeToggle locale={locale} />
 
-          <div className="hidden items-center gap-1 rounded-full border border-slate-200 bg-slate-50 p-1 md:flex dark:border-slate-700 dark:bg-slate-900">
-            {(["en", "ko", "ja"] as const).map((targetLocale) => {
-              const nextHref = localizedPath(targetLocale, unlocalizedPathname === "" ? "/" : unlocalizedPathname);
-
-              return (
-                <Link
-                  key={targetLocale}
-                  href={queryString ? `${nextHref}?${queryString}` : nextHref}
-                  className={cn(
-                    "rounded-full px-3 py-1.5 text-xs font-medium transition",
-                    activeLocale === targetLocale
-                      ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
-                      : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100",
-                  )}
-                  aria-label={`${t.header.languageLabel}: ${t.languages[targetLocale]}`}
-                >
-                  {targetLocale.toUpperCase()}
-                </Link>
-              );
-            })}
+          <div className="relative hidden items-center md:flex">
+            <Globe2 className="pointer-events-none absolute left-3 h-4 w-4 text-slate-400" aria-hidden />
+            <select
+              value={activeLocale}
+              onChange={(event) => changeLocale(event.target.value as SupportedLocale)}
+              aria-label={t.header.languageLabel}
+              className="h-10 w-40 appearance-none rounded-full border border-slate-200 bg-slate-50 pl-9 pr-8 text-xs font-medium text-slate-700 outline-none transition focus:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            >
+              {SUPPORTED_LOCALES.map((targetLocale) => (
+                <option key={targetLocale} value={targetLocale}>
+                  {targetLocale.toUpperCase()} · {t.languages[targetLocale]}
+                </option>
+              ))}
+            </select>
           </div>
 
           <form action={localizedPath(locale, "/companies")} className="relative hidden w-52 xl:block 2xl:w-64">
@@ -173,26 +174,18 @@ export function SiteHeader({ locale = "en" }: SiteHeaderProps) {
             </nav>
             <div className="mt-4 flex items-center justify-between gap-4 border-t border-slate-200 pt-4 dark:border-slate-800">
               <span className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">{t.header.languageLabel}</span>
-              <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 p-1 dark:border-slate-700 dark:bg-slate-900">
-                {(["en", "ko", "ja"] as const).map((targetLocale) => {
-                  const nextHref = localizedPath(targetLocale, unlocalizedPathname === "" ? "/" : unlocalizedPathname);
-
-                  return (
-                    <Link
-                      key={targetLocale}
-                      href={queryString ? `${nextHref}?${queryString}` : nextHref}
-                      className={cn(
-                        "rounded-full px-3 py-1.5 text-xs font-medium",
-                        activeLocale === targetLocale
-                          ? "bg-white text-slate-950 shadow-sm dark:bg-slate-800 dark:text-white"
-                          : "text-slate-500 dark:text-slate-400",
-                      )}
-                    >
-                      {targetLocale.toUpperCase()}
-                    </Link>
-                  );
-                })}
-              </div>
+              <select
+                value={activeLocale}
+                onChange={(event) => changeLocale(event.target.value as SupportedLocale)}
+                aria-label={t.header.languageLabel}
+                className="h-10 min-w-48 rounded-full border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              >
+                {SUPPORTED_LOCALES.map((targetLocale) => (
+                  <option key={targetLocale} value={targetLocale}>
+                    {targetLocale.toUpperCase()} · {t.languages[targetLocale]}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

@@ -114,7 +114,91 @@ const ja: Copy = {
   sources: "主な基準",
 };
 
-const COPY: Record<SupportedLocale, Copy> = { ko, en, ja };
+const zh: Copy = {
+  ...en,
+  eyebrow: "CERs Index 方法论",
+  title: "CERs Index 如何计算",
+  intro: "十三个变量评估实际减排、目标执行、资本配置和数据可靠性。",
+  aggregation: "指数计算",
+  aggregationBody: "先在各 KPI 内对变量评分取平均，再对四个 KPI 等权汇总。",
+  variables: "变量定义",
+  criteria: "评估标准",
+  sources: "主要参考",
+};
+
+const vi: Copy = {
+  ...en,
+  eyebrow: "Phương pháp CERs Index",
+  title: "Cách tính CERs Index",
+  intro: "Mười ba biến đánh giá mức giảm phát thải thực tế, thực hiện mục tiêu, phân bổ vốn và độ tin cậy dữ liệu.",
+  aggregation: "Tính chỉ số",
+  aggregationBody: "Điểm biến được lấy trung bình trong từng KPI, sau đó bốn KPI được kết hợp với trọng số bằng nhau.",
+  variables: "Định nghĩa biến",
+  criteria: "Tiêu chí đánh giá",
+  sources: "Tài liệu tham khảo chính",
+};
+
+const ru: Copy = {
+  ...en,
+  eyebrow: "Методология CERs Index",
+  title: "Как рассчитывается CERs Index",
+  intro: "Тринадцать переменных оценивают фактическое сокращение выбросов, выполнение целей, распределение капитала и надёжность данных.",
+  aggregation: "Расчёт индекса",
+  aggregationBody: "Оценки переменных усредняются внутри каждого KPI, затем четыре KPI объединяются с равным весом.",
+  variables: "Определения переменных",
+  criteria: "Критерии оценки",
+  sources: "Основные источники",
+};
+
+const id: Copy = {
+  ...en,
+  eyebrow: "Metodologi CERs Index",
+  title: "Cara menghitung CERs Index",
+  intro: "Tiga belas variabel menilai pengurangan emisi aktual, pelaksanaan target, alokasi modal, dan keandalan data.",
+  aggregation: "Perhitungan indeks",
+  aggregationBody: "Skor variabel dirata-ratakan dalam setiap KPI, lalu keempat KPI digabungkan dengan bobot yang sama.",
+  variables: "Definisi variabel",
+  criteria: "Kriteria penilaian",
+  sources: "Referensi utama",
+};
+
+const th: Copy = {
+  ...en,
+  eyebrow: "ระเบียบวิธี CERs Index",
+  title: "วิธีคำนวณ CERs Index",
+  intro: "ตัวแปรสิบสามรายการประเมินการลดการปล่อยจริง การดำเนินการตามเป้าหมาย การจัดสรรเงินทุน และความน่าเชื่อถือของข้อมูล",
+  aggregation: "การคำนวณดัชนี",
+  aggregationBody: "หาค่าเฉลี่ยคะแนนตัวแปรภายในแต่ละ KPI แล้วรวม KPI ทั้งสี่ด้วยน้ำหนักเท่ากัน",
+  variables: "คำจำกัดความของตัวแปร",
+  criteria: "เกณฑ์การประเมิน",
+  sources: "แหล่งอ้างอิงหลัก",
+};
+
+const bn: Copy = {
+  ...en,
+  eyebrow: "CERs Index পদ্ধতি",
+  title: "CERs Index যেভাবে গণনা করা হয়",
+  intro: "তেরোটি চলক বাস্তব নির্গমন হ্রাস, লক্ষ্য বাস্তবায়ন, মূলধন বণ্টন ও ডেটার নির্ভরযোগ্যতা মূল্যায়ন করে।",
+  aggregation: "সূচক গণনা",
+  aggregationBody: "প্রতিটি KPI-এর মধ্যে চলকের স্কোর গড় করা হয়, তারপর চারটি KPI সমান ওজনে একত্র করা হয়।",
+  variables: "চলকের সংজ্ঞা",
+  criteria: "মূল্যায়ন মানদণ্ড",
+  sources: "প্রধান সূত্র",
+};
+
+const es: Copy = {
+  ...en,
+  eyebrow: "Metodología CERs Index",
+  title: "Cómo se calcula CERs Index",
+  intro: "Trece variables evalúan la reducción real de emisiones, la ejecución de objetivos, la asignación de capital y la fiabilidad de los datos.",
+  aggregation: "Cálculo del índice",
+  aggregationBody: "Las puntuaciones se promedian dentro de cada KPI y los cuatro KPI se combinan con la misma ponderación.",
+  variables: "Definición de variables",
+  criteria: "Criterios de evaluación",
+  sources: "Referencias principales",
+};
+
+const COPY: Record<SupportedLocale, Copy> = { ko, en, zh, ja, vi, ru, id, th, bn, es };
 
 function Formula({ children }: { children: ReactNode }) {
   return <div className="font-mono text-[13px] leading-6 text-slate-800 dark:text-slate-100">{children}</div>;

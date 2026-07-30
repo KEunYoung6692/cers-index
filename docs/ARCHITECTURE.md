@@ -18,7 +18,8 @@ CERsIndex-batch
 ## Route Structure
 
 - `src/app/page.tsx`와 비지역화 경로: 기본 영어 렌더러 및 공유 구현
-- `src/app/[locale]/**`: `ko`, `en`, `ja` 검증 후 공유 렌더러 호출
+- `src/app/[locale]/**`: `ko`, `en`, `zh`, `ja`, `vi`, `ru`, `id`, `th`,
+  `bn`, `es` 검증 후 공유 렌더러 호출
 - `src/app/api/**`: 서버 전용 route handler
 
 지역화 wrapper는 얇게 유지한다. `[locale]` 경로를 제거하거나 화면 구현을 별도로

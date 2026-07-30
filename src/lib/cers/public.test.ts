@@ -10,7 +10,14 @@ describe("public CERs presentation contract", () => {
   it.each([
     ["en", ["Realized Decarbonization", "Target Design & Delivery", "Capital Allocation", "Data Credibility"]],
     ["ko", ["실질 탈탄소 성과", "감축 목표 및 이행", "자본배분", "데이터 신뢰성"]],
+    ["zh", ["实际脱碳表现", "目标设计与执行", "资本配置", "数据可信度"]],
     ["ja", ["実質的な脱炭素成果", "削減目標と履行", "資本配分", "データ信頼性"]],
+    ["vi", ["Khử carbon thực tế", "Thiết kế và thực hiện mục tiêu", "Phân bổ vốn", "Độ tin cậy dữ liệu"]],
+    ["ru", ["Фактическая декарбонизация", "Цели и их выполнение", "Распределение капитала", "Надёжность данных"]],
+    ["id", ["Dekarbonisasi terealisasi", "Desain dan pelaksanaan target", "Alokasi modal", "Kredibilitas data"]],
+    ["th", ["การลดคาร์บอนที่เกิดขึ้นจริง", "การออกแบบและดำเนินการตามเป้าหมาย", "การจัดสรรเงินทุน", "ความน่าเชื่อถือของข้อมูล"]],
+    ["bn", ["বাস্তব ডিকার্বনাইজেশন", "লক্ষ্য নকশা ও বাস্তবায়ন", "মূলধন বণ্টন", "ডেটার বিশ্বাসযোগ্যতা"]],
+    ["es", ["Descarbonización realizada", "Diseño y ejecución de objetivos", "Asignación de capital", "Credibilidad de los datos"]],
   ] as const)("uses the v1.5 KPI labels in %s", (locale, labels) => {
     expect(labels.map((_, index) => getPublicCategoryLabel(`cat${index + 1}`, null, index, locale))).toEqual(labels);
   });

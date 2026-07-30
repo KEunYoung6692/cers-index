@@ -1,5 +1,23 @@
 # Session Handoff
 
+## Current State — 2026-07-30 (10-Locale Expansion)
+
+### Localization
+
+- 지원 locale: `ko`, `en`, `zh`, `ja`, `vi`, `ru`, `id`, `th`, `bn`, `es`
+- 영어는 기존처럼 비지역화 경로가 기본이며 `/en/**` wrapper도 유효함
+- 나머지 언어는 `/[locale]/**`를 사용하고 모든 wrapper가 공유 렌더러를 호출함
+- 헤더 language selector는 현재 path와 query string을 유지함
+- KPI·섹터명·상태 배지·핵심 대시보드·About 문구와 Intl locale이 확장됨
+- 전문 상세 문구에 locale별 override가 없으면 영어 기본 계약을 안전 fallback으로 사용함
+
+### Verification
+
+- `npm run check` 통과: 5 test files, 37 tests, production build
+- 10개 locale 홈: HTTP 200 + 각 locale 고유 문구 확인
+- 새 7개 locale About/기업 목록: HTTP 200 + 번역 문구 확인
+- `/fr`: HTTP 404
+
 ## Current State — 2026-07-20 (Batch Schema Sync)
 
 ### Database Compatibility

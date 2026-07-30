@@ -63,8 +63,145 @@ const ABOUT_COPY = {
   },
 } as const;
 
+type AboutCopy = {
+  badge: string;
+  title: string;
+  description: string;
+  purposeTitle: string;
+  purpose: string;
+  structureTitle: string;
+  structureDescription: string;
+  cta: string;
+  kpis: ReadonlyArray<{
+    code: string;
+    title: string;
+    question: string;
+    items: ReadonlyArray<string>;
+  }>;
+};
+
+const ADDITIONAL_ABOUT_COPY: Record<Exclude<SupportedLocale, "en" | "ko" | "ja">, AboutCopy> = {
+  zh: {
+    badge: "CERs Index 方法论",
+    title: "从四个维度评估企业碳减排",
+    description: "CERs Index 基于公开的气候、财务、治理和鉴证信息评估企业碳减排表现。",
+    purposeTitle: "评估内容",
+    purpose: "我们综合评估实际减排、目标执行、资本配置和数据可信度。",
+    structureTitle: "指数结构",
+    structureDescription: "四项 KPI 对最终 CERs Index 采用相同权重。",
+    cta: "查看详细公式和变量",
+    kpis: [
+      { code: "KPI 1", title: "实际碳减排", question: "排放是否实际下降？", items: ["E1 · Scope 1·2 表现", "E2 · Scope 3 表现"] },
+      { code: "KPI 2", title: "目标与执行", question: "目标是否合理并得到执行？", items: ["T1 · 目标设计", "T2 · 执行进度"] },
+      { code: "KPI 3", title: "资本配置", question: "资源是否支持低碳转型？", items: ["C1 · 绿色 CAPEX", "C2 · 低碳营收", "C3 · 内部碳价", "C4 · 气候绩效薪酬", "C5 · 碳信用使用"] },
+      { code: "KPI 4", title: "数据可信度", question: "证据和结果是否可信？", items: ["R1 · 信息完整性", "R2 · 计算透明度", "R3 · 第三方鉴证", "R4 · 实时交叉核验"] },
+    ],
+  },
+  vi: {
+    badge: "Phương pháp CERs Index",
+    title: "Đánh giá mức giảm carbon của doanh nghiệp qua bốn góc nhìn",
+    description: "CERs Index sử dụng thông tin công khai về khí hậu, tài chính, quản trị và đảm bảo để đánh giá kết quả giảm carbon.",
+    purposeTitle: "Nội dung đánh giá",
+    purpose: "Chúng tôi đánh giá đồng thời mức giảm thực tế, thực hiện mục tiêu, phân bổ vốn và độ tin cậy dữ liệu.",
+    structureTitle: "Cấu trúc chỉ số",
+    structureDescription: "Bốn KPI đóng góp với trọng số bằng nhau vào CERs Index cuối cùng.",
+    cta: "Xem công thức và biến chi tiết",
+    kpis: [
+      { code: "KPI 1", title: "Giảm carbon thực tế", question: "Phát thải có thực sự giảm?", items: ["E1 · Kết quả Scope 1·2", "E2 · Kết quả Scope 3"] },
+      { code: "KPI 2", title: "Mục tiêu và thực hiện", question: "Mục tiêu có phù hợp và được thực hiện?", items: ["T1 · Thiết kế mục tiêu", "T2 · Tiến độ thực hiện"] },
+      { code: "KPI 3", title: "Phân bổ vốn", question: "Nguồn lực có phù hợp với chuyển đổi?", items: ["C1 · CAPEX xanh", "C2 · Doanh thu carbon thấp", "C3 · Giá carbon nội bộ", "C4 · Lương thưởng gắn với khí hậu", "C5 · Sử dụng tín chỉ carbon"] },
+      { code: "KPI 4", title: "Độ tin cậy dữ liệu", question: "Có thể tin cậy bằng chứng và kết quả?", items: ["R1 · Tính đầy đủ thông tin", "R2 · Minh bạch tính toán", "R3 · Đảm bảo bên thứ ba", "R4 · Đối chiếu thời gian thực"] },
+    ],
+  },
+  ru: {
+    badge: "Методология CERs Index",
+    title: "Четыре взгляда на сокращение выбросов компаний",
+    description: "CERs Index оценивает сокращение выбросов по открытым климатическим, финансовым, управленческим и заверенным данным.",
+    purposeTitle: "Что оценивается",
+    purpose: "Мы вместе рассматриваем фактическое сокращение, выполнение целей, распределение капитала и надёжность данных.",
+    structureTitle: "Структура индекса",
+    structureDescription: "Четыре KPI имеют одинаковый вес в итоговом CERs Index.",
+    cta: "Подробные формулы и переменные",
+    kpis: [
+      { code: "KPI 1", title: "Фактическое сокращение выбросов", question: "Действительно ли выбросы снизились?", items: ["E1 · Результаты Scope 1·2", "E2 · Результаты Scope 3"] },
+      { code: "KPI 2", title: "Цели и выполнение", question: "Обоснованы ли цели и выполняются ли они?", items: ["T1 · Конструкция цели", "T2 · Прогресс выполнения"] },
+      { code: "KPI 3", title: "Распределение капитала", question: "Поддерживают ли ресурсы переход?", items: ["C1 · Зелёный CAPEX", "C2 · Низкоуглеродная выручка", "C3 · Внутренняя цена углерода", "C4 · Климатическая мотивация", "C5 · Углеродные кредиты"] },
+      { code: "KPI 4", title: "Надёжность данных", question: "Можно ли доверять данным и результатам?", items: ["R1 · Полнота информации", "R2 · Прозрачность расчёта", "R3 · Стороннее заверение", "R4 · Оперативная сверка"] },
+    ],
+  },
+  id: {
+    badge: "Metodologi CERs Index",
+    title: "Empat perspektif atas pengurangan karbon perusahaan",
+    description: "CERs Index menggunakan informasi iklim, keuangan, tata kelola, dan asurans yang dipublikasikan untuk menilai kinerja pengurangan karbon.",
+    purposeTitle: "Apa yang dinilai",
+    purpose: "Kami menilai pengurangan aktual, pelaksanaan target, alokasi modal, dan kredibilitas data secara bersama.",
+    structureTitle: "Struktur indeks",
+    structureDescription: "Keempat KPI berkontribusi sama terhadap CERs Index akhir.",
+    cta: "Lihat rumus dan variabel terperinci",
+    kpis: [
+      { code: "KPI 1", title: "Pengurangan karbon aktual", question: "Apakah emisi benar-benar turun?", items: ["E1 · Kinerja Scope 1·2", "E2 · Kinerja Scope 3"] },
+      { code: "KPI 2", title: "Target dan pelaksanaan", question: "Apakah target tepat dan dijalankan?", items: ["T1 · Desain target", "T2 · Kemajuan pelaksanaan"] },
+      { code: "KPI 3", title: "Alokasi modal", question: "Apakah sumber daya selaras dengan transisi?", items: ["C1 · CAPEX hijau", "C2 · Pendapatan rendah karbon", "C3 · Harga karbon internal", "C4 · Imbalan terkait iklim", "C5 · Penggunaan kredit karbon"] },
+      { code: "KPI 4", title: "Kredibilitas data", question: "Dapatkah bukti dan hasil dipercaya?", items: ["R1 · Kelengkapan informasi", "R2 · Transparansi perhitungan", "R3 · Asurans pihak ketiga", "R4 · Pemeriksaan silang waktu nyata"] },
+    ],
+  },
+  th: {
+    badge: "ระเบียบวิธี CERs Index",
+    title: "สี่มุมมองต่อการลดคาร์บอนของบริษัท",
+    description: "CERs Index ใช้ข้อมูลสาธารณะด้านภูมิอากาศ การเงิน ธรรมาภิบาล และการรับรองเพื่อประเมินผลการลดคาร์บอน",
+    purposeTitle: "สิ่งที่เราประเมิน",
+    purpose: "เราประเมินการลดจริง การดำเนินการตามเป้าหมาย การจัดสรรเงินทุน และความน่าเชื่อถือของข้อมูลร่วมกัน",
+    structureTitle: "โครงสร้างดัชนี",
+    structureDescription: "KPI ทั้งสี่มีน้ำหนักเท่ากันใน CERs Index ขั้นสุดท้าย",
+    cta: "ดูสูตรและตัวแปรโดยละเอียด",
+    kpis: [
+      { code: "KPI 1", title: "การลดคาร์บอนจริง", question: "การปล่อยลดลงจริงหรือไม่", items: ["E1 · ผล Scope 1·2", "E2 · ผล Scope 3"] },
+      { code: "KPI 2", title: "เป้าหมายและการดำเนินการ", question: "เป้าหมายเหมาะสมและดำเนินการหรือไม่", items: ["T1 · การออกแบบเป้าหมาย", "T2 · ความคืบหน้า"] },
+      { code: "KPI 3", title: "การจัดสรรเงินทุน", question: "ทรัพยากรสอดคล้องกับการเปลี่ยนผ่านหรือไม่", items: ["C1 · CAPEX สีเขียว", "C2 · รายได้คาร์บอนต่ำ", "C3 · ราคาคาร์บอนภายใน", "C4 · ค่าตอบแทนเชื่อมโยงภูมิอากาศ", "C5 · การใช้คาร์บอนเครดิต"] },
+      { code: "KPI 4", title: "ความน่าเชื่อถือของข้อมูล", question: "หลักฐานและผลลัพธ์เชื่อถือได้หรือไม่", items: ["R1 · ความครบถ้วน", "R2 · ความโปร่งใสในการคำนวณ", "R3 · การรับรองภายนอก", "R4 · การตรวจสอบแบบเรียลไทม์"] },
+    ],
+  },
+  bn: {
+    badge: "CERs Index পদ্ধতি",
+    title: "কোম্পানির কার্বন হ্রাসের চারটি দৃষ্টিভঙ্গি",
+    description: "CERs Index প্রকাশ্য জলবায়ু, আর্থিক, পরিচালনা ও নিশ্চয়তা তথ্য দিয়ে কোম্পানির কার্বন হ্রাস মূল্যায়ন করে।",
+    purposeTitle: "আমরা যা মূল্যায়ন করি",
+    purpose: "বাস্তব হ্রাস, লক্ষ্য বাস্তবায়ন, মূলধন বণ্টন ও ডেটার বিশ্বাসযোগ্যতা একসঙ্গে মূল্যায়ন করা হয়।",
+    structureTitle: "সূচকের কাঠামো",
+    structureDescription: "চারটি KPI চূড়ান্ত CERs Index-এ সমান অবদান রাখে।",
+    cta: "বিস্তারিত সূত্র ও চলক দেখুন",
+    kpis: [
+      { code: "KPI 1", title: "বাস্তব কার্বন হ্রাস", question: "নির্গমন কি সত্যিই কমেছে?", items: ["E1 · Scope 1·2 কর্মদক্ষতা", "E2 · Scope 3 কর্মদক্ষতা"] },
+      { code: "KPI 2", title: "লক্ষ্য ও বাস্তবায়ন", question: "লক্ষ্য যথাযথ এবং বাস্তবায়িত হচ্ছে কি?", items: ["T1 · লক্ষ্য নকশা", "T2 · বাস্তবায়ন অগ্রগতি"] },
+      { code: "KPI 3", title: "মূলধন বণ্টন", question: "সম্পদ কি রূপান্তরের সঙ্গে সামঞ্জস্যপূর্ণ?", items: ["C1 · সবুজ CAPEX", "C2 · নিম্ন-কার্বন রাজস্ব", "C3 · অভ্যন্তরীণ কার্বন মূল্য", "C4 · জলবায়ু-সংযুক্ত পারিশ্রমিক", "C5 · কার্বন ক্রেডিট ব্যবহার"] },
+      { code: "KPI 4", title: "ডেটার বিশ্বাসযোগ্যতা", question: "প্রমাণ ও ফলাফল কি বিশ্বাসযোগ্য?", items: ["R1 · তথ্যের পূর্ণতা", "R2 · হিসাবের স্বচ্ছতা", "R3 · তৃতীয় পক্ষের নিশ্চয়তা", "R4 · তাৎক্ষণিক যাচাই"] },
+    ],
+  },
+  es: {
+    badge: "Metodología CERs Index",
+    title: "Cuatro perspectivas sobre la reducción de carbono empresarial",
+    description: "CERs Index usa información climática, financiera, de gobernanza y verificación pública para evaluar la reducción de carbono.",
+    purposeTitle: "Qué evaluamos",
+    purpose: "Evaluamos conjuntamente la reducción real, la ejecución de objetivos, la asignación de capital y la credibilidad de los datos.",
+    structureTitle: "Estructura del índice",
+    structureDescription: "Los cuatro KPI contribuyen por igual al CERs Index final.",
+    cta: "Ver fórmulas y variables detalladas",
+    kpis: [
+      { code: "KPI 1", title: "Reducción real de carbono", question: "¿Se redujeron realmente las emisiones?", items: ["E1 · Desempeño de alcance 1·2", "E2 · Desempeño de alcance 3"] },
+      { code: "KPI 2", title: "Objetivos y ejecución", question: "¿Los objetivos son sólidos y se cumplen?", items: ["T1 · Diseño del objetivo", "T2 · Progreso de ejecución"] },
+      { code: "KPI 3", title: "Asignación de capital", question: "¿Los recursos se alinean con la transición?", items: ["C1 · CAPEX verde", "C2 · Ingresos bajos en carbono", "C3 · Precio interno del carbono", "C4 · Remuneración ligada al clima", "C5 · Uso de créditos de carbono"] },
+      { code: "KPI 4", title: "Credibilidad de los datos", question: "¿Son fiables la evidencia y los resultados?", items: ["R1 · Integridad de la información", "R2 · Transparencia del cálculo", "R3 · Verificación externa", "R4 · Comprobación en tiempo real"] },
+    ],
+  },
+};
+
+const ABOUT_COPY_BY_LOCALE: Record<SupportedLocale, AboutCopy> = {
+  ...ABOUT_COPY,
+  ...ADDITIONAL_ABOUT_COPY,
+};
+
 export async function renderAboutPage(locale: SupportedLocale = "en") {
-  const copy = ABOUT_COPY[locale];
+  const copy = ABOUT_COPY_BY_LOCALE[locale];
 
   return (
     <AppShell locale={locale}>

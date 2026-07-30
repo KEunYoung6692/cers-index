@@ -40,7 +40,8 @@
 ## 2026-06-10: Locale Wrappers Stay Explicit
 
 - 결정: 기본 영어 라우트와 `/[locale]` wrapper 구조를 유지한다.
-- 이유: 공유 렌더러를 재사용하면서 `ko/en/ja` URL 계약을 보존한다.
+- 이유: 공유 렌더러를 재사용하면서
+  `ko/en/zh/ja/vi/ru/id/th/bn/es` URL 계약을 보존한다.
 - 결과: 지역화 페이지는 locale 검증 후 비지역화 모듈의 렌더러를 호출한다.
 
 ## 2026-06-10: Verification Is Command Driven

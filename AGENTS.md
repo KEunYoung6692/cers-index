@@ -10,7 +10,7 @@ CERs Index 공개 대시보드. CERsIndex-batch가 Supabase PostgreSQL에 적재
 - UI: Tailwind CSS + shadcn/ui
 - DB: `pg.Pool`, 서버 전용
 - Test: Vitest + jsdom
-- i18n: `/[locale]` (`ko`, `en`, `ja`)
+- i18n: `/[locale]` (`ko`, `en`, `zh`, `ja`, `vi`, `ru`, `id`, `th`, `bn`, `es`)
 
 ## 시작 순서
 
@@ -46,7 +46,7 @@ CERs Index 공개 대시보드. CERsIndex-batch가 Supabase PostgreSQL에 적재
 ## 하드 제약
 
 - 점수를 임의 계산하지 않는다. 점수 소유자는 CERsIndex-batch F05다.
-- `/[locale]` 라우팅과 `ko/en/ja` 지원을 제거하지 않는다.
+- `/[locale]` 라우팅과 `ko/en/zh/ja/vi/ru/id/th/bn/es` 지원을 제거하지 않는다.
 - DB 쿼리는 `src/lib/server/`에 두고 Client Component에서 import하지 않는다.
 - DB 접속 정보나 비밀번호를 코드와 문서에 실제 값으로 기록하지 않는다.
 - DB 계약 변경은 `docs/views.sql`, 관련 타입, 연관 batch 스키마 영향을 함께 검토한다.

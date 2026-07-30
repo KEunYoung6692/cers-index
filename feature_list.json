@@ -6,7 +6,7 @@
     "behavior": "CERs Index 점수 기준 기업 순위를 표시하고, 점수가 없을 때는 배출·목표 데이터만으로 명시적인 데이터 부족 상태를 표시한다.",
     "verification": "npm run dev 실행 후 /ko 에서 실제 기업 카드와 데이터 소스 경고 상태를 확인한다.",
     "state": "active",
-    "evidence": "DB views 적용 및 넷제로 기업 실제 데이터 노출까지 확인됨. 2026-07-08 홈 hydration warning 대응 후 npm run check 통과. 2026-07-20 대시보드 5분 서버 메모리 캐시와 기업 목록 경량화·24개 단위 페이지네이션 적용, npm run check 통과. 실제 DB dev warm 측정은 /ko 0.25초, /ko/companies 0.17초, /ko/industries 0.23초이며 기업 목록 응답은 약 16.6MB에서 3.7MB로 감소. 홈 전체 완료 조건과 브라우저 콘솔 재검증 필요."
+    "evidence": "DB views 적용 및 넷제로 기업 실제 데이터 노출까지 확인됨. 2026-07-08 홈 hydration warning 대응 후 npm run check 통과. 2026-07-20 대시보드 5분 서버 메모리 캐시와 기업 목록 경량화·24개 단위 페이지네이션 적용, npm run check 통과. 실제 DB dev warm 측정은 /ko 0.25초, /ko/companies 0.17초, /ko/industries 0.23초이며 기업 목록 응답은 약 16.6MB에서 3.7MB로 감소. 2026-07-30 10개 locale 홈 URL이 모두 HTTP 200과 locale별 문구를 반환함. 홈 전체 완료 조건과 브라우저 콘솔 재검증 필요."
   },
   {
     "id": "F02",
@@ -59,19 +59,19 @@
     "id": "F07",
     "screen": "점수 로직 설명",
     "route": "/about/logic, /score-logic",
-    "behavior": "CERs Index ver2(v1.5)의 4개 KPI, 12개 변수(n_j=2/2/4/4), 두 단계 동일가중 집계 방식과 세부 산식을 한국어·영어·일본어로 표시한다.",
-    "verification": "npm run check 성공 후 다국어 로직 렌더링 테스트와 /ko/about/logic 정적 페이지 생성을 확인한다.",
+    "behavior": "CERs Index의 4개 KPI, 변수별 기준과 세부 산식을 10개 지원 locale에서 같은 구조로 표시한다.",
+    "verification": "npm run check 성공 후 10개 locale 로직 렌더링 테스트와 지역화된 /[locale]/about/logic 경로 생성을 확인한다.",
     "state": "passing",
-    "evidence": "다국어 렌더링 테스트에서 3개 언어의 12개 변수와 v1.5 집계 계약을 확인함. DB 의존성 없음."
+    "evidence": "2026-07-30 다국어 렌더링 테스트에서 10개 locale의 현재 변수 코드와 집계 공식을 확인했고 npm run check가 통과함. DB 의존성 없음."
   },
   {
     "id": "F08",
     "screen": "About",
     "route": "/about",
-    "behavior": "CERs Index ver2(v1.5) 소개, 4개 KPI 개요, 12개 변수 구조와 동일가중 집계 공식·해석 기준을 한국어·영어·일본어로 표시한다.",
-    "verification": "npm run check 성공 후 다국어 방법론 계약 테스트와 /ko/about 정적 페이지 생성을 확인한다.",
+    "behavior": "CERs Index 소개와 4개 KPI 개요를 10개 지원 locale에서 표시한다.",
+    "verification": "npm run check 성공 후 다국어 계약 테스트와 지역화된 /[locale]/about 경로 생성을 확인한다.",
     "state": "passing",
-    "evidence": "다국어 계약 테스트에서 구 16변수·야심도(ambition) 잔재가 제거되고 12개 변수·v1.5 집계 공식이 적용됐음을 확인함. DB 의존성 없음."
+    "evidence": "2026-07-30 10개 locale의 About 문구와 공통 지역화 경로 계약을 정적 검사하고, 새 7개 locale의 /[locale]/about HTTP 200 및 번역 문구를 확인함. DB 의존성 없음."
   },
   {
     "id": "F09",
