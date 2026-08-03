@@ -355,6 +355,19 @@ export function humanizeCode(value: string | null | undefined) {
   return titleCase(normalized);
 }
 
+export function getLocalizedSectorName(sectorNames: unknown, locale: SupportedLocale) {
+  if (!sectorNames || typeof sectorNames !== "object" || Array.isArray(sectorNames)) return null;
+
+  const names = sectorNames as Record<string, unknown>;
+  const sectorLocale = locale === "ko" || locale === "ja" ? locale : "en";
+  const localizedName = names[sectorLocale];
+  const englishName = names.en;
+
+  if (typeof localizedName === "string" && localizedName.trim()) return localizedName.trim();
+  if (typeof englishName === "string" && englishName.trim()) return englishName.trim();
+  return null;
+}
+
 function translateSectorLabel(
   sectorCode: string | null | undefined,
   sectorLabel: string | null | undefined,

@@ -1,5 +1,23 @@
 # Session Handoff
 
+## Current State — 2026-08-03 (Database Sector Names)
+
+### Sector Localization
+
+- 기업 섹터 라벨은 `companies.sector_names` JSON을 사용함
+- 이 호환 view의 원천은 `company_sector(sector_role='display')`, `sector`,
+  `sector_i18n`이며 로컬 `docs/views.sql`도 실제 DB 정의와 동기화됨
+- `ko/en/ja`는 DB의 해당 이름, 나머지 7개 지원 locale은 DB 영어 이름을 표시함
+- `sector_code`와 코드북 조회는 이전 DB 계약 호환을 위한 후순위 fallback으로만 남아 있음
+
+### Verification
+
+- `npm run check` 통과: 5 test files, 48 tests, production build
+- 실제 DB dev 런타임의 홈, 기업 목록, 기업 상세, 섹터 목록에서 HTTP 200 및
+  locale별 섹터 이름 확인
+- 한국어 `정보통신업`, 일본어 `情報通信業`, 영어 및 중국어 경로에서
+  `Information and communication` 확인; 샘플 데이터 fallback 없음
+
 ## Current State — 2026-07-30 (10-Locale Expansion)
 
 ### Localization

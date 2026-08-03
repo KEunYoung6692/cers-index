@@ -5,6 +5,7 @@ import {
   buildCompanyInterpretation,
   buildCompanySummary,
   createDisplayName,
+  getLocalizedSectorName,
   getPublicCategoryLabel,
   humanizeCode,
   localizeDashboardData,
@@ -386,7 +387,7 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
 
     const [companiesRes, methodologyRes, latestRunsRes, categoriesRes, codebooksRes] = await Promise.all([
       pool.query<GenericRow>(
-        `SELECT company_id, company_name_kr, company_name_en, stock_code, country_code, market_code, sector_code, industry_code, status
+        `SELECT company_id, company_name_kr, company_name_en, stock_code, country_code, market_code, sector_code, sector_names, industry_code, status
          FROM companies
          WHERE COALESCE(status, 'active') <> 'inactive'`,
       ),
@@ -791,6 +792,7 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
         lookupCodeLabel(codebooks, ["country_code", "country"], countryCode) || COUNTRY_LABELS[countryCode] || countryCode;
       const marketLabel = lookupCodeLabel(codebooks, ["market_code", "market"], marketCode) || humanizeCode(marketCode);
       const sectorLabel =
+        getLocalizedSectorName(row.sector_names, locale) ||
         lookupCodeLabel(codebooks, ["sector_code", "sector"], sectorCode) ||
         (sectorCode && !SECTOR_CODES.has(sectorCode as (typeof SECTOR_CODES extends Set<infer T> ? T : never)) ? sectorCode : null);
       const industryLabel =

@@ -1,5 +1,23 @@
 # Claude Progress — cers-index
 
+## 2026-08-03 — 기업 섹터 이름 DB 다국어 연동
+
+### 완료 작업
+- `companies.sector_names` JSON 계약을 대시보드 서버 조회에 연결
+  - 원천 관계: `company_sector(sector_role='display') → sector → sector_i18n`
+  - `ko`, `en`, `ja`는 해당 DB 번역을 사용
+  - `zh`, `vi`, `ru`, `id`, `th`, `bn`, `es`는 영어 이름으로 fallback
+- 기존 `sector_code` 기반 코드북 추정은 구 DB 계약을 위한 후순위 fallback으로 유지
+- `docs/views.sql`에 실제 DB의 `sector_catalog` 및 확장된 `companies` view 계약 반영
+- 10개 지원 locale의 섹터 이름 선택 규칙과 누락 번역 fallback 테스트 추가
+
+### 검증
+- Node.js 20.19.0에서 `npm run check` 통과
+  - harness, lint, typecheck, Vitest 5 files/48 tests, production build
+- 실제 DB dev 런타임에서 홈·기업 목록·기업 상세·섹터 목록 HTTP 200 확인
+- `/ko`는 `정보통신업`, `/ja`는 `情報通信業`, `/en`과 `/zh`는
+  `Information and communication`을 표시하고 샘플 fallback 경고가 없음을 확인
+
 ## 2026-07-30 — 공개 대시보드 10개 locale 확장
 
 ### 완료 작업

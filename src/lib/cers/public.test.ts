@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildCompanyInterpretation,
   deriveCalculationStatus,
+  getLocalizedSectorName,
   getPublicCategoryLabel,
 } from "./public";
 import type { CersCompanyProfile } from "./types";
@@ -44,6 +45,31 @@ describe("public CERs presentation contract", () => {
         scoreFiscalYear: null,
       } as CersCompanyProfile),
     ).toBe("not_scored");
+  });
+
+  it.each([
+    ["ko", "제조업"],
+    ["en", "Manufacturing"],
+    ["ja", "製造業"],
+    ["zh", "Manufacturing"],
+    ["vi", "Manufacturing"],
+    ["ru", "Manufacturing"],
+    ["id", "Manufacturing"],
+    ["th", "Manufacturing"],
+    ["bn", "Manufacturing"],
+    ["es", "Manufacturing"],
+  ] as const)("selects the database sector name for %s", (locale, expected) => {
+    expect(
+      getLocalizedSectorName(
+        { ko: "제조업", en: "Manufacturing", ja: "製造業" },
+        locale,
+      ),
+    ).toBe(expected);
+  });
+
+  it("falls back to English when a supported database translation is missing", () => {
+    expect(getLocalizedSectorName({ en: "Manufacturing" }, "ko")).toBe("Manufacturing");
+    expect(getLocalizedSectorName(null, "en")).toBeNull();
   });
 
   it("describes public facts without assigning an arbitrary performance band", () => {

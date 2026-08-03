@@ -6,7 +6,7 @@
     "behavior": "CERs Index 점수 기준 기업 순위를 표시하고, 점수가 없을 때는 배출·목표 데이터만으로 명시적인 데이터 부족 상태를 표시한다.",
     "verification": "npm run dev 실행 후 /ko 에서 실제 기업 카드와 데이터 소스 경고 상태를 확인한다.",
     "state": "active",
-    "evidence": "DB views 적용 및 넷제로 기업 실제 데이터 노출까지 확인됨. 2026-07-08 홈 hydration warning 대응 후 npm run check 통과. 2026-07-20 대시보드 5분 서버 메모리 캐시와 기업 목록 경량화·24개 단위 페이지네이션 적용, npm run check 통과. 실제 DB dev warm 측정은 /ko 0.25초, /ko/companies 0.17초, /ko/industries 0.23초이며 기업 목록 응답은 약 16.6MB에서 3.7MB로 감소. 2026-07-30 10개 locale 홈 URL이 모두 HTTP 200과 locale별 문구를 반환함. 홈 전체 완료 조건과 브라우저 콘솔 재검증 필요."
+    "evidence": "DB views 적용 및 넷제로 기업 실제 데이터 노출까지 확인됨. 2026-07-08 홈 hydration warning 대응 후 npm run check 통과. 2026-07-20 대시보드 5분 서버 메모리 캐시와 기업 목록 경량화·24개 단위 페이지네이션 적용, npm run check 통과. 실제 DB dev warm 측정은 /ko 0.25초, /ko/companies 0.17초, /ko/industries 0.23초이며 기업 목록 응답은 약 16.6MB에서 3.7MB로 감소. 2026-07-30 10개 locale 홈 URL이 모두 HTTP 200과 locale별 문구를 반환함. 2026-08-03 company_sector/sector/sector_i18n 기반 섹터 이름을 연결하고 /ko·/ja·/zh 홈에서 실제 DB 이름과 영어 fallback, HTTP 200, 샘플 fallback 미사용을 확인함. npm run check 통과. 홈 전체 완료 조건과 브라우저 콘솔 재검증 필요."
   },
   {
     "id": "F02",
@@ -15,7 +15,7 @@
     "behavior": "전체 기업 목록을 업종·국가·점수 조건과 검색어로 조회한다.",
     "verification": "npm run dev 실행 후 /ko/companies 에서 실제 DB 기업 목록, 검색, 필터를 확인한다.",
     "state": "not_started",
-    "evidence": "구현은 존재하나 현재 검증 사이클은 시작하지 않음."
+    "evidence": "구현은 존재하나 현재 검증 사이클은 시작하지 않음. 2026-08-03 섹터 이름 변경의 회귀 확인으로 /ko/companies, /ja/companies, /zh/companies HTTP 200과 실제 DB 섹터 이름, 샘플 fallback 미사용을 확인함."
   },
   {
     "id": "F03",
@@ -24,7 +24,7 @@
     "behavior": "기업 점수, 배출 추이, 감축목표, 넷제로 로드맵, 프레임워크와 검증 상태를 표시한다.",
     "verification": "npm run dev 실행 후 실제 companyId의 /ko/companies/{id}에서 배출 차트와 목표 데이터를 확인한다.",
     "state": "not_started",
-    "evidence": "2026-07-20 최신 batch compatibility views 적용 후 일본 기업 히타치(23922)의 /ja/companies/23922가 HTTP 200으로 응답하고 일본어·영문 회사명 및 실제 DB 지표·목표 연결을 확인함. 배출 차트와 목표 UI의 브라우저 상호작용 전체 검증은 아직 필요함."
+    "evidence": "2026-07-20 최신 batch compatibility views 적용 후 일본 기업 히타치(23922)의 /ja/companies/23922가 HTTP 200으로 응답하고 일본어·영문 회사명 및 실제 DB 지표·목표 연결을 확인함. 2026-08-03 기업 1 상세에서 /ko는 정보통신업, /ja는 情報通信業, /en·/zh는 Information and communication을 실제 DB로 표시함. 배출 차트와 목표 UI의 브라우저 상호작용 전체 검증은 아직 필요함."
   },
   {
     "id": "F04",

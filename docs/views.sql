@@ -12,21 +12,51 @@
 -- 소스 테이블: CERsIndex-batch/docs/schema.sql + schema_scoring.sql
 -- =====================================================================
 
--- ─── 1. companies ← company ────────────────────────────────────────────────
+-- ─── 1. sector_catalog ← sector + sector_i18n ──────────────────────────────
+-- 활성 taxonomy/locale만 모아 화면에서 locale별 이름을 선택할 수 있는 JSON으로 제공
+CREATE OR REPLACE VIEW sector_catalog AS
+SELECT
+    s.id                                              AS sector_id,
+    st.code                                           AS taxonomy_code,
+    st.country                                        AS taxonomy_country,
+    s.code                                            AS sector_code,
+    s.source_key,
+    jsonb_object_agg(si.locale, si.name ORDER BY sl.sort_no) AS names
+FROM sector s
+JOIN sector_taxonomy st
+  ON st.id = s.taxonomy_id
+JOIN sector_i18n si
+  ON si.sector_id = s.id
+JOIN sector_locale sl
+  ON sl.locale = si.locale
+ AND sl.is_active
+WHERE s.is_active
+  AND st.is_active
+GROUP BY s.id, st.code, st.country, s.code, s.source_key;
+
+-- ─── 2. companies ← company + company_sector + sector_catalog ──────────────
 CREATE OR REPLACE VIEW companies AS
 SELECT
-    id                                                    AS company_id,
-    corp_name                                             AS company_name_kr,
-    corp_en                                               AS company_name_en,
-    stock_code,
-    country                                               AS country_code,
-    market                                                AS market_code,
-    sector_code,
-    ind_code                                              AS industry_code,
-    CASE WHEN is_active THEN 'active' ELSE 'inactive' END AS status
-FROM company;
+    co.id                                                    AS company_id,
+    co.corp_name                                             AS company_name_kr,
+    co.corp_en                                               AS company_name_en,
+    co.stock_code,
+    co.country                                               AS country_code,
+    co.market                                                AS market_code,
+    sc.sector_code::varchar(20)                              AS sector_code,
+    co.ind_code                                              AS industry_code,
+    CASE WHEN co.is_active THEN 'active' ELSE 'inactive' END AS status,
+    sc.sector_id,
+    sc.taxonomy_code                                         AS sector_taxonomy_code,
+    sc.names                                                 AS sector_names
+FROM company co
+LEFT JOIN company_sector cs
+  ON cs.company_id = co.id
+ AND cs.sector_role = 'display'
+LEFT JOIN sector_catalog sc
+  ON sc.sector_id = cs.sector_id;
 
--- ─── 2. documents ← report ─────────────────────────────────────────────────
+-- ─── 3. documents ← report ─────────────────────────────────────────────────
 -- 다운로드 완료 보고서만 노출
 CREATE OR REPLACE VIEW documents AS
 SELECT
@@ -40,7 +70,7 @@ SELECT
 FROM report
 WHERE down_at IS NOT NULL;
 
--- ─── 3. rpt_period ← clean_val ─────────────────────────────────────────────
+-- ─── 4. rpt_period ← clean_val ─────────────────────────────────────────────
 -- 기업×연도 유니크 조합. synthetic period_id = company_id * 10000 + data_year
 CREATE OR REPLACE VIEW rpt_period AS
 SELECT DISTINCT
@@ -57,7 +87,7 @@ WHERE is_cur
   AND org_unit_id IS NULL
   AND data_year IS NOT NULL;
 
--- ─── 4. co_metric ← clean_val ──────────────────────────────────────────────
+-- ─── 5. co_metric ← clean_val ──────────────────────────────────────────────
 -- 승인된 회사 단위 수치. Scope 2는 MB > 일반 > LB 순으로 하나만 노출한다.
 CREATE OR REPLACE VIEW co_metric AS
 WITH candidates AS (
@@ -125,7 +155,7 @@ SELECT
 FROM ranked
 WHERE rn = 1;
 
--- ─── 5. co_target ← clean_val ──────────────────────────────────────────────
+-- ─── 6. co_target ← clean_val ──────────────────────────────────────────────
 -- record_key별 감축목표. 파싱 원문을 프론트 표시 계약으로만 분류하며 점수화하지 않는다.
 CREATE OR REPLACE VIEW co_target AS
 WITH target_values AS (
@@ -218,7 +248,7 @@ SELECT
 FROM targets
 WHERE target_year IS NOT NULL;
 
--- ─── 6. doc_fw_adopt ← report.frame_json ───────────────────────────────────
+-- ─── 7. doc_fw_adopt ← report.frame_json ───────────────────────────────────
 -- 채택 프레임워크 배지 (GRI/TCFD/IFRS S2 등)
 CREATE OR REPLACE VIEW doc_fw_adopt AS
 SELECT
@@ -230,7 +260,7 @@ FROM report r,
 WHERE r.frame_json IS NOT NULL
   AND jsonb_typeof(r.frame_json) = 'array';
 
--- ─── 7. co_scope3 ← scope3_category_status JSON ────────────────────────────
+-- ─── 8. co_scope3 ← scope3_category_status JSON ────────────────────────────
 CREATE OR REPLACE VIEW co_scope3 AS
 SELECT
     (cv.id::bigint * 100 + item.ordinality)::bigint         AS co_scope3_id,
@@ -264,7 +294,7 @@ WHERE cv.is_cur
   AND v.code = 'scope3_category_status'
   AND jsonb_typeof(cv.val_json) = 'array';
 
--- ─── 8. doc_assur_stmt ← 보고서별 배출량 검증 수준 ─────────────────────────
+-- ─── 9. doc_assur_stmt ← 보고서별 배출량 검증 수준 ─────────────────────────
 -- 검증기관명은 현재 배치 변수에 없으므로 확인 가능한 수준만 노출한다.
 CREATE OR REPLACE VIEW doc_assur_stmt AS
 SELECT
@@ -289,7 +319,7 @@ GROUP BY rv.report_id;
 
 -- ─── 스코어링 views  (F05 실행 후 데이터 채워짐) ────────────────────────────
 
--- 9. score_categories ← kpi  (KPI 4개 → category 역할)
+-- 10. score_categories ← kpi  (KPI 4개 → category 역할)
 CREATE OR REPLACE VIEW score_categories AS
 SELECT
     id            AS category_id,
@@ -299,7 +329,7 @@ SELECT
     sort_no       AS display_order
 FROM kpi;
 
--- 10. method_ver ← score_run
+-- 11. method_ver ← score_run
 CREATE OR REPLACE VIEW method_ver AS
 SELECT
     id                         AS method_ver_id,
@@ -309,7 +339,7 @@ SELECT
     started_at::date           AS effective_from
 FROM score_run;
 
--- 11. scoring_runs ← final_score  (기업×연도별 최신 run 1행)
+-- 12. scoring_runs ← final_score  (기업×연도별 최신 run 1행)
 CREATE OR REPLACE VIEW scoring_runs AS
 SELECT DISTINCT ON (fs.company_id, fs.rpt_year)
     (fs.company_id::bigint * 10000 + fs.rpt_year)::bigint AS scoring_run_id,
@@ -322,7 +352,7 @@ FROM final_score fs
 JOIN score_run sr ON sr.id = fs.run_id
 ORDER BY fs.company_id, fs.rpt_year, fs.run_id DESC;
 
--- 12. cers_score ← final_score  (0–1 → 1–100 변환)
+-- 13. cers_score ← final_score  (0–1 → 1–100 변환)
 CREATE OR REPLACE VIEW cers_score AS
 SELECT DISTINCT ON (fs.company_id, fs.rpt_year)
     (fs.company_id::bigint * 10000 + fs.rpt_year)::bigint AS scoring_run_id,
@@ -339,7 +369,7 @@ SELECT DISTINCT ON (fs.company_id, fs.rpt_year)
 FROM final_score fs
 ORDER BY fs.company_id, fs.rpt_year, fs.run_id DESC;
 
--- 13. category_scores ← kpi_score  (기업×연도×KPI 최신 run)
+-- 14. category_scores ← kpi_score  (기업×연도×KPI 최신 run)
 CREATE OR REPLACE VIEW category_scores AS
 SELECT DISTINCT ON (ks.company_id, ks.rpt_year, ks.kpi_id)
     (ks.company_id::bigint * 10000 + ks.rpt_year)::bigint AS scoring_run_id,
