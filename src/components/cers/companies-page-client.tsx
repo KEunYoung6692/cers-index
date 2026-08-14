@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { CompanyCard } from "./company-card";
 import { MultiSelectDropdown, type MultiSelectOption } from "./multi-select-dropdown";
-import { deriveCalculationStatus, formatScore } from "@/lib/cers/public";
+import { companyScoreSort, deriveCalculationStatus, formatScore } from "@/lib/cers/public";
 import { getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
 import type { CersCompanyListItem } from "@/lib/cers/types";
 
@@ -107,16 +107,20 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
       const matchesNetZero = !netZeroDeclared || Boolean(company.targetSummary.netZeroYear);
       const matchesScored = !scoredOnly || deriveCalculationStatus(company) === "scored";
 
-      const score = company.overallScore ?? -1;
+      // 점수가 없는 기업은 어떤 점수 구간에도 속하지 않는다. 예전에는 -1로
+      // 치환해서 미평가 2,642개사가 전부 "60 미만"에 걸렸다(2026-08-13 실측).
+      const score = company.overallScore;
       const matchesScoreRange =
         selectedScoreRanges.length === 0 ||
-        selectedScoreRanges.some(
-          (selectedScoreRange) =>
-            (selectedScoreRange === "80-100" && score >= 80) ||
-            (selectedScoreRange === "70-79" && score >= 70 && score < 80) ||
-            (selectedScoreRange === "60-69" && score >= 60 && score < 70) ||
-            (selectedScoreRange === "0-59" && score < 60),
-        );
+        (score !== null &&
+          score !== undefined &&
+          selectedScoreRanges.some(
+            (selectedScoreRange) =>
+              (selectedScoreRange === "80-100" && score >= 80) ||
+              (selectedScoreRange === "70-79" && score >= 70 && score < 80) ||
+              (selectedScoreRange === "60-69" && score >= 60 && score < 70) ||
+              (selectedScoreRange === "0-59" && score < 60),
+          ));
 
       return matchesQuery && matchesSector && matchesCountry && matchesTarget && matchesNetZero && matchesScoreRange && matchesScored;
     })
@@ -129,10 +133,9 @@ export function CompaniesPageClient({ companies, locale = "en" }: CompaniesPageC
         const yearB = b.targetSummary.targetYear ?? Number.MAX_SAFE_INTEGER;
         if (yearA !== yearB) return yearA - yearB;
       }
-      const scoreA = a.overallScore ?? -1;
-      const scoreB = b.overallScore ?? -1;
-      if (scoreA !== scoreB) return scoreB - scoreA;
-      return a.name.localeCompare(b.name, "en", { sensitivity: "base" });
+      // 평가된 기업을 항상 위로 올린다. 점수는 음수가 될 수 있어(원문 4.2절
+      // "점수 범위는 미정") 미평가를 -1로 치환하면 순서가 뒤집힌다.
+      return companyScoreSort(a, b);
     });
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, pageCount);

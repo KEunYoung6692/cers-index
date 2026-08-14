@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
 import {
   buildComparisonSummary,
+  companyScoreSort,
   formatEmissions,
   formatPercent,
   formatScore,
@@ -28,7 +29,8 @@ function getCategoryTone() {
 
 export function ComparePageClient({ companies, categories, locale = "en" }: ComparePageClientProps) {
   const t = getTranslations(locale);
-  const sorted = [...companies].sort((a, b) => (b.overallScore ?? -1) - (a.overallScore ?? -1));
+  // 미평가를 -1로 치환하면 음수 점수 기업이 그 아래로 밀린다(companyScoreSort 참조).
+  const sorted = [...companies].sort(companyScoreSort);
   const [selectedIds, setSelectedIds] = useState<string[]>(sorted.slice(0, 3).map((company) => company.id));
   const selectedCompanies = selectedIds
     .map((id) => companies.find((company) => company.id === id))

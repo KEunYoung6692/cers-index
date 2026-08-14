@@ -54,10 +54,17 @@ export function HomeScoreLeaderboard({
     () => companies.filter((company) => company.overallScore !== null),
     [companies],
   );
-  const sortedCategories = useMemo(
-    () => [...categories].sort((a, b) => a.displayOrder - b.displayOrder).slice(0, 4),
-    [categories],
-  );
+  // KPI는 코드 기준으로 유일해야 한다. 예전에는 정렬 후 앞 4개를 그냥 잘랐는데,
+  // 뷰가 방법론 두 벌(legacy_v2 + cers_0730)을 같은 코드로 내보내던 시기에는
+  // KPI1, KPI1, KPI2, KPI2가 렌더링됐다(2026-08-13 실측). 자르기는 문제를
+  // 가릴 뿐이므로 코드로 먼저 접고, 그 다음 표시 순서대로 4개를 쓴다.
+  const sortedCategories = useMemo(() => {
+    const byCode = new Map<string, (typeof categories)[number]>();
+    for (const category of categories) {
+      if (!byCode.has(category.code)) byCode.set(category.code, category);
+    }
+    return [...byCode.values()].sort((a, b) => a.displayOrder - b.displayOrder).slice(0, 4);
+  }, [categories]);
   const availableCountries: MultiSelectOption[] = useMemo(
     () => Array.from(new Map(scoredCompanies.filter((company) => company.countryCode || company.countryLabel).map((company) => [
       company.countryCode || company.countryLabel || "__none__",

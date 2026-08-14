@@ -319,15 +319,23 @@ GROUP BY rv.report_id;
 
 -- ─── 스코어링 views  (F05 실행 후 데이터 채워짐) ────────────────────────────
 
--- 10. score_categories ← kpi  (KPI 4개 → category 역할)
+-- 10. score_categories ← kpi  (활성 방법론의 KPI 4개만)
+--
+-- 2026-08-13 수리: kpi 테이블에는 legacy_v2(id 1~4)와 cers_0730(id 25~28)이
+-- **같은 code(KPI1~KPI4)** 로 공존한다. 전부 내보내면 프론트가 code로 중복을
+-- 접으면서 먼저 온 legacy 행을 집어, 화면에 옛 방법론 점수가 뜨거나 `—`가 된다.
+-- (실측: リクルート 화면 E100.0/T100.0/C100.0/R100.0 = legacy 0~1 점수 ×100.
+--  실제 0730 값은 KPI1=649.8 / KPI2=205.9 / KPI3=0.0 / KPI4=31.7)
+-- 최신 score_run이 사용한 방법론만 노출한다.
 CREATE OR REPLACE VIEW score_categories AS
 SELECT
-    id            AS category_id,
-    code          AS category_code,
-    name          AS category_name,
-    NULL::numeric AS category_weight,
-    sort_no       AS display_order
-FROM kpi;
+    k.id            AS category_id,
+    k.code          AS category_code,
+    k.name          AS category_name,
+    NULL::numeric   AS category_weight,
+    k.sort_no       AS display_order
+FROM kpi k
+WHERE k.method_id = (SELECT sr.method_id FROM score_run sr ORDER BY sr.id DESC LIMIT 1);
 
 -- 11. method_ver ← score_run
 CREATE OR REPLACE VIEW method_ver AS
@@ -339,9 +347,12 @@ SELECT
     started_at::date           AS effective_from
 FROM score_run;
 
--- 12. scoring_runs ← final_score  (기업×연도별 최신 run 1행)
+-- 12. scoring_runs ← final_score  (기업당 최신 run 1행)
+--
+-- 2026-08-13 수리: grain이 (기업, 연도)라 평가연도 앵커가 바뀐 기업이 화면에
+-- 두 번 나왔다(東京エレクトロン: run 18에서 t=2018, run 22에서 t=2021 -> 38개사인데 39행).
 CREATE OR REPLACE VIEW scoring_runs AS
-SELECT DISTINCT ON (fs.company_id, fs.rpt_year)
+SELECT DISTINCT ON (fs.company_id)
     (fs.company_id::bigint * 10000 + fs.rpt_year)::bigint AS scoring_run_id,
     fs.company_id,
     (fs.company_id::bigint * 10000 + fs.rpt_year)::bigint AS period_id,
@@ -350,31 +361,41 @@ SELECT DISTINCT ON (fs.company_id, fs.rpt_year)
     fs.run_id                                              AS method_ver_id
 FROM final_score fs
 JOIN score_run sr ON sr.id = fs.run_id
-ORDER BY fs.company_id, fs.rpt_year, fs.run_id DESC;
+ORDER BY fs.company_id, fs.run_id DESC, fs.rpt_year DESC;
 
--- 13. cers_score ← final_score  (0–1 → 1–100 변환)
+-- 13. cers_score ← final_score  (원점수 그대로)
+--
+-- 2026-08-13 수리: `score <= 1.001 THEN 1 + 99 * score`는 legacy_v2가 0~1 점수를
+-- 내던 시절의 재척도다. 0730 점수는 이미 0~100 척도라 1.001 이하 값(0점·음수)이
+-- 전부 99배로 증폭됐다.
+--   HD한국조선해양 -637.6 -> -63,118.4 / セブン&アイ -359.2 -> -35,563.7
+--   대한항공 -278.1 -> -27,534.7 / 삼성SDI -103.4 -> -10,232.9
+-- 0점 기업은 1.0이 돼 "0점"과 "1점"이 구분되지 않았다.
+-- 0730 원문 4.2절은 "점수 범위는 미정, CERs_Index ∈ [??,??]"이므로 절단·재척도
+-- 근거가 없다. grain도 기업당 1행으로 맞춘다(scoring_runs와 동일).
 CREATE OR REPLACE VIEW cers_score AS
-SELECT DISTINCT ON (fs.company_id, fs.rpt_year)
+SELECT DISTINCT ON (fs.company_id)
     (fs.company_id::bigint * 10000 + fs.rpt_year)::bigint AS scoring_run_id,
     NULL::numeric                                          AS sbase,
     NULL::numeric                                          AS cef,
     NULL::numeric                                          AS gv,
-    CASE
-        WHEN fs.score IS NULL  THEN NULL
-        WHEN fs.score <= 1.001 THEN ROUND(1 + 99 * LEAST(fs.score, 1), 1)
-        ELSE ROUND(fs.score, 1)
-    END                                                    AS cers_score,
+    ROUND(fs.score, 1)                                     AS cers_score,
     NULL::text     AS score_grade,
     'scored'::text AS index_status
 FROM final_score fs
-ORDER BY fs.company_id, fs.rpt_year, fs.run_id DESC;
+ORDER BY fs.company_id, fs.run_id DESC, fs.rpt_year DESC;
 
--- 14. category_scores ← kpi_score  (기업×연도×KPI 최신 run)
+-- 14. category_scores ← kpi_score  (기업×KPI 최신 run, 활성 방법론만)
+--
+-- 2026-08-13 수리: grain이 (기업, 연도, KPI)라 과거 방법론·과거 앵커 연도의 KPI가
+-- 함께 조회됐다(39개 기업에 기대 156행인데 실제 308행). score_categories와 같은
+-- 방법론으로 제한하고 기업당 KPI 1행씩만 내보낸다.
 CREATE OR REPLACE VIEW category_scores AS
-SELECT DISTINCT ON (ks.company_id, ks.rpt_year, ks.kpi_id)
+SELECT DISTINCT ON (ks.company_id, ks.kpi_id)
     (ks.company_id::bigint * 10000 + ks.rpt_year)::bigint AS scoring_run_id,
     ks.kpi_id                                              AS category_id,
     ks.score                                               AS category_raw_score,
     NULL::numeric                                          AS category_weighted_score
 FROM kpi_score ks
-ORDER BY ks.company_id, ks.rpt_year, ks.kpi_id, ks.run_id DESC;
+WHERE ks.kpi_id IN (SELECT category_id FROM score_categories)
+ORDER BY ks.company_id, ks.kpi_id, ks.run_id DESC;

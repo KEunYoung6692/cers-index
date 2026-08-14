@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MultiSelectDropdown, type MultiSelectOption } from "@/components/cers/multi-select-dropdown";
 import { localizedPath, getTranslations, type SupportedLocale } from "@/lib/cers/i18n";
-import { formatScore } from "@/lib/cers/public";
+import { companyScoreSort, formatScore } from "@/lib/cers/public";
 import type { CersCategoryMeta, CersCompanyProfile } from "@/lib/cers/types";
 
 const COMPANIES_PER_PAGE = 20;
@@ -84,10 +84,8 @@ export function CompanyScoreListTable({ companies, categories, locale = "en" }: 
       return matchesSector && matchesCountry && matchesYear;
     })
     .sort((a, b) => {
-      const scoreA = a.overallScore ?? -1;
-      const scoreB = b.overallScore ?? -1;
-      if (scoreA !== scoreB) return scoreB - scoreA;
-      return a.name.localeCompare(b.name, "en", { sensitivity: "base" });
+      // 미평가를 -1로 치환하면 음수 점수 기업이 그 아래로 밀린다(companyScoreSort 참조).
+      return companyScoreSort(a, b);
     });
 
   const totalPages = Math.max(1, Math.ceil(filteredCompanies.length / COMPANIES_PER_PAGE));

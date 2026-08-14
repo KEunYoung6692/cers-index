@@ -385,11 +385,18 @@ function translateSectorLabel(
   return sectorLabel;
 }
 
+// CERs Index(0730)는 점수 범위가 정해져 있지 않다.
+// 원문 4.2절: "점수 범위는 미정, CERs_Index ∈ [??,??]".
+// E1 = 100*(r-g)/0.042 처럼 기준 감축률 대비 배수로 나오는 변수가 있어
+// 100을 넘거나 음수가 되는 값이 정상이다.
+//
+// 이전 구현은 [0,100]으로 잘라내고 |v|<=1.2인 값을 100배 했다. 그 결과
+// 서로 다른 기업이 전부 100.0으로 표시돼 순위 자체가 사라졌다(2026-08-13 실측:
+// 상위 10개사 전원 100.0 — 실제 값은 827.7 / 245.7 / 221.9 / 200.9 / 198.6 ...).
+// 잘라내지 않고 원점수를 그대로 돌려준다.
 export function normalizeScoreValue(value: number | null | undefined) {
   if (value === null || value === undefined || !Number.isFinite(value)) return null;
-  const abs = Math.abs(value);
-  if (abs <= 1.2) return Math.max(0, Math.min(100, value * 100));
-  return Math.max(0, Math.min(100, value));
+  return value;
 }
 
 export function normalizePercentValue(value: number | null | undefined) {
@@ -1127,10 +1134,21 @@ export function buildComparisonSummary(companies: CersCompanyProfile[], locale: 
   return `${leader.displayName} currently leads this comparison on overall score and transition readiness.`;
 }
 
-export function companyScoreSort(a: CersCompanyProfile, b: CersCompanyProfile) {
-  const scoreA = a.overallScore ?? -1;
-  const scoreB = b.overallScore ?? -1;
-  if (scoreA !== scoreB) return scoreB - scoreA;
+// 평가된 기업이 항상 먼저 오고, 그 안에서 점수 내림차순이다.
+//
+// 예전에는 미평가를 -1 점으로 바꿔 한 줄로 정렬했다. CERs Index는 범위가 정해져
+// 있지 않아 점수가 음수까지 나오므로(원문 4.2절 "점수 범위는 미정"), -1 치환은
+// 평가된 기업을 미평가보다 아래로 밀어낸다. 2026-08-13 실측: HD한국조선해양
+// -637.6이 점수가 아예 없는 2,642개사보다 뒤에 놓였다.
+type ScoreSortable = Pick<CersCompanyProfile, "overallScore" | "name">;
+
+export function companyScoreSort(a: ScoreSortable, b: ScoreSortable) {
+  const hasA = a.overallScore !== null && a.overallScore !== undefined;
+  const hasB = b.overallScore !== null && b.overallScore !== undefined;
+  if (hasA !== hasB) return hasA ? -1 : 1;
+  if (hasA && hasB && a.overallScore !== b.overallScore) {
+    return (b.overallScore as number) - (a.overallScore as number);
+  }
   return a.name.localeCompare(b.name, "en", { sensitivity: "base" });
 }
 

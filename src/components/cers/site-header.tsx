@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Globe2, Menu, Search, X } from "lucide-react";
@@ -60,9 +61,15 @@ export function SiteHeader({ locale = "en" }: SiteHeaderProps) {
       <div className="container flex h-[72px] items-center justify-between gap-5">
         <div className="flex min-w-0 items-center gap-8">
           <Link href={localizedPath(locale, "/")} className="flex shrink-0 items-center gap-3 text-slate-950 dark:text-white">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-950 text-sm font-bold text-white shadow-sm dark:bg-white dark:text-slate-950">
-              C
-            </span>
+            {/* 파비콘과 동일한 자산 (public/android-chrome-192x192.png) */}
+            <Image
+              src="/android-chrome-192x192.png"
+              alt=""
+              width={36}
+              height={36}
+              priority
+              className="h-9 w-9 shrink-0"
+            />
             <span className="text-base font-semibold tracking-tight">CERs Index</span>
           </Link>
           <nav className="hidden items-center gap-1 lg:flex">

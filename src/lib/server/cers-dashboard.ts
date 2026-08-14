@@ -11,6 +11,7 @@ import {
   localizeDashboardData,
   mergeCategoryMeta,
   normalizePercentValue,
+  companyScoreSort,
   normalizeScoreValue,
 } from "@/lib/cers/public";
 import type { SupportedLocale } from "@/lib/cers/i18n";
@@ -27,64 +28,35 @@ import { getExistingTableNames, getPool } from "./db";
 
 type GenericRow = Record<string, unknown>;
 
+// docs/views.sql이 정의하는 프론트 계약 뷰. 뷰가 아직 적용되지 않은 환경을
+// 위해 존재 여부를 먼저 확인하고, 없으면 해당 데이터를 비운다.
 type DashboardSchema = {
   periodTable: string | null;
   methodologyTable: string | null;
-  methodologyVersionIdColumn: string;
-  scoringRunMethodologyVersionIdColumn: string;
   metricTable: string | null;
-  metricValueColumn: string;
-  metricUnitColumn: string;
   targetTable: string | null;
-  targetIdColumn: string;
-  targetMetricTypeColumn: string;
-  targetScopeCodeColumn: string;
-  targetValueColumn: string;
-  targetUnitColumn: string;
-  targetReductionPctColumn: string;
-  scenarioAlignmentCodeColumn: string;
-  sbtiApprovedColumn: string;
-  residualDefinedColumn: string;
-  offsetUsageColumn: string;
-  offsetDependencyRatioColumn: string;
-  carbonRemovalPlanColumn: string;
   scope3Table: string | null;
-  scope3PrimaryRatioColumn: string;
   frameworkTable: string | null;
-  frameworkCodeColumn: string;
-  frameworkLabelColumn: string;
   assuranceTable: string | null;
-  assuranceProviderColumn: string;
-  assuranceTypeColumn: string;
 };
 
 const DASHBOARD_TABLES = [
   "companies",
   "documents",
-  "codebooks",
   "score_categories",
   "scoring_runs",
   "category_scores",
   "cers_score",
-  "reporting_periods",
   "rpt_period",
-  "company_metric_facts",
   "co_metric",
-  "company_target_facts",
   "co_target",
-  "company_scope3_facts",
   "co_scope3",
-  "methodology_versions",
   "method_ver",
-  "document_framework_adoptions",
   "doc_fw_adopt",
-  "document_assurance_statements",
   "doc_assur_stmt",
-  "variable_scores",
-  "score_variables",
 ] as const;
 
-const HISTORY_TABLES = ["company_metric_facts", "co_metric", "reporting_periods", "rpt_period"] as const;
+const HISTORY_TABLES = ["co_metric", "rpt_period"] as const;
 
 const COUNTRY_LABELS: Record<string, string> = {
   KR: "South Korea",
@@ -209,85 +181,18 @@ function getEmptyResult() {
   return { rows: [] as GenericRow[] };
 }
 
-function buildCodebookLookup(rows: GenericRow[]) {
-  const lookup = new Map<string, Map<string, string>>();
-
-  for (const row of rows) {
-    const group = toText(row.code_group)?.toLowerCase();
-    const value = toText(row.code_value);
-    const label = toText(row.code_label);
-    if (!group || !value || !label) continue;
-    if (!lookup.has(group)) lookup.set(group, new Map());
-    lookup.get(group)!.set(value.toLowerCase(), label);
-  }
-
-  return lookup;
-}
-
-function pickExistingTable(existingTables: Set<string>, candidates: readonly string[]) {
-  return candidates.find((candidate) => existingTables.has(candidate)) ?? null;
-}
-
 function resolveDashboardSchema(existingTables: Set<string>): DashboardSchema {
-  const periodTable = pickExistingTable(existingTables, ["rpt_period", "reporting_periods"]);
-  const methodologyTable = pickExistingTable(existingTables, ["method_ver", "methodology_versions"]);
-  const metricTable = pickExistingTable(existingTables, ["co_metric", "company_metric_facts"]);
-  const targetTable = pickExistingTable(existingTables, ["co_target", "company_target_facts"]);
-  const scope3Table = pickExistingTable(existingTables, ["co_scope3", "company_scope3_facts"]);
-  const frameworkTable = pickExistingTable(existingTables, ["doc_fw_adopt", "document_framework_adoptions"]);
-  const assuranceTable = pickExistingTable(existingTables, ["doc_assur_stmt", "document_assurance_statements"]);
+  const pick = (view: string) => (existingTables.has(view) ? view : null);
 
   return {
-    periodTable,
-    methodologyTable,
-    methodologyVersionIdColumn: methodologyTable === "method_ver" ? "method_ver_id" : "methodology_version_id",
-    scoringRunMethodologyVersionIdColumn: methodologyTable === "method_ver" ? "method_ver_id" : "methodology_version_id",
-    metricTable,
-    metricValueColumn: metricTable === "co_metric" ? "metric_val" : "metric_value",
-    metricUnitColumn: metricTable === "co_metric" ? "unit" : "metric_unit",
-    targetTable,
-    targetIdColumn: targetTable === "co_target" ? "co_target_id" : "company_target_fact_id",
-    targetMetricTypeColumn: targetTable === "co_target" ? "metric_type" : "target_metric_type",
-    targetScopeCodeColumn: targetTable === "co_target" ? "target_scope" : "target_scope_code",
-    targetValueColumn: targetTable === "co_target" ? "target_val" : "target_value",
-    targetUnitColumn: "target_unit",
-    targetReductionPctColumn: targetTable === "co_target" ? "target_red_pct" : "target_reduction_pct",
-    scenarioAlignmentCodeColumn: targetTable === "co_target" ? "scen_align_cd" : "scenario_alignment_code",
-    sbtiApprovedColumn: targetTable === "co_target" ? "sbti_ok" : "sbti_approval_flag",
-    residualDefinedColumn: targetTable === "co_target" ? "residual_def" : "residual_defined_flag",
-    offsetUsageColumn: targetTable === "co_target" ? "offset_use" : "offset_usage_flag",
-    offsetDependencyRatioColumn: targetTable === "co_target" ? "offset_dep_ratio" : "offset_dependency_ratio",
-    carbonRemovalPlanColumn: targetTable === "co_target" ? "removal_plan" : "carbon_removal_plan_flag",
-    scope3Table,
-    scope3PrimaryRatioColumn: scope3Table === "co_scope3" ? "primary_ratio" : "primary_data_ratio",
-    frameworkTable,
-    frameworkCodeColumn: frameworkTable === "doc_fw_adopt" ? "fw_cd" : "framework_code",
-    frameworkLabelColumn: frameworkTable === "doc_fw_adopt" ? "fw_label" : "framework_label",
-    assuranceTable,
-    assuranceProviderColumn: assuranceTable === "doc_assur_stmt" ? "assur_provider" : "assurance_provider",
-    assuranceTypeColumn: assuranceTable === "doc_assur_stmt" ? "assur_type_cd" : "assurance_type_code",
+    periodTable: pick("rpt_period"),
+    methodologyTable: pick("method_ver"),
+    metricTable: pick("co_metric"),
+    targetTable: pick("co_target"),
+    scope3Table: pick("co_scope3"),
+    frameworkTable: pick("doc_fw_adopt"),
+    assuranceTable: pick("doc_assur_stmt"),
   };
-}
-
-function lookupCodeLabel(
-  codebooks: Map<string, Map<string, string>>,
-  groupCandidates: string[],
-  value: string | null,
-) {
-  if (!value) return null;
-  const normalizedValue = value.toLowerCase();
-
-  for (const group of groupCandidates) {
-    const options = codebooks.get(group.toLowerCase());
-    const hit = options?.get(normalizedValue);
-    if (hit) return hit;
-  }
-
-  if (groupCandidates.includes("country_code")) {
-    return COUNTRY_LABELS[value.toUpperCase()] || humanizeCode(value);
-  }
-
-  return null;
 }
 
 function metricKey(metricCode: string | null) {
@@ -381,11 +286,10 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
       schema.methodologyTable !== null ? "mv.version_name" : "NULL::text AS version_name";
     const methodologyJoin =
       schema.methodologyTable !== null
-        ? `LEFT JOIN ${schema.methodologyTable} mv
-               ON mv.${schema.methodologyVersionIdColumn} = sr.${schema.scoringRunMethodologyVersionIdColumn}`
+        ? `LEFT JOIN ${schema.methodologyTable} mv ON mv.method_ver_id = sr.method_ver_id`
         : "";
 
-    const [companiesRes, methodologyRes, latestRunsRes, categoriesRes, codebooksRes] = await Promise.all([
+    const [companiesRes, methodologyRes, latestRunsRes, categoriesRes] = await Promise.all([
       pool.query<GenericRow>(
         `SELECT company_id, company_name_kr, company_name_en, stock_code, country_code, market_code, sector_code, sector_names, industry_code, status
          FROM companies
@@ -393,7 +297,7 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
       ),
       schema.methodologyTable
         ? pool.query<GenericRow>(
-            `SELECT ${schema.methodologyVersionIdColumn} AS methodology_version_id, version_name
+            `SELECT method_ver_id AS methodology_version_id, version_name
              FROM ${schema.methodologyTable}
              ORDER BY is_active DESC, effective_from DESC NULLS LAST, methodology_version_id DESC
              LIMIT 1`,
@@ -443,12 +347,6 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
              ORDER BY COALESCE(display_order, 999), category_id`,
           )
         : Promise.resolve(getEmptyResult()),
-      existingTables.has("codebooks")
-        ? pool.query<GenericRow>(
-            `SELECT code_group, code_value, code_label
-             FROM codebooks`,
-          )
-        : Promise.resolve(getEmptyResult()),
     ]);
 
     if (companiesRes.rows.length === 0) {
@@ -458,7 +356,6 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
       );
     }
 
-    const codebooks = buildCodebookLookup(codebooksRes.rows);
     const companyIds = companiesRes.rows
       .map((row) => toNumber(row.company_id))
       .filter((value): value is number => value !== null);
@@ -488,22 +385,22 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
         : Promise.resolve(getEmptyResult()),
       companyIds.length > 0 && schema.targetTable
         ? pool.query<GenericRow>(
-            `SELECT ${schema.targetIdColumn} AS company_target_fact_id,
+            `SELECT co_target_id AS company_target_fact_id,
                     company_id,
                     target_type,
-                    ${schema.targetMetricTypeColumn} AS target_metric_type,
+                    metric_type AS target_metric_type,
                     base_year,
                     target_year,
-                    ${schema.targetScopeCodeColumn} AS target_scope_code,
-                    ${schema.targetValueColumn} AS target_value,
-                    ${schema.targetUnitColumn} AS target_unit,
-                    ${schema.targetReductionPctColumn} AS target_reduction_pct,
-                    ${schema.scenarioAlignmentCodeColumn} AS scenario_alignment_code,
-                    ${schema.sbtiApprovedColumn} AS sbti_approval_flag,
-                    ${schema.residualDefinedColumn} AS residual_defined_flag,
-                    ${schema.offsetUsageColumn} AS offset_usage_flag,
-                    ${schema.offsetDependencyRatioColumn} AS offset_dependency_ratio,
-                    ${schema.carbonRemovalPlanColumn} AS carbon_removal_plan_flag,
+                    target_scope AS target_scope_code,
+                    target_val AS target_value,
+                    target_unit,
+                    target_red_pct AS target_reduction_pct,
+                    scen_align_cd AS scenario_alignment_code,
+                    sbti_ok AS sbti_approval_flag,
+                    residual_def AS residual_defined_flag,
+                    offset_use AS offset_usage_flag,
+                    offset_dep_ratio AS offset_dependency_ratio,
+                    removal_plan AS carbon_removal_plan_flag,
                     disclosed_flag
              FROM ${schema.targetTable}
              WHERE company_id = ANY($1::bigint[])`,
@@ -515,7 +412,7 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
             `SELECT company_id,
                     COUNT(*) FILTER (WHERE COALESCE(disclosed_flag, FALSE)) AS disclosed_categories,
                     COUNT(*) AS total_categories,
-                    AVG(${schema.scope3PrimaryRatioColumn}) AS average_primary_data_ratio
+                    AVG(primary_ratio) AS average_primary_data_ratio
              FROM ${schema.scope3Table}
              WHERE company_id = ANY($1::bigint[])
              ${latestPeriodIds.length > 0 ? "AND period_id = ANY($2::bigint[])" : ""}
@@ -567,8 +464,8 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
             `SELECT mf.company_id,
                     rp.fiscal_year,
                     mf.metric_code,
-                    SUM(mf.${schema.metricValueColumn}) AS metric_value,
-                    MAX(mf.${schema.metricUnitColumn}) AS metric_unit
+                    SUM(mf.metric_val) AS metric_value,
+                    MAX(mf.unit) AS metric_unit
              FROM ${schema.metricTable} mf
              LEFT JOIN ${schema.periodTable} rp ON rp.period_id = mf.period_id
              WHERE mf.company_id = ANY($1::bigint[])
@@ -585,7 +482,7 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
                SELECT mf.company_id,
                       rp.fiscal_year,
                       mf.metric_code,
-                      SUM(mf.${schema.metricValueColumn}) AS metric_value
+                      SUM(mf.metric_val) AS metric_value
                FROM ${schema.metricTable} mf
                LEFT JOIN ${schema.periodTable} rp ON rp.period_id = mf.period_id
                WHERE mf.company_id = ANY($1::bigint[])
@@ -613,8 +510,8 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
       documentIds.length > 0 && schema.frameworkTable
         ? pool.query<GenericRow>(
             `SELECT document_id,
-                    ${schema.frameworkCodeColumn} AS framework_code,
-                    ${schema.frameworkLabelColumn} AS framework_label
+                    fw_cd AS framework_code,
+                    fw_label AS framework_label
              FROM ${schema.frameworkTable}
              WHERE document_id = ANY($1::bigint[])`,
             [documentIds],
@@ -623,8 +520,8 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
       documentIds.length > 0 && schema.assuranceTable
         ? pool.query<GenericRow>(
             `SELECT document_id,
-                    ${schema.assuranceProviderColumn} AS assurance_provider,
-                    ${schema.assuranceTypeColumn} AS assurance_type_code
+                    assur_provider AS assurance_provider,
+                    assur_type_cd AS assurance_type_code
              FROM ${schema.assuranceTable}
              WHERE document_id = ANY($1::bigint[])`,
             [documentIds],
@@ -788,16 +685,13 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
       const marketCode = toText(row.market_code);
       const sectorCode = toText(row.sector_code)?.toUpperCase() ?? null;
       const industryCode = toText(row.industry_code);
-      const countryLabel =
-        lookupCodeLabel(codebooks, ["country_code", "country"], countryCode) || COUNTRY_LABELS[countryCode] || countryCode;
-      const marketLabel = lookupCodeLabel(codebooks, ["market_code", "market"], marketCode) || humanizeCode(marketCode);
+      const countryLabel = COUNTRY_LABELS[countryCode] || humanizeCode(countryCode) || countryCode;
+      const marketLabel = humanizeCode(marketCode);
+      // 섹터명은 sector_i18n(sector_names)이 정본. 미번역 섹터만 원본 코드로 표시한다.
       const sectorLabel =
         getLocalizedSectorName(row.sector_names, locale) ||
-        lookupCodeLabel(codebooks, ["sector_code", "sector"], sectorCode) ||
         (sectorCode && !SECTOR_CODES.has(sectorCode as (typeof SECTOR_CODES extends Set<infer T> ? T : never)) ? sectorCode : null);
-      const industryLabel =
-        lookupCodeLabel(codebooks, ["industry_code", "industry"], industryCode) ||
-        (industryCode ? humanizeCode(industryCode) : null);
+      const industryLabel = industryCode ? humanizeCode(industryCode) : null;
 
       const latestRun = runsByCompanyId.get(companyId);
       const scoringRunId = toNumber(latestRun?.scoring_run_id);
@@ -829,7 +723,12 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
           : null);
       const categoryScoresForCompany = scoringRunId !== null ? categoriesByRunId.get(String(scoringRunId)) || [] : [];
       const resolvedCategories = mergeCategoryMeta(categoryMeta, categoryScoresForCompany).map((meta) => {
-        const match = categoryScoresForCompany.find((category) => category.code === meta.code || category.id === meta.id);
+        // id가 방법론까지 구분하는 유일 키다. code(KPI1~KPI4)는 방법론이 달라도
+        // 같은 값이라, code를 먼저 보면 옛 방법론의 NULL 점수가 먼저 잡혀 화면에
+        // `—`로 뜬다(2026-08-13 실측). id 일치를 우선하고 code는 보조로만 쓴다.
+        const match =
+          categoryScoresForCompany.find((category) => category.id === meta.id) ??
+          categoryScoresForCompany.find((category) => category.code === meta.code);
         return (
           match || {
             ...meta,
@@ -844,10 +743,7 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
       const assuranceRow = documentId !== null ? assuranceByDocumentId.get(String(documentId)) : undefined;
       const assuranceProvider = toText(assuranceRow?.assurance_provider);
       const assuranceTypeCode = toText(assuranceRow?.assurance_type_code);
-      const assuranceTypeLabel =
-        lookupCodeLabel(codebooks, ["assurance_type_code", "assurance_type", "assurance"], assuranceTypeCode) ||
-        assuranceTypeCode;
-      const assuranceDisplay = assuranceProvider || assuranceTypeLabel;
+      const assuranceDisplay = assuranceProvider || assuranceTypeCode;
       const document = documentId === null
         ? null
         : {
@@ -959,12 +855,9 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
       return company;
     });
 
-    companies.sort((a, b) => {
-      const scoreA = a.overallScore ?? -1;
-      const scoreB = b.overallScore ?? -1;
-      if (scoreA !== scoreB) return scoreB - scoreA;
-      return a.name.localeCompare(b.name, "en", { sensitivity: "base" });
-    });
+    // 평가된 기업이 먼저 오도록 한다. 점수가 음수일 수 있어 미평가를 -1로
+    // 치환하면 순서가 뒤집힌다(companyScoreSort 참조).
+    companies.sort(companyScoreSort);
 
     return localizeDashboardData(
       {
@@ -1020,7 +913,7 @@ export const getCompanyEmissionHistory = cache(async (companyId: string): Promis
     const result = await pool.query<GenericRow>(
       `SELECT rp.fiscal_year,
               mf.metric_code,
-              SUM(mf.${schema.metricValueColumn}) AS metric_value
+              SUM(mf.metric_val) AS metric_value
        FROM ${schema.metricTable} mf
        LEFT JOIN ${schema.periodTable} rp ON rp.period_id = mf.period_id
        WHERE mf.company_id = $1

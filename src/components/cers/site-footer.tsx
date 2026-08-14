@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { getTranslations, localizedPath, type SupportedLocale } from "@/lib/cers/i18n";
 
@@ -9,9 +10,15 @@ export function SiteFooter({ locale = "en" }: { locale?: SupportedLocale }) {
       <div className="container grid gap-8 py-10 md:grid-cols-[1.25fr_0.75fr] md:items-end">
         <div className="max-w-xl">
           <div className="flex items-center gap-3">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-950 text-sm font-bold text-white dark:bg-white dark:text-slate-950">
-              C
-            </span>
+            {/* 헤더 로고와 동일한 파비콘 자산 */}
+            <Image
+              src="/android-chrome-192x192.png"
+              alt=""
+              width={36}
+              height={36}
+              className="h-9 w-9 shrink-0"
+            />
+
             <div className="font-semibold tracking-tight text-slate-950 dark:text-white">CERs Index</div>
           </div>
           <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">{t.footer.description}</p>
