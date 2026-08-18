@@ -316,7 +316,7 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
                       cs.sbase,
                       cs.cef,
                       cs.gv,
-                      cs.cers_score,
+                      COALESCE(cs.cers_display_score, cs.cers_score) AS cers_score,
                       cs.score_grade,
                       cs.index_status,
                       ROW_NUMBER() OVER (
@@ -375,7 +375,7 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
                     meta.category_name,
                     meta.category_weight,
                     COALESCE(meta.display_order, meta.category_id) AS display_order,
-                    sc.category_raw_score,
+                    COALESCE(sc.category_display_score, sc.category_raw_score) AS category_raw_score,
                     sc.category_weighted_score
              FROM category_scores sc
              JOIN score_categories meta ON meta.category_id = sc.category_id

@@ -165,14 +165,13 @@ export function HomeScoreLeaderboard({
       ) : (
         <>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] border-collapse">
+            <table className="w-full min-w-[720px] border-collapse">
               <thead className="bg-slate-50/90 dark:bg-slate-900/70">
                 <tr className="border-b border-slate-200 dark:border-slate-800">
                   <th scope="col" className="w-20 px-5 py-3 text-left text-[13px] font-semibold text-slate-500 md:px-8">{t.companies.scoreListColumns.rank}</th>
                   <th scope="col" className="px-4 py-3 text-left text-[13px] font-semibold text-slate-500">{t.companies.scoreListColumns.company}</th>
                   <th scope="col" className="w-28 px-4 py-3 text-right text-[13px] font-semibold text-slate-500">{t.companies.scoreListColumns.score}</th>
                   <th scope="col" className="w-[290px] px-4 py-3 text-left text-[13px] font-semibold text-slate-500">KPI Profile</th>
-                  <th scope="col" className="w-24 px-4 py-3 text-right text-[13px] font-semibold text-slate-500">{t.home.yearChange}</th>
                   <th scope="col" className="w-16 px-5 py-3 text-right text-[13px] font-semibold text-slate-500 md:px-8">{t.home.details}</th>
                 </tr>
               </thead>
@@ -196,7 +195,6 @@ export function HomeScoreLeaderboard({
                           })}
                         </div>
                       </td>
-                      <td className="px-4 py-4 text-right text-sm font-semibold tabular-nums text-slate-400">—</td>
                       <td className="px-5 py-4 text-right md:px-8"><Link href={localizedPath(locale, `/companies/${company.id}`)} aria-label={`${company.displayName} ${t.common.viewDetails}`} className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-teal-700 dark:hover:bg-slate-900 dark:hover:text-teal-300"><ArrowRight className="h-4 w-4" /></Link></td>
                     </tr>
                   );
