@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import {
   buildCompanyInterpretation,
@@ -27,6 +28,27 @@ import type {
 import { getExistingTableNames, getPool } from "./db";
 
 type GenericRow = Record<string, unknown>;
+
+type DashboardBootstrapRows = {
+  companiesRows: GenericRow[];
+  methodologyRows: GenericRow[];
+  latestRunsRows: GenericRow[];
+  categoriesRows: GenericRow[];
+};
+
+type DashboardRelatedRows = {
+  categoryScoresRows: GenericRow[];
+  targetsRows: GenericRow[];
+  scope3Rows: GenericRow[];
+  documentsRows: GenericRow[];
+};
+
+type DashboardMetricRows = {
+  metricsRows: GenericRow[];
+  latestEmissionMetricsRows: GenericRow[];
+  frameworkRows: GenericRow[];
+  assuranceRows: GenericRow[];
+};
 
 // docs/views.sql이 정의하는 프론트 계약 뷰. 뷰가 아직 적용되지 않은 환경을
 // 위해 존재 여부를 먼저 확인하고, 없으면 해당 데이터를 비운다.
@@ -56,7 +78,11 @@ const DASHBOARD_TABLES = [
   "doc_assur_stmt",
 ] as const;
 
-const HISTORY_TABLES = ["co_metric", "rpt_period"] as const;
+const DB_CACHE_REVALIDATE_SECONDS = 24 * 60 * 60;
+const DB_CACHE_OPTIONS = {
+  revalidate: DB_CACHE_REVALIDATE_SECONDS,
+  tags: ["cers-dashboard-db"],
+};
 
 const COUNTRY_LABELS: Record<string, string> = {
   KR: "South Korea",
@@ -270,24 +296,31 @@ function makeIssueMessage(message: string, locale: SupportedLocale) {
   return `${message} Falling back to sample content.`;
 }
 
-async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<CersDashboardData> {
-  try {
-    const existingTables = await getExistingTableNames([...DASHBOARD_TABLES]);
-    const schema = resolveDashboardSchema(existingTables);
-    if (!existingTables.has("companies")) {
-      return localizeDashboardData(
-        { ...fallbackDashboardData, issue: makeIssueMessage("The companies table is not available.", locale) },
-        locale,
-      );
+const getCachedDashboardTableNames = unstable_cache(
+  async () => {
+    const tableNames = await getExistingTableNames([...DASHBOARD_TABLES]);
+    if (!tableNames.has("companies")) {
+      throw new Error("The companies table is not available.");
     }
+    return Array.from(tableNames).sort();
+  },
+  ["cers-dashboard-table-names-v1"],
+  DB_CACHE_OPTIONS,
+);
 
+const getCachedDashboardBootstrapRows = unstable_cache(
+  async (
+    periodTable: string | null,
+    methodologyTable: string | null,
+    hasScoringRuns: boolean,
+    hasCersScore: boolean,
+    hasScoreCategories: boolean,
+  ): Promise<DashboardBootstrapRows> => {
     const pool = getPool();
-    const methodologySelect =
-      schema.methodologyTable !== null ? "mv.version_name" : "NULL::text AS version_name";
-    const methodologyJoin =
-      schema.methodologyTable !== null
-        ? `LEFT JOIN ${schema.methodologyTable} mv ON mv.method_ver_id = sr.method_ver_id`
-        : "";
+    const methodologySelect = methodologyTable !== null ? "mv.version_name" : "NULL::text AS version_name";
+    const methodologyJoin = methodologyTable !== null
+      ? `LEFT JOIN ${methodologyTable} mv ON mv.method_ver_id = sr.method_ver_id`
+      : "";
 
     const [companiesRes, methodologyRes, latestRunsRes, categoriesRes] = await Promise.all([
       pool.query<GenericRow>(
@@ -295,15 +328,15 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
          FROM companies
          WHERE COALESCE(status, 'active') <> 'inactive'`,
       ),
-      schema.methodologyTable
+      methodologyTable
         ? pool.query<GenericRow>(
             `SELECT method_ver_id AS methodology_version_id, version_name
-             FROM ${schema.methodologyTable}
+             FROM ${methodologyTable}
              ORDER BY is_active DESC, effective_from DESC NULLS LAST, methodology_version_id DESC
              LIMIT 1`,
           )
         : Promise.resolve(getEmptyResult()),
-      existingTables.has("scoring_runs") && schema.periodTable && existingTables.has("cers_score")
+      hasScoringRuns && periodTable && hasCersScore
         ? pool.query<GenericRow>(
             `WITH ranked_runs AS (
                SELECT sr.scoring_run_id,
@@ -331,7 +364,7 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
                           sr.scoring_run_id DESC
                       ) AS rn
                FROM scoring_runs sr
-               LEFT JOIN ${schema.periodTable} rp ON rp.period_id = sr.period_id
+               LEFT JOIN ${periodTable} rp ON rp.period_id = sr.period_id
                ${methodologyJoin}
                LEFT JOIN cers_score cs ON cs.scoring_run_id = sr.scoring_run_id
              )
@@ -340,7 +373,7 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
              WHERE rn = 1`,
           )
         : Promise.resolve(getEmptyResult()),
-      existingTables.has("score_categories")
+      hasScoreCategories
         ? pool.query<GenericRow>(
             `SELECT category_id, category_code, category_name, category_weight, display_order
              FROM score_categories
@@ -350,24 +383,34 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
     ]);
 
     if (companiesRes.rows.length === 0) {
-      return localizeDashboardData(
-        { ...fallbackDashboardData, issue: makeIssueMessage("No companies are currently available in the live schema.", locale) },
-        locale,
-      );
+      throw new Error("No companies are currently available in the live schema.");
     }
 
-    const companyIds = companiesRes.rows
-      .map((row) => toNumber(row.company_id))
-      .filter((value): value is number => value !== null);
-    const latestRunIds = latestRunsRes.rows
-      .map((row) => toNumber(row.scoring_run_id))
-      .filter((value): value is number => value !== null);
-    const latestPeriodIds = latestRunsRes.rows
-      .map((row) => toNumber(row.period_id))
-      .filter((value): value is number => value !== null);
+    return {
+      companiesRows: companiesRes.rows,
+      methodologyRows: methodologyRes.rows,
+      latestRunsRows: latestRunsRes.rows,
+      categoriesRows: categoriesRes.rows,
+    };
+  },
+  ["cers-dashboard-bootstrap-v1"],
+  DB_CACHE_OPTIONS,
+);
 
+const getCachedDashboardRelatedRows = unstable_cache(
+  async (
+    companyIds: number[],
+    latestRunIds: number[],
+    latestPeriodIds: number[],
+    targetTable: string | null,
+    scope3Table: string | null,
+    hasCategoryScores: boolean,
+    hasScoreCategories: boolean,
+    hasDocuments: boolean,
+  ): Promise<DashboardRelatedRows> => {
+    const pool = getPool();
     const [categoryScoresRes, targetsRes, scope3Res, documentsRes] = await Promise.all([
-      latestRunIds.length > 0 && existingTables.has("category_scores") && existingTables.has("score_categories")
+      latestRunIds.length > 0 && hasCategoryScores && hasScoreCategories
         ? pool.query<GenericRow>(
             `SELECT sc.scoring_run_id,
                     meta.category_id,
@@ -383,7 +426,7 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
             [latestRunIds],
           )
         : Promise.resolve(getEmptyResult()),
-      companyIds.length > 0 && schema.targetTable
+      companyIds.length > 0 && targetTable
         ? pool.query<GenericRow>(
             `SELECT co_target_id AS company_target_fact_id,
                     company_id,
@@ -402,25 +445,25 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
                     offset_dep_ratio AS offset_dependency_ratio,
                     removal_plan AS carbon_removal_plan_flag,
                     disclosed_flag
-             FROM ${schema.targetTable}
+             FROM ${targetTable}
              WHERE company_id = ANY($1::bigint[])`,
             [companyIds],
           )
         : Promise.resolve(getEmptyResult()),
-      companyIds.length > 0 && schema.scope3Table
+      companyIds.length > 0 && scope3Table
         ? pool.query<GenericRow>(
             `SELECT company_id,
                     COUNT(*) FILTER (WHERE COALESCE(disclosed_flag, FALSE)) AS disclosed_categories,
                     COUNT(*) AS total_categories,
                     AVG(primary_ratio) AS average_primary_data_ratio
-             FROM ${schema.scope3Table}
+             FROM ${scope3Table}
              WHERE company_id = ANY($1::bigint[])
              ${latestPeriodIds.length > 0 ? "AND period_id = ANY($2::bigint[])" : ""}
              GROUP BY company_id`,
             latestPeriodIds.length > 0 ? [companyIds, latestPeriodIds] : [companyIds],
           )
         : Promise.resolve(getEmptyResult()),
-      companyIds.length > 0 && existingTables.has("documents")
+      companyIds.length > 0 && hasDocuments
         ? pool.query<GenericRow>(
             `WITH ranked_documents AS (
                SELECT document_id,
@@ -445,29 +488,38 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
         : Promise.resolve(getEmptyResult()),
     ]);
 
-    const yearsNeeded = Array.from(
-      new Set(
-        [
-          ...latestRunsRes.rows.map((row) => toNumber(row.fiscal_year)),
-          ...targetsRes.rows.map((row) => toNumber(row.base_year)),
-        ].filter((value): value is number => value !== null),
-      ),
-    );
+    return {
+      categoryScoresRows: categoryScoresRes.rows,
+      targetsRows: targetsRes.rows,
+      scope3Rows: scope3Res.rows,
+      documentsRows: documentsRes.rows,
+    };
+  },
+  ["cers-dashboard-related-v1"],
+  DB_CACHE_OPTIONS,
+);
 
-    const documentIds = documentsRes.rows
-      .map((row) => toNumber(row.document_id))
-      .filter((value): value is number => value !== null);
-
+const getCachedDashboardMetricRows = unstable_cache(
+  async (
+    companyIds: number[],
+    yearsNeeded: number[],
+    documentIds: number[],
+    metricTable: string | null,
+    periodTable: string | null,
+    frameworkTable: string | null,
+    assuranceTable: string | null,
+  ): Promise<DashboardMetricRows> => {
+    const pool = getPool();
     const [metricsRes, latestEmissionMetricsRes, frameworkRes, assuranceRes] = await Promise.all([
-      companyIds.length > 0 && schema.metricTable && schema.periodTable
+      companyIds.length > 0 && metricTable && periodTable
         ? pool.query<GenericRow>(
             `SELECT mf.company_id,
                     rp.fiscal_year,
                     mf.metric_code,
                     SUM(mf.metric_val) AS metric_value,
                     MAX(mf.unit) AS metric_unit
-             FROM ${schema.metricTable} mf
-             LEFT JOIN ${schema.periodTable} rp ON rp.period_id = mf.period_id
+             FROM ${metricTable} mf
+             LEFT JOIN ${periodTable} rp ON rp.period_id = mf.period_id
              WHERE mf.company_id = ANY($1::bigint[])
                AND mf.metric_code = ANY($2::text[])
                ${yearsNeeded.length > 0 ? "AND rp.fiscal_year = ANY($3::int[])" : ""}
@@ -476,15 +528,15 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
             yearsNeeded.length > 0 ? [companyIds, RELEVANT_METRIC_CODES, yearsNeeded] : [companyIds, RELEVANT_METRIC_CODES],
           )
         : Promise.resolve(getEmptyResult()),
-      companyIds.length > 0 && schema.metricTable && schema.periodTable
+      companyIds.length > 0 && metricTable && periodTable
         ? pool.query<GenericRow>(
             `WITH emission_years AS (
                SELECT mf.company_id,
                       rp.fiscal_year,
                       mf.metric_code,
                       SUM(mf.metric_val) AS metric_value
-               FROM ${schema.metricTable} mf
-               LEFT JOIN ${schema.periodTable} rp ON rp.period_id = mf.period_id
+               FROM ${metricTable} mf
+               LEFT JOIN ${periodTable} rp ON rp.period_id = mf.period_id
                WHERE mf.company_id = ANY($1::bigint[])
                  AND mf.metric_code = ANY($2::text[])
                  AND COALESCE(mf.data_status, 'reported') <> 'missing'
@@ -507,43 +559,129 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
             [companyIds, EMISSION_METRIC_CODES],
           )
         : Promise.resolve(getEmptyResult()),
-      documentIds.length > 0 && schema.frameworkTable
+      documentIds.length > 0 && frameworkTable
         ? pool.query<GenericRow>(
             `SELECT document_id,
                     fw_cd AS framework_code,
                     fw_label AS framework_label
-             FROM ${schema.frameworkTable}
+             FROM ${frameworkTable}
              WHERE document_id = ANY($1::bigint[])`,
             [documentIds],
           )
         : Promise.resolve(getEmptyResult()),
-      documentIds.length > 0 && schema.assuranceTable
+      documentIds.length > 0 && assuranceTable
         ? pool.query<GenericRow>(
             `SELECT document_id,
                     assur_provider AS assurance_provider,
                     assur_type_cd AS assurance_type_code
-             FROM ${schema.assuranceTable}
+             FROM ${assuranceTable}
              WHERE document_id = ANY($1::bigint[])`,
             [documentIds],
           )
         : Promise.resolve(getEmptyResult()),
     ]);
 
-    const methodologyVersion = toText(methodologyRes.rows[0]?.version_name) || toText(latestRunsRes.rows[0]?.version_name);
+    return {
+      metricsRows: metricsRes.rows,
+      latestEmissionMetricsRows: latestEmissionMetricsRes.rows,
+      frameworkRows: frameworkRes.rows,
+      assuranceRows: assuranceRes.rows,
+    };
+  },
+  ["cers-dashboard-metrics-v1"],
+  DB_CACHE_OPTIONS,
+);
 
-    const categoryMeta = categoriesRes.rows.length
-      ? categoriesRes.rows.map((row, index) => createCategoryMetaFromRow(row, index))
+async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<CersDashboardData> {
+  try {
+    const existingTables = new Set(await getCachedDashboardTableNames());
+    const schema = resolveDashboardSchema(existingTables);
+    const {
+      companiesRows,
+      methodologyRows,
+      latestRunsRows,
+      categoriesRows,
+    } = await getCachedDashboardBootstrapRows(
+      schema.periodTable,
+      schema.methodologyTable,
+      existingTables.has("scoring_runs"),
+      existingTables.has("cers_score"),
+      existingTables.has("score_categories"),
+    );
+
+    const companyIds = companiesRows
+      .map((row) => toNumber(row.company_id))
+      .filter((value): value is number => value !== null)
+      .sort((a, b) => a - b);
+    const latestRunIds = latestRunsRows
+      .map((row) => toNumber(row.scoring_run_id))
+      .filter((value): value is number => value !== null)
+      .sort((a, b) => a - b);
+    const latestPeriodIds = latestRunsRows
+      .map((row) => toNumber(row.period_id))
+      .filter((value): value is number => value !== null)
+      .sort((a, b) => a - b);
+
+    const {
+      categoryScoresRows,
+      targetsRows,
+      scope3Rows,
+      documentsRows,
+    } = await getCachedDashboardRelatedRows(
+      companyIds,
+      latestRunIds,
+      latestPeriodIds,
+      schema.targetTable,
+      schema.scope3Table,
+      existingTables.has("category_scores"),
+      existingTables.has("score_categories"),
+      existingTables.has("documents"),
+    );
+
+    const yearsNeeded = Array.from(
+      new Set(
+        [
+          ...latestRunsRows.map((row) => toNumber(row.fiscal_year)),
+          ...targetsRows.map((row) => toNumber(row.base_year)),
+        ].filter((value): value is number => value !== null),
+      ),
+    ).sort((a, b) => a - b);
+
+    const documentIds = documentsRows
+      .map((row) => toNumber(row.document_id))
+      .filter((value): value is number => value !== null)
+      .sort((a, b) => a - b);
+
+    const {
+      metricsRows,
+      latestEmissionMetricsRows,
+      frameworkRows,
+      assuranceRows,
+    } = await getCachedDashboardMetricRows(
+      companyIds,
+      yearsNeeded,
+      documentIds,
+      schema.metricTable,
+      schema.periodTable,
+      schema.frameworkTable,
+      schema.assuranceTable,
+    );
+
+    const methodologyVersion = toText(methodologyRows[0]?.version_name) || toText(latestRunsRows[0]?.version_name);
+
+    const categoryMeta = categoriesRows.length
+      ? categoriesRows.map((row, index) => createCategoryMetaFromRow(row, index))
       : buildDefaultCategoryMeta();
 
     const runsByCompanyId = new Map<string, GenericRow>();
-    for (const row of latestRunsRes.rows) {
+    for (const row of latestRunsRows) {
       const companyId = toNumber(row.company_id);
       if (companyId === null) continue;
       runsByCompanyId.set(String(companyId), row);
     }
 
     const categoriesByRunId = new Map<string, CersCategoryScore[]>();
-    for (const row of categoryScoresRes.rows) {
+    for (const row of categoryScoresRows) {
       const runId = toNumber(row.scoring_run_id);
       if (runId === null) continue;
 
@@ -566,7 +704,7 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
     }
 
     const targetsByCompanyId = new Map<string, CersTargetFact[]>();
-    for (const row of targetsRes.rows) {
+    for (const row of targetsRows) {
       const companyId = toNumber(row.company_id);
       const targetId = toNumber(row.company_target_fact_id);
       if (companyId === null || targetId === null) continue;
@@ -596,21 +734,21 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
     }
 
     const scope3ByCompanyId = new Map<string, GenericRow>();
-    for (const row of scope3Res.rows) {
+    for (const row of scope3Rows) {
       const companyId = toNumber(row.company_id);
       if (companyId === null) continue;
       scope3ByCompanyId.set(String(companyId), row);
     }
 
     const documentsByCompanyId = new Map<string, GenericRow>();
-    for (const row of documentsRes.rows) {
+    for (const row of documentsRows) {
       const companyId = toNumber(row.company_id);
       if (companyId === null) continue;
       documentsByCompanyId.set(String(companyId), row);
     }
 
     const frameworksByDocumentId = new Map<string, string[]>();
-    for (const row of frameworkRes.rows) {
+    for (const row of frameworkRows) {
       const documentId = toNumber(row.document_id);
       if (documentId === null) continue;
       const key = String(documentId);
@@ -622,14 +760,14 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
     }
 
     const assuranceByDocumentId = new Map<string, GenericRow>();
-    for (const row of assuranceRes.rows) {
+    for (const row of assuranceRows) {
       const documentId = toNumber(row.document_id);
       if (documentId === null || assuranceByDocumentId.has(String(documentId))) continue;
       assuranceByDocumentId.set(String(documentId), row);
     }
 
     const metricsByCompanyYear = new Map<string, Record<string, number | null>>();
-    for (const row of metricsRes.rows) {
+    for (const row of metricsRows) {
       const companyId = toNumber(row.company_id);
       const fiscalYear = toNumber(row.fiscal_year);
       const metricCode = metricKey(toText(row.metric_code));
@@ -651,7 +789,7 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
       }
     >();
 
-    for (const row of latestEmissionMetricsRes.rows) {
+    for (const row of latestEmissionMetricsRows) {
       const companyId = toNumber(row.company_id);
       const fiscalYear = toNumber(row.fiscal_year);
       const metricCode = metricKey(toText(row.metric_code));
@@ -675,7 +813,7 @@ async function loadCersDashboardData(locale: SupportedLocale = "en"): Promise<Ce
       if (metricCode === "total") target.total = metricValue;
     }
 
-    const companies: CersCompanyProfile[] = companiesRes.rows.map((row) => {
+    const companies: CersCompanyProfile[] = companiesRows.map((row) => {
       const companyId = String(row.company_id);
       const englishName = toText(row.company_name_en);
       const koreanName = toText(row.company_name_kr);
@@ -896,18 +1034,11 @@ export const getCersDashboardData = cache(
   (locale: SupportedLocale = "en") => getCachedCersDashboardData(locale),
 );
 
-export const getCompanyEmissionHistory = cache(async (companyId: string): Promise<CersEmissionHistoryPoint[]> => {
-  const numericCompanyId = Number(companyId);
-  if (!Number.isFinite(numericCompanyId)) {
-    return fallbackEmissionHistory[companyId] ?? [];
-  }
-
-  try {
-    const existingTables = await getExistingTableNames([...HISTORY_TABLES]);
+const getCachedCompanyEmissionHistoryRows = unstable_cache(
+  async (companyId: number): Promise<GenericRow[]> => {
+    const existingTables = new Set(await getCachedDashboardTableNames());
     const schema = resolveDashboardSchema(existingTables);
-    if (!schema.metricTable || !schema.periodTable) {
-      return [];
-    }
+    if (!schema.metricTable || !schema.periodTable) return [];
 
     const pool = getPool();
     const result = await pool.query<GenericRow>(
@@ -922,11 +1053,26 @@ export const getCompanyEmissionHistory = cache(async (companyId: string): Promis
          AND rp.fiscal_year IS NOT NULL
        GROUP BY rp.fiscal_year, mf.metric_code
        ORDER BY rp.fiscal_year ASC`,
-      [numericCompanyId, ["scope1_emissions", "scope_1_emissions", "scope1_tco2e", "scope2_emissions", "scope_2_emissions", "scope2_tco2e", "scope2_market_tco2e", "scope2_location_tco2e", "scope12_emissions", "scope1_2_emissions", "scope_1_2_emissions", "scope12_tco2e", "scope1_2_tco2e"]],
+      [companyId, EMISSION_METRIC_CODES],
     );
 
+    return result.rows;
+  },
+  ["cers-company-emission-history-v1"],
+  DB_CACHE_OPTIONS,
+);
+
+export const getCompanyEmissionHistory = cache(async (companyId: string): Promise<CersEmissionHistoryPoint[]> => {
+  const numericCompanyId = Number(companyId);
+  if (!Number.isFinite(numericCompanyId)) {
+    return fallbackEmissionHistory[companyId] ?? [];
+  }
+
+  try {
+    const rows = await getCachedCompanyEmissionHistoryRows(numericCompanyId);
+
     const byYear = new Map<number, Record<string, number | null>>();
-    for (const row of result.rows) {
+    for (const row of rows) {
       const fiscalYear = toNumber(row.fiscal_year);
       const metricCode = metricKey(toText(row.metric_code));
       const metricValue = toNumber(row.metric_value);

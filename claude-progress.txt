@@ -1,5 +1,24 @@
 # Claude Progress — cers-index
 
+## 2026-10-06 — Supabase DB I/O 절감 캐시
+
+### 완료 작업
+- 대시보드 DB 조회를 24시간 Next Data Cache로 전환
+  - 스키마, 기업·점수, 목표·문서, 지표 결과를 4개 캐시 항목으로 분리
+  - locale 지역화와 화면 데이터 조립은 캐시된 원본 행을 사용해 기존 출력 유지
+  - 기업별 배출 이력도 companyId별로 같은 영속 캐시에 저장
+- DB 오류와 기업 데이터 없음은 예외로 전파해 fallback 결과가 영속 캐시에
+  저장되지 않도록 유지
+- 기존 locale별 5분 프로세스 메모리 캐시는 조립 비용 절감용으로 유지
+
+### 검증
+- Node.js 20.19.0에서 `npm run check` 통과
+  - harness, lint, typecheck, Vitest 5 files/48 tests, production build
+- 실제 DB dev 런타임 `/ko` HTTP 200
+  - 첫 요청 3.33초, 동일 프로세스 재요청 0.24초
+  - dev 서버 재시작 후 1.14초이며 4개 항목 모두 기존 Data Cache에서 조회
+- 실제 직렬화 캐시 크기: 약 1.00MB, 0.98MB, 0.23MB, 328B
+
 ## 2026-08-03 — 기업 섹터 이름 DB 다국어 연동
 
 ### 완료 작업

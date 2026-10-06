@@ -1,5 +1,29 @@
 # Session Handoff
 
+## Current State — 2026-10-06 (Supabase I/O Reduction)
+
+### Runtime Data Cache
+
+- 대시보드의 실 DB 조회 결과는 `unstable_cache` 기반 24시간 Next Data Cache를 사용함
+- 캐시 키는 locale과 분리되어 10개 언어가 같은 원본 DB 행을 공유함
+- 캐시 항목은 스키마, 기업·점수, 목표·문서, 지표 묶음으로 분리되어 최대 약 1.00MB
+- 기업 상세 배출 이력은 companyId별로 별도 캐시됨
+- 쿼리 실패와 fallback 샘플 결과는 영속 캐시에 기록되지 않음
+- 기존 locale별 5분 메모리 캐시는 화면 데이터 조립 결과 재사용을 위해 유지함
+
+### Verification
+
+- `npm run check` 통과: 5 test files, 48 tests, production build
+- 실제 DB dev `/ko` HTTP 200
+- 첫 요청 3.33초, 같은 프로세스 재요청 0.24초
+- dev 서버 재시작 후 기존 4개 Data Cache 항목 재사용 및 `/ko` HTTP 200 확인
+
+### Operations
+
+- DB 데이터 변경을 즉시 반영해야 할 때는 `cers-dashboard-db` 태그 무효화 경로를
+  추가하거나 캐시 키 버전을 올려야 함
+- 현재 시간 기반 재검증 주기는 24시간임
+
 ## Current State — 2026-08-03 (Database Sector Names)
 
 ### Sector Localization
